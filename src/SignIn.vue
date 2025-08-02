@@ -261,7 +261,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
           <!-- Forgot Password Link -->
           <div class="text-left">
             <router-link to="/forgot-password" class="text-xs sm:text-sm text-purple-600 hover:text-purple-800">
-              Having trouble signing in?
+              Forgot your password?
             </router-link>
           </div>
 

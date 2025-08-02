@@ -3,6 +3,9 @@ export const API_CONFIG = {
   // Base URL for the accounts2.0 API
   BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1',
   
+  // Base URL for tracking API (ecom3-api customer endpoints)
+  TRACKING_BASE_URL: import.meta.env.VITE_TRACKING_API_BASE_URL || 'http://localhost:8001/ecom/api/v1',
+  
   // Timeout for API requests (in milliseconds)
   TIMEOUT: 30000,
   
@@ -23,6 +26,7 @@ export const API_CONFIG = {
     REGISTER: '/register',
     COMPLETE_SIGNUP: '/complete-signup',
     FORGOT_PASSWORD: '/forgot-password',
+    RESET_PASSWORD: '/reset-password',
     
     // OTP Verification
     SEND_MOBILE_OTP: '/send-verification/mobile/public',
@@ -42,6 +46,10 @@ export const API_CONFIG = {
     KYC_GST_UNREGISTERED: '/kyc/gst-unregistered',
     KYC_SKIP: '/kyc/skip',
     
+    // Public KYC endpoints for verify-kyc flow
+    KYC_GST_REGISTERED_PUBLIC: '/public/kyc/gst-registered',
+    KYC_GST_UNREGISTERED_PUBLIC: '/public/kyc/gst-unregistered',
+    
     // Validation
     VALIDATE_GST: '/validate-gst',
     VALIDATE_PAN: '/validate-pan',
@@ -49,9 +57,22 @@ export const API_CONFIG = {
     
     // Master Data
     COUNTRY_CODES: '/country-master',
-    BANKS_LIST: '/get-banks-list',
-    ENTITY_TYPES: '/entity-types',
+    BANKS_LIST: '/public/banks-list',
+    ENTITY_TYPES: '/public/entity-types',
     PINCODE_DETAILS: '/pincodes',
+    
+    // Public Verification endpoints for signup flow
+    VALIDATE_GST_PUBLIC: '/public/validate-gst',
+    VALIDATE_PAN_PUBLIC: '/public/validate-pan',
+    VALIDATE_BANK_PUBLIC: '/public/validate-bank',
+    
+    // Email validation
+    CHECK_EMAIL_EXISTS: '/public/check-email-exists',
+    
+    // Tracking endpoints
+    TRACK_AWB: '/trackawb',
+    TRACK_SHIPMENT: '/track',
+    TRACK_REFERENCE: '/track/withReferenceNumbers',
   },
   
   // Error Messages
