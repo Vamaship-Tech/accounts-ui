@@ -727,6 +727,7 @@ const completeSignup = async () => {
       password: formData.password,
       confirmPassword: formData.confirmPassword,
       accountType: formData.accountType,
+      brandName: formData.brandName, // Add brand name
       
       // Add Google Sign-In flag
       isGoogleSignIn: isGoogleSignInUser.value,
@@ -929,6 +930,7 @@ const submitKyc = async () => {
   loading.value = true
   try {
     const kycData: KYCData = {
+      brandName: formData.brandName, // Add brand name
       aadhaarNumber: aadhaarVerified.value ? formData.aadhaarNumber : undefined,
       gstNumber: formData.gstNumber || undefined,
       gstOtp: formData.gstOtp?.some(d => d !== '') ? formData.gstOtp : undefined,

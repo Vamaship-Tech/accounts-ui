@@ -35,6 +35,7 @@ export interface UserDetailsData {
 }
 
 export interface KYCData {
+  brandName?: string;
   aadhaarNumber?: string;
   aadhaarOtp?: string[];
   gstNumber?: string;
@@ -459,10 +460,32 @@ class ApiService {
     console.log('Calling endpoint:', API_CONFIG.ENDPOINTS.BANKS_LIST);
     
     try {
-      const response = await this.request(API_CONFIG.ENDPOINTS.BANKS_LIST);
-      console.log('API getBanksList response:', response);
+      // Use proxy URL to avoid CORS issues
+      const proxyUrl = `/api/v1${API_CONFIG.ENDPOINTS.BANKS_LIST}`;
+      console.log('Using proxy URL:', proxyUrl);
+      
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('Banks list response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Banks list response data:', data);
       console.log('=== API GET BANKS LIST SUCCESS ===');
-      return response;
+      
+      return {
+        success: true,
+        data: data
+      };
     } catch (error) {
       console.error('API getBanksList error:', error);
       console.log('=== API GET BANKS LIST FAILED ===');

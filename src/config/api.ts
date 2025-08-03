@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  // Base URL for the accounts2.0 API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api/v1',
+  // Base URL for the accounts2.0 API - use proxy in development to avoid CORS
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api/v1' : 'http://localhost:8001/api/v1'),
   
   // Base URL for tracking API (ecom3-api customer endpoints)
   TRACKING_BASE_URL: import.meta.env.VITE_TRACKING_API_BASE_URL || 'http://localhost:8001/ecom/api/v1',
@@ -88,7 +88,7 @@ export const API_CONFIG = {
 // Environment-specific configurations
 export const ENV_CONFIG = {
   development: {
-    API_BASE_URL: 'http://localhost:8001/api/v1',
+    API_BASE_URL: '/api/v1', // Use proxy URL to avoid CORS
     DEBUG: true,
   },
   production: {
