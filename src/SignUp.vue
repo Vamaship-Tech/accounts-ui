@@ -84,6 +84,8 @@ const isOtherBank = ref(false)
 const currentStep = ref(1)
 const totalSteps = 3
 const otpSent = ref(false)
+const otpCooldown = ref(0)
+const isMobileAlreadyRegistered = ref(false)
 const aadhaarOtpSent = ref(false)
 const gstOtpSent = ref(false)
 const panOtpSent = ref(false)
@@ -91,7 +93,6 @@ const kycCompleted = ref(false)
 const showDashboard = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const otpCooldown = ref(0)
 const isSkippingKyc = ref(false) // Track if user is skipping KYC
 
 // KYC Section Toggles
@@ -257,6 +258,13 @@ const validateGstNumber = (value: string) => {
   return true
 }
 
+// Function to reset mobile registration flag when phone changes
+const resetMobileRegistrationFlag = () => {
+  isMobileAlreadyRegistered.value = false
+  otpSent.value = false
+  clearErrors()
+}
+
 const sendOtp = async () => {
   console.log('=== SEND OTP FUNCTION CALLED ===')
   console.log('Phone number:', formData.phone)
@@ -277,7 +285,8 @@ const sendOtp = async () => {
     const response = await apiService.sendOTP(formData.phone)
     console.log('API response received:', response)
     
-    if (response.success) {
+    // Check for success - backend doesn't return 'success' field, just check if response exists
+    if (response && response.success) {
       console.log('OTP sent successfully!')
       otpSent.value = true
       // Initialize countdown timer (60 seconds = 1 minute)
@@ -289,7 +298,17 @@ const sendOtp = async () => {
       alert('OTP sent successfully! Please check your phone for the 6-digit code.')
     } else {
       console.log('API returned error:', response)
-      handleApiError(response)
+      
+      // Check for mobile already registered error
+      if (response && !response.success && response.data?.is_registered) {
+        isMobileAlreadyRegistered.value = true
+        generalError.value = response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
+        // Clear phone number to allow user to enter a different one
+        formData.phone = ''
+        errors.phone = 'This mobile number is already registered'
+      } else {
+        handleApiError(response)
+      }
     }
   } catch (error: any) {
     console.error('OTP send error:', error)
@@ -306,6 +325,13 @@ const sendOtp = async () => {
       otpCooldown.value = cooldownRemaining
       startOtpCooldown()
       generalError.value = error.response.data?.message || 'Please wait before requesting another OTP'
+    } else if (error.response?.status === 422 && error.response.data?.is_registered) {
+      // Handle mobile already registered error
+      isMobileAlreadyRegistered.value = true
+      generalError.value = error.response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
+      // Clear phone number to allow user to enter a different one
+      formData.phone = ''
+      errors.phone = 'This mobile number is already registered'
     } else if (error.response?.status === 404 && error.response.data?.user_not_found) {
       // User doesn't exist - this is expected for new signups
       // Proceed to create user during the actual signup process
@@ -333,7 +359,8 @@ const resendOtp = async () => {
     clearErrors()
     
     const response = await apiService.sendOTP(formData.phone)
-    if (response.success) {
+    // Check for success - backend doesn't return 'success' field, just check if response exists
+    if (response && (response.success || response.message)) {
       // Reset OTP fields
       formData.otp = ['', '', '', '', '', '']
       // Start countdown timer (60 seconds = 1 minute)
@@ -345,7 +372,17 @@ const resendOtp = async () => {
     }
   } catch (error: any) {
     console.error('OTP resend error:', error)
-    generalError.value = 'Network error occurred while resending OTP. Please try again.'
+    
+    if (error.response?.status === 422 && error.response.data?.is_registered) {
+      // Handle mobile already registered error
+      isMobileAlreadyRegistered.value = true
+      generalError.value = error.response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
+      // Clear phone number to allow user to enter a different one
+      formData.phone = ''
+      errors.phone = 'This mobile number is already registered'
+    } else {
+      generalError.value = 'Network error occurred while resending OTP. Please try again.'
+    }
   } finally {
     loading.value = false
   }
@@ -387,14 +424,18 @@ const verifyOtp = async () => {
     const otpString = formData.otp!.join('')
     console.log('Verifying OTP:', otpString, 'for phone:', formData.phone)
     const response = await apiService.verifyOTP(formData.phone, otpString)
+    console.log('OTP verification response:', response)
     
-    if (response.success) {
+    // Check for success based on backend response format
+    if (response.result === 1 || response.success || response.message?.toLowerCase().includes('success')) {
+      console.log('OTP verification successful, proceeding to next step')
       nextStep()
     } else {
+      console.log('OTP verification failed:', response.message)
       // Handle specific OTP error cases
-      if (response.message && response.message.toLowerCase().includes('invalid') || 
-          response.message && response.message.toLowerCase().includes('wrong') ||
-          response.message && response.message.toLowerCase().includes('incorrect')) {
+      if (response.message && (response.message.toLowerCase().includes('invalid') || 
+          response.message.toLowerCase().includes('wrong') ||
+          response.message.toLowerCase().includes('incorrect'))) {
         errors.otp = 'Invalid OTP. Please check and try again.'
         // Clear OTP fields for retry
         formData.otp = ['', '', '', '', '', '']
@@ -405,7 +446,7 @@ const verifyOtp = async () => {
   } catch (error: any) {
     console.error('OTP verification error:', error)
     // Handle network errors or specific error responses
-    if (error.response?.status === 400) {
+    if (error.response?.status === 400 || error.response?.status === 422) {
       errors.otp = 'Invalid OTP. Please check and try again.'
       // Clear OTP fields for retry
       formData.otp = ['', '', '', '', '', '']
@@ -418,8 +459,17 @@ const verifyOtp = async () => {
 }
 
 // Navigation functions
-const nextStep = () => {
+const nextStep = async () => {
+  console.log('nextStep called, current step:', currentStep.value, 'total steps:', totalSteps)
   if (currentStep.value < totalSteps) {
+    // For step 1, simply proceed to step 2 (OTP verification is already done)
+    if (currentStep.value === 1) {
+      console.log('Moving from Step 1 to Step 2 after OTP verification')
+      currentStep.value++
+      console.log('Step incremented to:', currentStep.value)
+      return
+    }
+    
     // For step 2, validate before proceeding
     if (currentStep.value === 2) {
       // Validate full name first
@@ -428,9 +478,24 @@ const nextStep = () => {
         return
       }
       
-      // Check for email errors
+      // Check for email errors (including backend validation errors)
       if (errors.email) {
         console.log('Cannot proceed to step 3: Email validation error exists')
+        console.log('Email error:', errors.email)
+        
+        // If it's a duplicate email error (from frontend or backend), show a more prominent message
+        if (errors.email.includes('already registered') || errors.email.includes('already been taken')) {
+          generalError.value = '⚠️ This email is already registered with Vamaship. Please use a different email address or try logging in instead.'
+        } else if (errors.email.includes('Network error')) {
+          generalError.value = 'Network error occurred. Please check your connection and try again.'
+        }
+        return
+      }
+      
+      // Additional check: if generalError contains email-related errors, prevent proceeding
+      if (generalError.value && (generalError.value.includes('email') || generalError.value.includes('already registered'))) {
+        console.log('Cannot proceed to step 3: General error contains email-related message')
+        console.log('General error:', generalError.value)
         return
       }
       
@@ -444,15 +509,40 @@ const nextStep = () => {
         }
         
         // Force email validation check before proceeding
-        validateEmailExists(formData.email).then(() => {
-          if (!errors.email) {
-            console.log('Email validation passed, proceeding to step 3')
-            currentStep.value++
-          } else {
+        try {
+          console.log('Validating email existence before proceeding to Step 3...')
+          await validateEmailExists(formData.email)
+          
+          // Check if validation resulted in an error
+          if (errors.email) {
             console.log('Cannot proceed: Email validation failed')
+            console.log('Email error after validation:', errors.email)
+            
+            // Show a more prominent error message for duplicate email
+            if (errors.email.includes('already registered') || errors.email.includes('already been taken')) {
+              generalError.value = '⚠️ This email is already registered with Vamaship. Please use a different email address or try logging in instead.'
+            } else if (errors.email.includes('Network error')) {
+              generalError.value = 'Network error occurred. Please check your connection and try again.'
+            }
+            return
           }
-        })
-        return
+          
+          console.log('Email validation passed, proceeding to step 3')
+          // Clear any previous general errors before proceeding
+          if (generalError.value && (generalError.value.includes('email') || generalError.value.includes('already registered'))) {
+            generalError.value = ''
+          }
+          currentStep.value++
+          
+        } catch (error) {
+          console.error('Email validation error:', error)
+          generalError.value = 'Network error occurred. Please check your connection and try again.'
+          return
+        }
+      } else {
+        // Email is empty, allow proceeding but warn user
+        console.log('Email is empty, allowing to proceed but user should fill it')
+        currentStep.value++
       }
     }
     
@@ -460,7 +550,7 @@ const nextStep = () => {
     if (!generalError.value && Object.keys(errors).every(key => !errors[key])) {
       clearErrors()
     }
-    currentStep.value++
+    // currentStep.value++ is already handled in Step 2 validation logic
   }
 }
 
@@ -698,36 +788,75 @@ const completeSignup = async () => {
       showDashboard.value = true
       alert('Signup completed successfully! Welcome to Vamaship! 🎉')
       
-      // Redirect to ecom3-ui dashboard if redirect_url is provided
+      // Prepare redirect URL with authentication parameters
+      const baseUrl = response.data?.data?.redirect_url || 'http://localhost:8080'
+      
+      // Debug the API key and redirect URL
+      console.log('=== REDIRECT URL DEBUGGING ===');
+      console.log('API key from response:', response.data.data.api_key);
+      console.log('API key type:', typeof response.data.data.api_key);
+      console.log('API key length:', response.data.data.api_key ? response.data.data.api_key.length : 'N/A');
+      console.log('Original redirect_url from backend:', response.data?.data?.redirect_url);
+      console.log('Base URL:', baseUrl);
+      
+      // Always redirect to login-migration first for proper authentication flow
+      // Extract the base URL from the backend redirect_url if it exists
+      let ecom3BaseUrl;
       if (response.data?.data?.redirect_url) {
-        console.log('Redirecting to ecom3-ui dashboard:', response.data.data.redirect_url)
-        console.log('Full response data:', response.data)
-        console.log('Response success:', response.success)
-        console.log('Response message:', response.message)
-        
-        // Try immediate redirect first
         try {
-          console.log('Attempting immediate redirect to:', response.data.data.redirect_url)
-          window.location.href = response.data.data.redirect_url
-        } catch (redirectError) {
-          console.error('Immediate redirect failed:', redirectError)
-          // Fallback to setTimeout
-          setTimeout(() => {
-            console.log('Attempting delayed redirect to:', response.data.data.redirect_url)
-            try {
-              window.location.href = response.data.data.redirect_url
-            } catch (fallbackError) {
-              console.error('Delayed redirect also failed:', fallbackError)
-              // Final fallback - open in new tab
-              window.open(response.data.data.redirect_url, '_blank')
-            }
-          }, 1000)
+          const url = new URL(response.data.data.redirect_url);
+          ecom3BaseUrl = `${url.protocol}//${url.host}`;
+        } catch (error) {
+          console.warn('Could not parse redirect_url, using fallback:', error);
+          ecom3BaseUrl = 'http://localhost:8080';
         }
       } else {
-        // Fallback to local dashboard
-        console.log('No redirect_url provided, using fallback')
-        console.log('Response structure:', response)
-        router.push('/orders')
+        ecom3BaseUrl = 'http://localhost:8080';
+      }
+      
+      const loginUrl = `${ecom3BaseUrl}/login-migration`;
+      console.log('Ecom3 Base URL:', ecom3BaseUrl);
+      console.log('Login URL:', loginUrl);
+      
+      // Build query parameters for seamless authentication
+      const queryParams = new URLSearchParams({
+        api_key: response.data.data.api_key,
+        new_user: 'true',
+        user_id: response.data.data.user_id || '0',
+        user_name: response.data.data.user.name || '',
+        user_email: response.data.data.user.email || '',
+        user_phone: response.data.data.user.phone || '',
+        from: 'signup'
+      });
+      
+      const finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
+      console.log('Query parameters:', queryParams.toString());
+      
+      console.log('Final redirect URL:', finalRedirectUrl);
+      console.log('=== REDIRECT URL DEBUGGING END ===');
+      
+      console.log('Redirecting to ecom3-ui:', finalRedirectUrl)
+      console.log('Full response data:', response.data)
+      console.log('Response success:', response.success)
+      console.log('Response message:', response.message)
+      
+      // Try immediate redirect first
+      try {
+        console.log('Attempting immediate redirect to:', finalRedirectUrl)
+        window.location.href = finalRedirectUrl
+      } catch (redirectError) {
+        console.error('Immediate redirect failed:', redirectError)
+        // Fallback to setTimeout
+        setTimeout(() => {
+          console.log('Attempting delayed redirect to:', finalRedirectUrl)
+          try {
+            window.location.href = finalRedirectUrl
+          } catch (fallbackError) {
+            console.error('Delayed redirect also failed:', fallbackError)
+            // Final fallback - open in new tab
+            window.open(finalRedirectUrl, '_blank')
+          }
+        }, 1000)
       }
     } else {
       console.error('Signup failed:', response.message);
@@ -762,7 +891,8 @@ const completeSignup = async () => {
         Object.keys(response.errors).forEach(backendField => {
           const frontendField = fieldMapping[backendField] || backendField
           if (response.errors[backendField] && Array.isArray(response.errors[backendField])) {
-            errors[frontendField] = response.errors[backendField][0] // Take first error message
+            const errorMessage = response.errors[backendField][0]
+            errors[frontendField] = errorMessage
           }
         })
         
@@ -770,7 +900,18 @@ const completeSignup = async () => {
         generalError.value = response.message || 'Please check your information and try again.'
       } else {
         // No specific field errors, just show general message
-        generalError.value = response.message || 'Signup failed. Please try again.'
+        console.log('Response message:', response.message);
+        console.log('Message includes Network error:', response.message?.includes('Network error'));
+        console.log('Message includes connection:', response.message?.includes('connection'));
+        
+        // Check if this is a network error message from the backend
+        if (response.message && (response.message.includes('Network error') || response.message.includes('connection'))) {
+          console.log('Detected as network error, setting standard message');
+          generalError.value = 'Network error occurred. Please check your connection and try again.'
+        } else {
+          console.log('Not a network error, using original message');
+          generalError.value = response.message || 'Signup failed. Please try again.'
+        }
       }
     }
   } catch (error: any) {
@@ -1379,9 +1520,8 @@ const clearFieldError = (fieldName: string) => {
   if (errors[fieldName]) {
     errors[fieldName] = ''
   }
-  if (generalError.value) {
-    generalError.value = ''
-  }
+  // Don't clear general error when clearing field errors
+  // This allows network errors and other general messages to persist
 }
 
 // Function to handle API errors
@@ -1430,7 +1570,27 @@ const handleApiError = (error: any) => {
   
   // Set general error message
   if (error.message) {
-    generalError.value = error.message
+    // Check if it's a generic validation failed message and we have email-related errors
+    if (error.message === 'Validation failed' && error.errors) {
+      // Check if there are email-related errors
+      const hasEmailError = Object.keys(error.errors).some(field => 
+        field.toLowerCase().includes('email') || 
+        (Array.isArray(error.errors[field]) && 
+         error.errors[field].some((msg: string) => 
+           msg.toLowerCase().includes('email') || 
+           msg.toLowerCase().includes('already') || 
+           msg.toLowerCase().includes('taken')
+         ))
+      )
+      
+      if (hasEmailError) {
+        generalError.value = '⚠️ This email is already registered with Vamaship. Please use a different email address or try logging in instead.'
+      } else {
+        generalError.value = error.message
+      }
+    } else {
+      generalError.value = error.message
+    }
   } else {
     generalError.value = 'An unexpected error occurred. Please try again.'
   }
@@ -1586,6 +1746,10 @@ const validateEmailExists = async (email: string) => {
   if (!email || email.trim() === '') {
     console.log('Email is empty, clearing error')
     errors.email = ''
+    // Clear network errors when email is empty
+    if (generalError.value && generalError.value.includes('Network error')) {
+      generalError.value = ''
+    }
     return
   }
 
@@ -1594,6 +1758,10 @@ const validateEmailExists = async (email: string) => {
   if (!emailPattern.test(email)) {
     console.log('Invalid email format')
     errors.email = 'Please enter a valid email address'
+    // Clear network errors when email format is invalid
+    if (generalError.value && generalError.value.includes('Network error')) {
+      generalError.value = ''
+    }
     return
   }
 
@@ -1609,13 +1777,36 @@ const validateEmailExists = async (email: string) => {
     
     if (response.success && response.data?.exists) {
       console.log('Email exists, setting error')
-      errors.email = 'This email is already registered. Please use a different email or try logging in.'
+      errors.email = '⚠️ This email is already registered. Please use a different email address or try logging in instead.'
+      // Also set a general error for more prominence
+      generalError.value = 'This email address is already registered with Vamaship. Please use a different email or try logging in instead.'
     } else {
       console.log('Email is available')
+      // Clear any previous general error if email is now valid
+      if (generalError.value && (generalError.value.includes('email') || generalError.value.includes('already registered') || generalError.value.includes('Network error'))) {
+        generalError.value = ''
+      }
     }
-  } catch (error) {
-    // Don't show error for network issues during validation
-    console.log('Email validation check failed:', error)
+  } catch (error: any) {
+    // Show network error to user
+    console.error('Email validation check failed:', error)
+    
+    // Check if it's a backend validation error (422 status)
+    if (error.response?.status === 422 && error.response?.data?.errors?.email) {
+      const backendError = error.response.data.errors.email[0]
+      console.log('Backend validation error:', backendError)
+      
+      if (backendError.includes('already been taken')) {
+        errors.email = '⚠️ This email is already registered. Please use a different email address or try logging in instead.'
+        generalError.value = 'This email address is already registered with Vamaship. Please use a different email or try logging in instead.'
+      } else {
+        errors.email = backendError
+      }
+    } else {
+      // Network error
+      errors.email = 'Network error occurred. Please check your connection and try again.'
+      generalError.value = 'Network error occurred. Please check your connection and try again.'
+    }
   }
   
   console.log('=== EMAIL VALIDATION END ===')
@@ -1738,6 +1929,13 @@ const trackOrder = async () => {
     trackingLoading.value = false
   }
 }
+
+const logNetworkError = () => {
+  console.error('Network error:', generalError.value)
+  alert('Network error occurred. Please check the console for more details.')
+}
+
+// Validation functions
 </script>
 
 <template>
@@ -1881,7 +2079,10 @@ const trackOrder = async () => {
                       <div class="relative">
                         <input 
                           v-model="formData.phone"
-                          @input="formData.phone = validatePhone(($event.target as HTMLInputElement).value)"
+                          @input="(event) => { 
+                            formData.phone = validatePhone((event.target as HTMLInputElement).value);
+                            resetMobileRegistrationFlag();
+                          }"
                           type="tel" 
                           placeholder="Enter Phone Number" 
                           class="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all"
@@ -1896,7 +2097,7 @@ const trackOrder = async () => {
                     </div>
                     
                     <button 
-                      v-if="!otpSent"
+                      v-if="!otpSent && !isMobileAlreadyRegistered"
                       @click="() => { console.log('Send OTP button clicked'); sendOtp(); }"
                       :disabled="formData.phone.length !== 10 || loading"
                       class="w-full text-white py-3 rounded-lg font-medium transition-all flex items-center justify-center"
@@ -1926,7 +2127,7 @@ const trackOrder = async () => {
                     </div>
                   </div>
 
-                  <div v-if="otpSent" class="mt-4 pt-4 border-t max-w-sm mx-auto">
+                  <div v-if="otpSent && !isMobileAlreadyRegistered" class="mt-4 pt-4 border-t max-w-sm mx-auto">
                     <div class="mb-3">
                       <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
                       <div class="flex space-x-2">
@@ -2119,33 +2320,71 @@ const trackOrder = async () => {
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">
                     <i class="fas fa-check text-xs lg:text-sm"></i>
                   </div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Phone Verification</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Phone</div>
                 </div>
                 <div class="w-8 lg:w-12 h-0.5 bg-green-600"></div>
                 <div class="flex items-center">
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">2</div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">User Details</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Details</div>
                 </div>
                 <div class="w-8 lg:w-12 h-0.5 bg-gray-300"></div>
                 <div class="flex items-center">
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">3</div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-500">KYC Verification</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-500">KYC</div>
                 </div>
               </div>
+            </div>
+
+            <!-- Step 2 Header -->
+            <div class="text-center mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Complete your profile</h2>
+              <p class="text-gray-600">Fill in your details to create your Vamaship account</p>
             </div>
 
 
 
             <!-- General Error Banner -->
             <div v-if="generalError" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-              <div class="flex items-center">
-                <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
-                <span class="text-red-700 text-sm font-medium">{{ generalError }}</span>
+              <div class="flex items-start">
+                <i class="fas fa-exclamation-circle text-red-500 mr-3 mt-0.5"></i>
+                <div class="flex-1">
+                  <span class="text-red-700 text-sm font-medium">{{ generalError }}</span>
+                  <!-- Show login suggestion for duplicate email errors -->
+                  <div v-if="generalError.includes('already registered')" class="mt-3">
+                    <p class="text-red-600 text-xs mb-2">Already have an account?</p>
+                    <button
+                      @click="goToSignIn"
+                      class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      <i class="fas fa-sign-in-alt mr-1"></i>
+                      Login Instead
+                    </button>
+                  </div>
+                  <!-- Show dismiss button for network errors -->
+                  <div v-if="generalError.includes('Network error')" class="mt-3">
+                    <div class="flex space-x-2">
+                      <button
+                        @click="logNetworkError"
+                        class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        <i class="fas fa-bug mr-1"></i>
+                        Log
+                      </button>
+                      <button
+                        @click="generalError = ''"
+                        class="inline-flex items-center px-3 py-1.5 bg-gray-600 text-white text-xs font-medium rounded-md hover:bg-gray-700 transition-colors"
+                      >
+                        <i class="fas fa-times mr-1"></i>
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Form Fields -->
-            <div class="space-y-4 lg:space-y-6">
+            <div class="space-y-3 lg:space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                 <input
@@ -2166,7 +2405,14 @@ const trackOrder = async () => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                 <input
                   v-model="formData.email"
-                  @input="(e) => { clearFieldError('email'); debouncedEmailValidation((e.target as HTMLInputElement).value); }"
+                  @input="(e) => { 
+                    clearFieldError('email'); 
+                    // Clear network errors when user starts typing
+                    if (generalError && generalError.includes('Network error')) {
+                      generalError = '';
+                    }
+                    debouncedEmailValidation((e.target as HTMLInputElement).value); 
+                  }"
                   @keyup.enter="nextStep"
                   type="email"
                   placeholder="Enter your email address"
@@ -2374,34 +2620,29 @@ const trackOrder = async () => {
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">
                     <i class="fas fa-check text-xs lg:text-sm"></i>
                   </div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Phone Verification</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Phone</div>
                 </div>
                 <div class="w-8 lg:w-12 h-0.5 bg-green-600"></div>
                 <div class="flex items-center">
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">
                     <i class="fas fa-check text-xs lg:text-sm"></i>
                   </div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">User Details</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">Details</div>
                 </div>
                 <div class="w-8 lg:w-12 h-0.5 bg-blue-600"></div>
                 <div class="flex items-center">
                   <div class="w-6 h-6 lg:w-8 lg:h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm lg:text-base">3</div>
-                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">KYC Verification</div>
+                  <div class="ml-2 text-xs lg:text-sm font-medium text-gray-900">KYC</div>
                 </div>
               </div>
             </div>
 
 
 
-            <!-- Skip KYC Notice -->
-            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-              <div class="flex items-center">
-                <i class="fas fa-info-circle text-blue-500 mr-3"></i>
-                <div>
-                  <span class="text-blue-700 text-sm font-medium">Want immediate access?</span>
-                  <p class="text-blue-600 text-xs mt-1">You can skip KYC verification for now and complete it later. Click "Skip KYC" below to proceed directly to your dashboard.</p>
-                </div>
-              </div>
+            <!-- Business Verification Header -->
+            <div class="text-center mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Business Verification</h2>
+              <p class="text-gray-600">Complete KYC to enable COD and unlock advanced features. You can skip this for now.</p>
             </div>
 
             <!-- General Error Banner -->

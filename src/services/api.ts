@@ -74,6 +74,7 @@ export interface VerifyKYCData {
 
 export interface APIResponse<T = any> {
   success: boolean;
+  result?: number; // For OTP verification responses
   data?: T;
   message?: string;
   errors?: Record<string, string[]>;
