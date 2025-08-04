@@ -99,6 +99,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+// Component name for ESLint
+defineOptions({
+  name: 'UserDashboard'
+})
+
 const router = useRouter()
 
 // Get user data from localStorage - in real app this would come from a store or API
