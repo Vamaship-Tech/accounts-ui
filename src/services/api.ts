@@ -35,6 +35,7 @@ export interface UserDetailsData {
 }
 
 export interface KYCData {
+  brandName?: string;
   aadhaarNumber?: string;
   aadhaarOtp?: string[];
   gstNumber?: string;
@@ -54,8 +55,27 @@ export interface KYCData {
   panPincode?: string;
 }
 
+export interface VerifyKYCData {
+  businessType: 'gst' | 'pan';
+  gstNumber?: string;
+  entityName?: string;
+  gstAddress?: string;
+  gstPincode?: string;
+  panNumber?: string;
+  entityType?: string;
+  billingAddress?: string;
+  panPincode?: string;
+  beneficiaryName?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  branchName?: string;
+  aadhaarNumber?: string;
+}
+
 export interface APIResponse<T = any> {
   success: boolean;
+  result?: number; // For OTP verification responses
   data?: T;
   message?: string;
   errors?: Record<string, string[]>;
@@ -63,9 +83,18 @@ export interface APIResponse<T = any> {
 
 class ApiService {
   private baseURL: string;
+  private authHeaders: Record<string, string> = {};
 
   constructor() {
     this.baseURL = API_BASE_URL;
+  }
+
+  getAuthHeader(): Record<string, string> {
+    return this.authHeaders;
+  }
+
+  setAuthHeader(headers: Record<string, string>): void {
+    this.authHeaders = headers;
   }
 
   private async requestWithRetry<T>(
@@ -76,19 +105,25 @@ class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     
     // Check if this is a public endpoint (no auth required)
-    const isPublicEndpoint = endpoint.includes('/public') || 
+    const isPublicEndpoint = endpoint.includes('/public/') || 
                            endpoint.includes('/register') || 
                            endpoint.includes('/login') || 
                            endpoint.includes('/forgot-password') ||
                            endpoint.includes('/country-master');
     
+    console.log('API Request:', { url, endpoint, isPublic: isPublicEndpoint });
+    console.log('Custom auth headers:', this.authHeaders);
+    
     const defaultOptions: RequestInit = {
       headers: {
         ...API_CONFIG.DEFAULT_HEADERS,
-        ...(isPublicEndpoint ? {} : authService.getAuthHeader()),
+        // Use custom auth headers if set, otherwise use default auth service headers
+        ...(Object.keys(this.authHeaders).length > 0 ? this.authHeaders : (isPublicEndpoint ? {} : authService.getAuthHeader())),
       },
       ...options,
     };
+
+    console.log('Final request headers:', defaultOptions.headers);
 
     try {
       const controller = new AbortController();
@@ -100,9 +135,13 @@ class ApiService {
       });
 
       clearTimeout(timeoutId);
+      console.log('API Response Status:', response.status);
+      
       const data = await response.json();
+      console.log('API Response Data:', data);
 
       if (!response.ok) {
+        console.log('API Error Response:', { status: response.status, data });
         // Handle specific error cases
         if (response.status === 401) {
           authService.logout();
@@ -128,12 +167,16 @@ class ApiService {
         };
       }
 
-      return {
+      const result = {
         success: true,
         data,
       };
+      
+      console.log('API Success Result:', result);
+      
+      return result;
     } catch (error) {
-      console.error('API Request failed:', error);
+      console.error('API Request Error:', error);
 
       // Retry logic for network errors
       if (retryCount < API_CONFIG.RETRY_ATTEMPTS && error instanceof TypeError) {
@@ -272,8 +315,11 @@ class ApiService {
       console.log('Backend response:', response);
       console.log('=== FRONTEND COMPLETE SIGNUP SUCCESS ===');
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Frontend completeSignup error:', error);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
       console.log('=== FRONTEND COMPLETE SIGNUP FAILED ===');
       throw error;
     }
@@ -293,6 +339,30 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(kycData),
     });
+  }
+
+  // Submit KYC for verify-kyc flow
+  async submitKyc(kycData: VerifyKYCData): Promise<APIResponse> {
+    console.log('API: Submitting KYC data:', kycData)
+    
+    const endpoint = kycData.businessType === 'gst' 
+      ? API_CONFIG.ENDPOINTS.KYC_GST_REGISTERED_PUBLIC 
+      : API_CONFIG.ENDPOINTS.KYC_GST_UNREGISTERED_PUBLIC;
+    
+    console.log('API: Using endpoint:', endpoint)
+    
+    try {
+      const response = await this.request(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(kycData),
+      });
+      
+      console.log('API: KYC submission response:', response)
+      return response
+    } catch (error) {
+      console.error('API: KYC submission error:', error)
+      throw error
+    }
   }
 
   // Skip KYC
@@ -322,9 +392,105 @@ class ApiService {
     return this.request(`${API_CONFIG.ENDPOINTS.VALIDATE_BANK}?account_number=${accountNumber}&ifsc_code=${ifscCode}`);
   }
 
+  // Public verification methods for signup flow
+  async validateGstPublic(gstNumber: string): Promise<APIResponse> {
+    console.log('=== FRONTEND VALIDATE GST PUBLIC START ===');
+    console.log('Validating GST:', gstNumber);
+    console.log('Endpoint:', API_CONFIG.ENDPOINTS.VALIDATE_GST_PUBLIC);
+    
+    try {
+      const response = await this.request(`${API_CONFIG.ENDPOINTS.VALIDATE_GST_PUBLIC}?gst=${gstNumber}`);
+      console.log('GST validation response:', response);
+      console.log('=== FRONTEND VALIDATE GST PUBLIC SUCCESS ===');
+      return response;
+    } catch (error) {
+      console.error('GST validation error:', error);
+      console.log('=== FRONTEND VALIDATE GST PUBLIC FAILED ===');
+      throw error;
+    }
+  }
+
+  async validatePanPublic(panNumber: string): Promise<APIResponse> {
+    console.log('=== FRONTEND VALIDATE PAN PUBLIC START ===');
+    console.log('Validating PAN:', panNumber);
+    console.log('Endpoint:', API_CONFIG.ENDPOINTS.VALIDATE_PAN_PUBLIC);
+    
+    try {
+      const response = await this.request(`${API_CONFIG.ENDPOINTS.VALIDATE_PAN_PUBLIC}?pan=${panNumber}`);
+      console.log('PAN validation response:', response);
+      console.log('=== FRONTEND VALIDATE PAN PUBLIC SUCCESS ===');
+      return response;
+    } catch (error) {
+      console.error('PAN validation error:', error);
+      console.log('=== FRONTEND VALIDATE PAN PUBLIC FAILED ===');
+      throw error;
+    }
+  }
+
+  async validateBankPublic(accountNumber: string, ifscCode: string): Promise<APIResponse> {
+    console.log('API: Validating Bank:', { accountNumber, ifscCode });
+    
+    try {
+      const response = await this.request(`${API_CONFIG.ENDPOINTS.VALIDATE_BANK_PUBLIC}?account_number=${accountNumber}&ifsc_code=${ifscCode}`);
+      console.log('API: Bank validation response:', response);
+      return response;
+    } catch (error) {
+      console.error('API: Bank validation error:', error);
+      throw error;
+    }
+  }
+
+  // Check if email exists
+  async checkEmailExists(email: string): Promise<APIResponse> {
+    console.log('API: Checking if email exists:', email);
+    
+    try {
+      const response = await this.request(`${API_CONFIG.ENDPOINTS.CHECK_EMAIL_EXISTS}?email=${encodeURIComponent(email)}`);
+      console.log('API: Email exists check response:', response);
+      return response;
+    } catch (error) {
+      console.error('API: Email exists check error:', error);
+      throw error;
+    }
+  }
+
   // Get banks list
   async getBanksList(): Promise<APIResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.BANKS_LIST);
+    console.log('=== API GET BANKS LIST START ===');
+    console.log('Calling endpoint:', API_CONFIG.ENDPOINTS.BANKS_LIST);
+    
+    try {
+      // Use proxy URL to avoid CORS issues
+      const proxyUrl = `/api/v1${API_CONFIG.ENDPOINTS.BANKS_LIST}`;
+      console.log('Using proxy URL:', proxyUrl);
+      
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('Banks list response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Banks list response data:', data);
+      console.log('=== API GET BANKS LIST SUCCESS ===');
+      
+      return {
+        success: true,
+        data: data
+      };
+    } catch (error) {
+      console.error('API getBanksList error:', error);
+      console.log('=== API GET BANKS LIST FAILED ===');
+      throw error;
+    }
   }
 
   // Get entity types
@@ -354,7 +520,27 @@ class ApiService {
   async forgotPassword(email: string): Promise<APIResponse> {
     return this.request(API_CONFIG.ENDPOINTS.FORGOT_PASSWORD, {
       method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ email }),
+    });
+  }
+
+  // Reset password with token
+  async resetPassword(token: string, password: string, confirmPassword: string): Promise<APIResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.RESET_PASSWORD, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        token,
+        password,
+        password_confirmation: confirmPassword
+      }),
     });
   }
 
@@ -372,3 +558,150 @@ class ApiService {
 
 export const apiService = new ApiService();
 export default apiService; 
+
+// Tracking API methods
+export const trackingAPI = {
+  // Track by AWB numbers
+  trackByAwb: async (awbNumbers: string | string[]) => {
+    try {
+      const awbString = Array.isArray(awbNumbers) ? awbNumbers.join(',') : awbNumbers;
+      const url = `${API_CONFIG.TRACKING_BASE_URL}${API_CONFIG.ENDPOINTS.TRACK_AWB}/${awbString}`;
+      console.log('Tracking AWB URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getAccessToken()}`,
+        },
+      });
+      
+      console.log('Tracking AWB Response Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Tracking AWB Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Tracking AWB Success Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error tracking by AWB:', error);
+      throw error;
+    }
+  },
+
+  // Track by shipment numbers
+  trackByShipment: async (shipmentNumbers: string | string[]) => {
+    try {
+      const shipmentString = Array.isArray(shipmentNumbers) ? shipmentNumbers.join(',') : shipmentNumbers;
+      const url = `${API_CONFIG.TRACKING_BASE_URL}${API_CONFIG.ENDPOINTS.TRACK_SHIPMENT}/${shipmentString}`;
+      console.log('Tracking Shipment URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getAccessToken()}`,
+        },
+      });
+      
+      console.log('Tracking Shipment Response Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Tracking Shipment Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Tracking Shipment Success Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error tracking by shipment:', error);
+      throw error;
+    }
+  },
+
+  // Track by reference numbers
+  trackByReference: async (referenceNumbers: string | string[]) => {
+    try {
+      const referenceString = Array.isArray(referenceNumbers) ? referenceNumbers.join(',') : referenceNumbers;
+      const url = `${API_CONFIG.TRACKING_BASE_URL}${API_CONFIG.ENDPOINTS.TRACK_REFERENCE}/${referenceString}`;
+      console.log('Tracking Reference URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getAccessToken()}`,
+        },
+      });
+      
+      console.log('Tracking Reference Response Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Tracking Reference Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Tracking Reference Success Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error tracking by reference:', error);
+      throw error;
+    }
+  },
+
+  // Generic tracking method
+  track: async (trackingIds: string | string[], type: 'awb' | 'shipment' | 'reference' = 'awb') => {
+    try {
+      const trackingString = Array.isArray(trackingIds) ? trackingIds.join(',') : trackingIds;
+      
+      let endpoint = '';
+      switch (type) {
+        case 'awb':
+          endpoint = `${API_CONFIG.ENDPOINTS.TRACK_AWB}/${trackingString}`;
+          break;
+        case 'shipment':
+          endpoint = `${API_CONFIG.ENDPOINTS.TRACK_SHIPMENT}/${trackingString}`;
+          break;
+        case 'reference':
+          endpoint = `${API_CONFIG.ENDPOINTS.TRACK_REFERENCE}/${trackingString}`;
+          break;
+        default:
+          endpoint = `${API_CONFIG.ENDPOINTS.TRACK_AWB}/${trackingString}`;
+      }
+      
+      const url = `${API_CONFIG.TRACKING_BASE_URL}${endpoint}`;
+      console.log('Generic Tracking URL:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getAccessToken()}`,
+        },
+      });
+      
+      console.log('Generic Tracking Response Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Generic Tracking Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Generic Tracking Success Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error tracking shipment:', error);
+      throw error;
+    }
+  }
+}; 
