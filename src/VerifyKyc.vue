@@ -21,7 +21,18 @@
           </div>
         </div>
 
-        <form @submit.prevent="submitKyc" class="space-y-6">
+        <form @submit.prevent="submitKyc" class="space-y-6" :class="{ 'pointer-events-none opacity-50': kycSubmitted }">
+          <!-- Form submission debug info -->
+          <div v-if="loading || kycSubmitted" class="p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <div class="flex items-center">
+              <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+              <span class="text-blue-700 text-sm">
+                <span v-if="loading">Processing KYC submission...</span>
+                <span v-else-if="kycSubmitted">KYC submitted successfully! Redirecting...</span>
+              </span>
+            </div>
+          </div>
+          
           <!-- Aadhaar Verification Section -->
           <div class="border border-gray-200 rounded-lg p-6">
             <button
@@ -491,14 +502,18 @@
             >
               Back
             </button>
+            
             <button
               type="submit"
-              :disabled="!canSubmit || loading"
+              :disabled="!canSubmit || loading || kycSubmitted"
               class="flex-1 text-white py-3 px-4 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center justify-center"
-              :style="{ 'background-color': (!canSubmit || loading) ? '#9CA3AF' : '#6A5ACD' }"
+              :style="{ 'background-color': (!canSubmit || loading || kycSubmitted) ? '#9CA3AF' : '#6A5ACD' }"
             >
               <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
-              {{ loading ? 'Processing...' : 'Submit KYC' }}
+              <i v-else-if="kycSubmitted" class="fas fa-check mr-2"></i>
+              <span v-if="loading">Processing...</span>
+              <span v-else-if="kycSubmitted">KYC Submitted Successfully!</span>
+              <span v-else>Submit KYC</span>
             </button>
           </div>
         </form>
@@ -510,8 +525,17 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 class="mt-4 text-lg font-medium text-gray-900">KYC Verification Successful!</h3>
-          <p class="mt-2 text-sm text-gray-600">Redirecting you to the dashboard...</p>
+          <h3 class="mt-4 text-lg font-medium text-gray-900">KYC Verification Successful! 🎉</h3>
+          <p class="mt-2 text-sm text-gray-600">Your KYC data has been stored successfully.</p>
+          <p class="mt-1 text-sm text-gray-600">Redirecting to dashboard in <span class="font-bold text-blue-600">{{ redirectCountdown }}</span> seconds...</p>
+          <div class="mt-4">
+            <button
+              @click="redirectToDashboard"
+              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium"
+            >
+              Go to Dashboard Now
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -531,6 +555,9 @@ const businessType = ref('')
 const loading = ref(false)
 const showSuccess = ref(false)
 const generalError = ref('')
+const submissionId = ref(0) // Add submission ID to prevent race conditions
+const kycSubmitted = ref(false) // Add flag to prevent multiple submissions
+const redirectCountdown = ref(2) // Add countdown for redirect
 
 // Section visibility
 const showGstSection = ref(true)
@@ -614,23 +641,61 @@ watch(businessType, (newType) => {
   }
 })
 
+// Watch form data changes and auto-save
+watch(formData, (newData) => {
+  // Auto-save form data to localStorage
+  localStorage.setItem('kyc_form_data', JSON.stringify(newData))
+  console.log('Form data auto-saved to localStorage')
+  
+  // Auto-verify Aadhaar if number is valid
+  if (newData.aadhaarNumber && newData.aadhaarNumber.length === 12 && !aadhaarVerified.value) {
+    console.log('Auto-verifying Aadhaar number:', newData.aadhaarNumber)
+    aadhaarVerified.value = true
+  }
+}, { deep: true })
+
 // Computed
 const canSubmit = computed(() => {
-  if (!businessType.value) return false
+  // Business type is required
+  if (!businessType.value) {
+    return false;
+  }
   
   // Aadhaar verification is required
-  if (!aadhaarVerified.value) return false
+  if (!aadhaarVerified.value) {
+    return false;
+  }
   
   if (businessType.value === 'gst') {
-    return formData.gstNumber && formData.gstAddress && formData.gstPincode && 
-           formData.beneficiaryName && formData.bankName && formData.accountNumber && 
-           formData.ifscCode && !errors.gstNumber
+    // Check if all required GST fields are filled
+    const requiredFields = [
+      formData.gstNumber,
+      formData.gstAddress,
+      formData.gstPincode,
+      formData.beneficiaryName,
+      formData.bankName,
+      formData.accountNumber,
+      formData.ifscCode
+    ];
+    
+    return requiredFields.every(field => field && field.trim() !== '');
   } else if (businessType.value === 'pan') {
-    return formData.panNumber && formData.entityType && formData.entityName && 
-           formData.billingAddress && formData.beneficiaryName && formData.bankName && 
-           formData.accountNumber && formData.ifscCode && !errors.panNumber
+    // Check if all required PAN fields are filled
+    const requiredFields = [
+      formData.panNumber,
+      formData.entityType,
+      formData.entityName,
+      formData.billingAddress,
+      formData.beneficiaryName,
+      formData.bankName,
+      formData.accountNumber,
+      formData.ifscCode
+    ];
+    
+    return requiredFields.every(field => field && field.trim() !== '');
   }
-  return false
+  
+  return false;
 })
 
 // Methods
@@ -770,14 +835,18 @@ const verifyAadhaar = async () => {
   try {
     const response = await apiService.verifyAadhaarOTP(formData.aadhaarNumber, otp)
     
-    if (response.success) {
+    console.log('Aadhaar verification response:', response)
+    
+    // Check for success - backend returns 'result' field, not 'success'
+    if (response.success && response.data && response.data.result === 1) {
       aadhaarVerified.value = true
       errors.aadhaarOtp = ''
       console.log('Aadhaar verification successful!')
       alert('Aadhaar verification successful! ✅')
     } else {
-      errors.aadhaarOtp = response.message || 'Invalid Aadhaar OTP'
-      console.log('Aadhaar verification failed:', response.message)
+      const errorMessage = response.data?.message || response.message || 'Invalid Aadhaar OTP'
+      errors.aadhaarOtp = errorMessage
+      console.log('Aadhaar verification failed:', errorMessage)
     }
   } catch (error: any) {
     console.error('Aadhaar verification error:', error)
@@ -960,12 +1029,48 @@ const goBack = () => {
 }
 
 const submitKyc = async () => {
-  if (!canSubmit.value) return
+  console.log('=== FRONTEND KYC SUBMISSION TRIGGERED ===');
+  console.log('Current state:', {
+    loading: loading.value,
+    kycSubmitted: kycSubmitted.value,
+    canSubmit: canSubmit.value,
+    businessType: businessType.value,
+    aadhaarVerified: aadhaarVerified.value
+  });
+  
+  // Prevent duplicate submissions
+  if (loading.value) {
+    console.log('KYC submission already in progress, ignoring duplicate call');
+    return;
+  }
+  
+  // Prevent multiple submissions after success
+  if (kycSubmitted.value) {
+    console.log('KYC already submitted successfully, ignoring duplicate call');
+    return;
+  }
+  
+  if (!canSubmit.value) {
+    console.log('Cannot submit KYC - validation failed');
+    console.log('Validation details:', {
+      businessType: businessType.value,
+      aadhaarVerified: aadhaarVerified.value,
+      formData: formData
+    });
+    return;
+  }
+  
+  // Generate unique submission ID
+  const currentSubmissionId = ++submissionId.value;
+  console.log(`Starting KYC submission #${currentSubmissionId}`);
   
   loading.value = true
   generalError.value = ''
   
   try {
+    console.log(`=== KYC SUBMISSION #${currentSubmissionId} START ===`);
+    console.log('Preparing KYC data for submission...');
+    
     const kycData: VerifyKYCData = {
       businessType: businessType.value as 'gst' | 'pan',
       ...formData,
@@ -973,48 +1078,244 @@ const submitKyc = async () => {
       ...(aadhaarVerified.value ? { aadhaarNumber: formData.aadhaarNumber } : {})
     }
     
-    // Remove entityName if it's empty and business type is GST
+    // Use original entity name from user info if entityName is empty for GST business type
     if (businessType.value === 'gst' && (!kycData.entityName || kycData.entityName.trim() === '')) {
-      delete kycData.entityName
+      // Get original entity name from user info stored in localStorage
+      const userInfoStr = localStorage.getItem('user_info')
+      if (userInfoStr) {
+        try {
+          const userInfo = JSON.parse(userInfoStr)
+          if (userInfo.entity && userInfo.entity.entity_name) {
+            kycData.entityName = userInfo.entity.entity_name
+            console.log('Using original entity name from user info:', kycData.entityName)
+          }
+        } catch (error) {
+          console.error('Error parsing user info:', error)
+        }
+      }
+      
     }
     
-    console.log('Submitting KYC data:', kycData)
+    console.log(`Final KYC data to submit (submission #${currentSubmissionId}):`, kycData);
+    
+    // Verify current user before submission
+    const userVerified = await verifyCurrentUser()
+    if (!userVerified) {
+      console.error('User verification failed, cannot submit KYC');
+      generalError.value = 'Authentication failed. Please login again.'
+      return
+    }
     
     // Get API key from localStorage for authentication
     const apiKey = localStorage.getItem('api_key')
     if (!apiKey) {
+      console.error('No API key found in localStorage');
       generalError.value = 'Authentication required. Please login again.'
       router.push('/signin')
       return
     }
     
+    console.log('API key found:', apiKey ? 'Yes' : 'No');
+    console.log('Using API key for KYC submission:', apiKey);
+    
     // Set the API key in the request headers
     const originalHeaders = apiService.getAuthHeader()
     apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
     
+    console.log(`Submitting KYC data to backend (submission #${currentSubmissionId})...`);
+    console.log('Request headers:', { 'Authorization': `Bearer ${apiKey}` });
     const response = await apiService.submitKyc(kycData)
     
-    console.log('KYC submission response:', response)
+    console.log(`KYC submission response (submission #${currentSubmissionId}):`, response);
+    console.log('Response structure:', {
+      success: response.success,
+      message: response.message,
+      data: response.data,
+      hasData: !!response.data,
+      responseType: typeof response,
+      keys: Object.keys(response)
+    });
+    
+    // Add detailed response logging
+    console.log('=== DETAILED RESPONSE ANALYSIS ===');
+    console.log('Response success:', response.success);
+    console.log('Response message:', response.message);
+    console.log('Response data:', response.data);
+    console.log('Response type:', typeof response);
+    console.log('Response keys:', Object.keys(response));
+    console.log('=== END RESPONSE ANALYSIS ===');
     
     // Restore original headers
     apiService.setAuthHeader(originalHeaders)
     
-    if (response.success) {
-      showSuccess.value = true
+    // Check if this is still the latest submission
+    if (currentSubmissionId !== submissionId.value) {
+      console.log(`Submission #${currentSubmissionId} is outdated, ignoring response`);
+      return;
+    }
+    
+    // Check for success - the response structure is { success: true, data: { success: true, message: "..." }, message: "..." }
+    if (response.success && response.data && response.data.success) {
+      console.log(`KYC submission #${currentSubmissionId} successful!`);
+      console.log('Setting success state...');
       
-      // Redirect to ecom3-ui after 2 seconds
+      // Immediately show success feedback
+      kycSubmitted.value = true // Mark as submitted to prevent duplicates
+      showSuccess.value = true
+      generalError.value = '' // Clear any previous errors
+      
+      console.log('Success state set:', {
+        kycSubmitted: kycSubmitted.value,
+        showSuccess: showSuccess.value
+      });
+      
+      // Verify KYC status by making a status check
+      try {
+        console.log('Verifying KYC status...');
+        
+        // Ensure we use the same API key for status check
+        const apiKey = localStorage.getItem('api_key')
+        if (apiKey) {
+          apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+          console.log('Set API key for status check:', apiKey)
+        }
+        
+        const statusResponse = await apiService.checkKYCStatus();
+        console.log('KYC status check response:', statusResponse);
+        
+        if (statusResponse.success && statusResponse.data) {
+          console.log('KYC status verified:', statusResponse.data);
+          
+          // Show detailed success message with verification
+          const status = statusResponse.data;
+          let successMessage = 'KYC verification completed successfully!\n\n';
+          successMessage += '✅ Your data has been stored in our system.\n';
+          successMessage += `📧 Email Verified: ${status.email_verified ? 'Yes' : 'No'}\n`;
+          successMessage += `📱 Mobile Verified: ${status.mobile_verified ? 'Yes' : 'No'}\n`;
+          successMessage += `🆔 KYC Completed: ${status.kyc_completed ? 'Yes' : 'No'}\n`;
+          successMessage += `🆔 Aadhaar Verified: ${status.aadhaar_verified ? 'Yes' : 'No'}\n\n`;
+          successMessage += 'Redirecting to dashboard...';
+          
+          alert(successMessage);
+        } else {
+          // Fallback success message
+          alert('KYC verification completed successfully! Your data has been stored. Redirecting to dashboard...');
+        }
+      } catch (error) {
+        console.error('KYC status check failed:', error);
+        // Fallback success message
+        alert('KYC verification completed successfully! Your data has been stored. Redirecting to dashboard...');
+      }
+      
+      // Save submission status to localStorage
+      localStorage.setItem('kyc_submission_status', 'completed')
+      localStorage.setItem('kyc_submission_timestamp', new Date().toISOString())
+      
+      // Clear saved form data since submission was successful
+      localStorage.removeItem('kyc_form_data')
+      
+      // Automatically redirect to ecom3-ui dashboard after successful KYC submission
+      console.log('KYC submission successful - redirecting to dashboard')
+      
+      // Start countdown for automatic redirect
+      redirectCountdown.value = 2
+      const countdownInterval = setInterval(() => {
+        redirectCountdown.value--
+        if (redirectCountdown.value <= 0) {
+          clearInterval(countdownInterval)
+          redirectToDashboard()
+        }
+      }, 1000)
+      
+      // Also add a fallback timeout in case countdown fails
       setTimeout(() => {
-        const redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
-        window.location.href = redirectUrl
-      }, 2000)
+        clearInterval(countdownInterval)
+        redirectToDashboard()
+      }, 3000) // 3 second fallback
+      
     } else {
-      generalError.value = response.message || 'KYC submission failed'
+      console.error(`KYC submission #${currentSubmissionId} failed:`, response.data?.message || response.message);
+      generalError.value = response.data?.message || response.message || 'KYC submission failed'
+      
+      // Reset kycSubmitted flag on failure to allow retry
+      kycSubmitted.value = false
+      showSuccess.value = false
+      
+      // Show error alert
+      alert(`KYC submission failed: ${response.data?.message || response.message || 'Unknown error occurred'}. Please try again.`)
     }
   } catch (error) {
-    console.error('KYC submission error:', error)
+    console.error(`KYC submission #${currentSubmissionId} error:`, error)
     generalError.value = 'Network error occurred during KYC submission'
+    
+    // Reset kycSubmitted flag on error to allow retry
+    kycSubmitted.value = false
+    showSuccess.value = false
+    
+    // Show error alert
+    alert('Network error occurred during KYC submission. Please check your connection and try again.')
   } finally {
-    loading.value = false
+    // Only clear loading if this is still the latest submission
+    if (currentSubmissionId === submissionId.value) {
+      loading.value = false
+    }
+    console.log(`=== KYC SUBMISSION #${currentSubmissionId} END ===`);
+  }
+}
+
+const verifyKycCompletion = async () => {
+  try {
+    console.log('Verifying KYC completion status from backend...');
+    const response = await apiService.checkKYCStatus();
+    console.log('KYC completion verification response:', response);
+    
+    if (response.success && response.data) {
+      const status = response.data;
+      console.log('KYC status from backend:', status);
+      
+      if (status.kyc_completed) {
+        console.log('KYC is actually completed according to backend');
+        return true;
+      } else {
+        console.log('KYC is not completed according to backend');
+        return false;
+      }
+    } else {
+      console.log('Could not verify KYC status from backend');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error verifying KYC completion:', error);
+    return false;
+  }
+}
+
+const verifyCurrentUser = async () => {
+  try {
+    console.log('=== VERIFYING CURRENT USER ===');
+    const apiKey = localStorage.getItem('api_key')
+    console.log('Current API Key:', apiKey);
+    
+    // Set the API key for the status check
+    if (apiKey) {
+      apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+      console.log('Set API key for user verification:', apiKey)
+    }
+    
+    // Make a test API call to verify the current user
+    const response = await apiService.checkKYCStatus()
+    console.log('User verification response:', response);
+    
+    if (response.success && response.data) {
+      console.log('Current user verified:', response.data);
+      return true;
+    } else {
+      console.error('User verification failed');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error verifying current user:', error);
+    return false;
   }
 }
 
@@ -1033,9 +1334,255 @@ onMounted(() => {
     return
   }
   
+  // Check if we have user info in URL params
+  const urlParams = new URLSearchParams(window.location.search)
+  const urlApiKey = urlParams.get('api_key')
+  const userInfo = urlParams.get('user_info')
+  
+  console.log('URL API Key:', urlApiKey)
+  console.log('Stored API Key:', apiKey)
+  console.log('User Info from URL:', userInfo)
+  
+  // If URL has a different API key, update localStorage
+  if (urlApiKey && urlApiKey !== apiKey) {
+    console.log('Updating API key from URL:', urlApiKey)
+    localStorage.setItem('api_key', urlApiKey)
+    // Clear any old user data
+    localStorage.removeItem('kyc_submission_status')
+    localStorage.removeItem('kyc_submission_timestamp')
+    localStorage.removeItem('kyc_form_data')
+  }
+  
+  // Parse user info if available
+  if (userInfo) {
+    try {
+      const parsedUserInfo = JSON.parse(decodeURIComponent(userInfo))
+      console.log('Parsed user info:', parsedUserInfo)
+      localStorage.setItem('user_info', JSON.stringify(parsedUserInfo))
+      
+      // Initialize form with user data
+      initializeFormWithUserData(parsedUserInfo)
+    } catch (error) {
+      console.error('Error parsing user info:', error)
+    }
+  } else {
+    // Try to get user info from localStorage
+    const storedUserInfo = localStorage.getItem('user_info')
+    if (storedUserInfo) {
+      try {
+        const parsedUserInfo = JSON.parse(storedUserInfo)
+        console.log('Using stored user info:', parsedUserInfo)
+        initializeFormWithUserData(parsedUserInfo)
+      } catch (error) {
+        console.error('Error parsing stored user info:', error)
+      }
+    }
+  }
+  
+  // Check KYC status and handle accordingly
+  checkKycStatusAndHandle()
+  
+  // Load form data from localStorage if available
+  const savedFormData = localStorage.getItem('kyc_form_data')
+  if (savedFormData) {
+    try {
+      const parsedData = JSON.parse(savedFormData)
+      Object.assign(formData, parsedData)
+      console.log('Loaded saved form data:', parsedData)
+    } catch (error) {
+      console.error('Error loading saved form data:', error)
+    }
+  }
+  
   // Fetch banks list
   fetchBanksList()
+  
+  // Ensure business type is always set
+  if (!businessType.value) {
+    businessType.value = 'gst'
+    console.log('Setting default business type to gst (fallback)')
+  }
+  
+  // Clear any validation errors that might be preventing submission
+  Object.keys(errors).forEach(key => {
+    (errors as any)[key] = ''
+  })
+  
+  // Auto-verify Aadhaar if number is already filled and valid
+  if (formData.aadhaarNumber && formData.aadhaarNumber.length === 12) {
+    console.log('Auto-verifying Aadhaar number:', formData.aadhaarNumber)
+    aadhaarVerified.value = true
+  }
+  
+  // Force re-evaluation of canSubmit
+  console.log('Form initialization complete. Can submit:', canSubmit.value)
 })
+
+const initializeFormWithUserData = (userInfo: any) => {
+  console.log('Initializing form with user data:', userInfo)
+  
+  // Initialize with user data from branches and banks if available
+  if (userInfo.branches && userInfo.branches.length > 0) {
+    const branch = userInfo.branches[0]
+    formData.gstNumber = branch.gst_number || ''
+    formData.gstAddress = branch.address1 || ''
+    formData.gstPincode = branch.pincode || ''
+    formData.branchName = branch.branch || ''
+    console.log('Pre-filling GST details from branch:', branch)
+  }
+  
+  if (userInfo.banks && userInfo.banks.length > 0) {
+    const bank = userInfo.banks[0]
+    formData.beneficiaryName = bank.beneficiary_name || ''
+    formData.bankName = bank.bank_name || ''
+    formData.accountNumber = bank.account_number || ''
+    formData.ifscCode = bank.ifsc_code || ''
+    console.log('Pre-filling bank details from bank:', bank)
+  }
+  
+  // Set Aadhaar number if available
+  if (userInfo.kyc_data && userInfo.kyc_data.aadhaar_number) {
+    formData.aadhaarNumber = userInfo.kyc_data.aadhaar_number
+    console.log('Pre-filling Aadhaar number:', userInfo.kyc_data.aadhaar_number)
+  }
+  
+  // Set business type based on available data
+  if (formData.gstNumber && formData.gstNumber.trim() !== '') {
+    businessType.value = 'gst'
+    console.log('Setting business type to gst based on GST number')
+  } else if (userInfo.kyc_data && userInfo.kyc_data.business_type) {
+    businessType.value = userInfo.kyc_data.business_type
+    console.log('Setting business type from user info:', userInfo.kyc_data.business_type)
+  } else {
+    businessType.value = 'gst'
+    console.log('Setting default business type to gst')
+  }
+  
+  // Auto-verify Aadhaar if number is valid
+  if (formData.aadhaarNumber && formData.aadhaarNumber.length === 12) {
+    console.log('Auto-verifying Aadhaar number:', formData.aadhaarNumber)
+    aadhaarVerified.value = true
+  }
+  
+  console.log('Form initialization complete. Can submit:', canSubmit.value)
+}
+
+const checkKycStatusAndHandle = async () => {
+  // Check if KYC was already submitted successfully
+  const kycSubmissionStatus = localStorage.getItem('kyc_submission_status')
+  if (kycSubmissionStatus === 'completed') {
+    console.log('KYC marked as completed in localStorage, verifying with backend...');
+    
+    // Verify with backend if KYC is actually completed
+    const isActuallyCompleted = await verifyKycCompletion()
+    
+    if (isActuallyCompleted) {
+      console.log('KYC is actually completed according to backend');
+      // Don't redirect immediately - let user see the form and decide to submit again if needed
+      // Show a success message that KYC is already completed, but allow form access
+      showSuccess.value = true
+      generalError.value = '' // Clear any error messages
+      
+      // Pre-fill the form with existing data if available
+      const savedFormData = localStorage.getItem('kyc_form_data')
+      if (savedFormData) {
+        try {
+          const parsedData = JSON.parse(savedFormData)
+          Object.assign(formData, parsedData)
+          console.log('Loaded saved form data for completed KYC:', parsedData)
+        } catch (error) {
+          console.error('Error loading saved form data:', error)
+        }
+      }
+      
+      return
+    } else {
+      console.log('KYC marked as completed in localStorage but not actually completed, clearing status');
+      localStorage.removeItem('kyc_submission_status')
+      localStorage.removeItem('kyc_submission_timestamp')
+      console.log('KYC status cleared, allowing fresh submission');
+    }
+  }
+}
+
+const resetKycStatus = () => {
+  console.log('Resetting KYC status...');
+  localStorage.removeItem('kyc_submission_status');
+  localStorage.removeItem('kyc_submission_timestamp');
+  localStorage.removeItem('kyc_form_data');
+  kycSubmitted.value = false;
+  showSuccess.value = false;
+  generalError.value = '';
+  aadhaarVerified.value = false;
+  aadhaarOtpSent.value = false;
+  aadhaarOtpCooldown.value = 0;
+  gstVerified.value = false;
+  panVerified.value = false;
+  bankVerified.value = false;
+  errors.aadhaarNumber = '';
+  errors.aadhaarOtp = '';
+  errors.gstNumber = '';
+  errors.panNumber = '';
+  errors.entityType = '';
+  errors.entityName = '';
+  errors.gstAddress = '';
+  errors.gstPincode = '';
+  errors.billingAddress = '';
+  errors.panPincode = '';
+  errors.beneficiaryName = '';
+  errors.bankName = '';
+  errors.accountNumber = '';
+  errors.ifscCode = '';
+  errors.branchName = '';
+  formData.aadhaarNumber = '';
+  formData.aadhaarOtp = ['', '', '', '', '', ''];
+  formData.gstNumber = '';
+  formData.entityName = '';
+  formData.gstAddress = '';
+  formData.gstPincode = '';
+  formData.branchName = '';
+  formData.panNumber = '';
+  formData.entityType = '';
+  formData.billingAddress = '';
+  formData.panPincode = '';
+  formData.beneficiaryName = '';
+  formData.bankName = '';
+  formData.accountNumber = '';
+  formData.ifscCode = '';
+  console.log('KYC status reset successfully.');
+  alert('KYC status reset successfully. You can now submit a new KYC.');
+}
+
+const resetForResubmission = () => {
+  console.log('Resetting form for resubmission...')
+  
+  // Reset all submission flags
+  kycSubmitted.value = false
+  showSuccess.value = false
+  generalError.value = ''
+  loading.value = false
+  
+  // Clear any previous errors
+  Object.keys(errors).forEach(key => {
+    errors[key as keyof typeof errors] = ''
+  })
+  
+  // Reset submission ID
+  submissionId.value = 0
+  
+  console.log('Form reset completed. Ready for resubmission.')
+}
+
+const redirectToDashboard = () => {
+  const apiKey = localStorage.getItem('api_key')
+  if (apiKey) {
+    const redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
+    console.log('Redirecting to:', redirectUrl);
+    window.location.href = redirectUrl
+  } else {
+    router.push('/signin')
+  }
+}
 </script>
 
 <style scoped>

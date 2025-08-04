@@ -72,6 +72,9 @@ const googlePhoneOtpInputs = ref([
   { value: '' }
 ])
 
+// Login option for existing users
+const showLoginOption = ref(false)
+
 // Banks List - Will be populated from API
 const banksList = ref<string[]>([])
 const banksLoading = ref(false)
@@ -119,6 +122,12 @@ const bankVerifying = ref(false)
 const gstVerified = ref(false)
 const panVerified = ref(false)
 const bankVerified = ref(false)
+
+// Simple bank validation attempt tracking
+const bankValidationAttempts = ref(0)
+const maxBankValidationAttempts = 5
+const bankCounterReset = ref(false)
+const bankAttemptsExhausted = ref(false)
 
 // Computed properties
 const isStep1Valid = computed(() => {
@@ -486,6 +495,8 @@ const nextStep = async () => {
         // If it's a duplicate email error (from frontend or backend), show a more prominent message
         if (errors.email.includes('already registered') || errors.email.includes('already been taken')) {
           generalError.value = '⚠️ This email is already registered with Vamaship. Please use a different email address or try logging in instead.'
+          // Set login option flag to show login option
+          showLoginOption.value = true
         } else if (errors.email.includes('Network error')) {
           generalError.value = 'Network error occurred. Please check your connection and try again.'
         }
@@ -521,6 +532,8 @@ const nextStep = async () => {
             // Show a more prominent error message for duplicate email
             if (errors.email.includes('already registered') || errors.email.includes('already been taken')) {
               generalError.value = '⚠️ This email is already registered with Vamaship. Please use a different email address or try logging in instead.'
+              // Set login option flag to show login option
+              showLoginOption.value = true
             } else if (errors.email.includes('Network error')) {
               generalError.value = 'Network error occurred. Please check your connection and try again.'
             }
@@ -566,6 +579,12 @@ const prevStep = () => {
 
 // Complete signup process
 const completeSignup = async () => {
+  // Prevent duplicate submissions
+  if (loading.value) {
+    console.log('Signup already in progress, ignoring duplicate call');
+    return;
+  }
+  
   console.log('=== VUE COMPONENT COMPLETE SIGNUP START ===');
   console.log('Current form data:', formData);
   console.log('Aadhaar verified:', aadhaarVerified.value);
@@ -669,12 +688,8 @@ const completeSignup = async () => {
         return;
       }
       
-      if (!formData.billingAddress || formData.billingAddress.trim() === '') {
-        handleApiError({ 
-          message: 'Billing address is required for PAN based businesses.', 
-          errors: { billingAddress: 'Billing address is required' } 
-        });
-        return;
+      if (!validatePanNumber(formData.panNumber)) {
+        return; // Error already set by validatePanNumber
       }
     }
     
@@ -696,19 +711,15 @@ const completeSignup = async () => {
     }
     
     if (!formData.accountNumber || formData.accountNumber.trim() === '') {
-      handleApiError({ 
-        message: 'Account number is required.', 
-        errors: { accountNumber: 'Account number is required' } 
-      });
-      return;
+      const remainingAttempts = maxBankValidationAttempts - bankValidationAttempts.value
+      errors.accountNumber = `Please enter an account number to verify. (${remainingAttempts} attempts remaining)`
+      return
     }
-    
+
     if (!formData.ifscCode || formData.ifscCode.trim() === '') {
-      handleApiError({ 
-        message: 'IFSC code is required.', 
-        errors: { ifscCode: 'IFSC code is required' } 
-      });
-      return;
+      const remainingAttempts = maxBankValidationAttempts - bankValidationAttempts.value
+      errors.ifscCode = `Please enter an IFSC code to verify. (${remainingAttempts} attempts remaining)`
+      return
     }
   } else {
     console.log('Skipping KYC validation - user chose to skip KYC');
@@ -773,16 +784,16 @@ const completeSignup = async () => {
       
       // Store user data in localStorage
       localStorage.setItem('userData', JSON.stringify({
-        name: response.data.data.user.name,
-        email: response.data.data.user.email,
-        phone: response.data.data.user.phone,
-        userId: response.data.data.user_id,
-        entityId: response.data.data.entity_id
+        name: response.data.user.name,
+        email: response.data.user.email,
+        phone: response.data.user.phone,
+        userId: response.data.user_id,
+        entityId: response.data.entity_id
       }))
       
       // Store access token and API key
-      localStorage.setItem('access_token', response.data.data.access_token)
-      localStorage.setItem('api_key', response.data.data.api_key)
+      localStorage.setItem('access_token', response.data.access_token)
+      localStorage.setItem('api_key', response.data.api_key)
       
       // Show success and redirect to ecom3-ui dashboard
       kycCompleted.value = true
@@ -790,22 +801,22 @@ const completeSignup = async () => {
       alert('Signup completed successfully! Welcome to Vamaship! 🎉')
       
       // Prepare redirect URL with authentication parameters
-      const baseUrl = response.data?.data?.redirect_url || 'http://localhost:8080'
+      const baseUrl = response.data?.redirect_url || 'http://localhost:8080'
       
       // Debug the API key and redirect URL
       console.log('=== REDIRECT URL DEBUGGING ===');
-      console.log('API key from response:', response.data.data.api_key);
-      console.log('API key type:', typeof response.data.data.api_key);
-      console.log('API key length:', response.data.data.api_key ? response.data.data.api_key.length : 'N/A');
-      console.log('Original redirect_url from backend:', response.data?.data?.redirect_url);
+      console.log('API key from response:', response.data.api_key);
+      console.log('API key type:', typeof response.data.api_key);
+      console.log('API key length:', response.data.api_key ? response.data.api_key.length : 'N/A');
+      console.log('Original redirect_url from backend:', response.data?.redirect_url);
       console.log('Base URL:', baseUrl);
       
       // Always redirect to login-migration first for proper authentication flow
       // Extract the base URL from the backend redirect_url if it exists
       let ecom3BaseUrl;
-      if (response.data?.data?.redirect_url) {
+      if (response.data?.redirect_url) {
         try {
-          const url = new URL(response.data.data.redirect_url);
+          const url = new URL(response.data.redirect_url);
           ecom3BaseUrl = `${url.protocol}//${url.host}`;
         } catch (error) {
           console.warn('Could not parse redirect_url, using fallback:', error);
@@ -821,12 +832,12 @@ const completeSignup = async () => {
       
       // Build query parameters for seamless authentication
       const queryParams = new URLSearchParams({
-        api_key: response.data.data.api_key,
+        api_key: response.data.api_key,
         new_user: 'true',
-        user_id: response.data.data.user_id || '0',
-        user_name: response.data.data.user.name || '',
-        user_email: response.data.data.user.email || '',
-        user_phone: response.data.data.user.phone || '',
+        user_id: response.data.user_id || '0',
+        user_name: response.data.user.name || '',
+        user_email: response.data.user.email || '',
+        user_phone: response.data.user.phone || '',
         from: 'signup'
       });
       
@@ -862,6 +873,28 @@ const completeSignup = async () => {
     } else {
       console.error('Signup failed:', response.message);
       console.error('Signup errors:', response.errors);
+      
+      // Check if this is an email already registered error
+      const isEmailAlreadyRegistered = response.message?.includes('already registered') || 
+                                      response.message?.includes('already exists') ||
+                                      response.errors?.email?.some((error: string) => 
+                                        error.includes('already registered') || error.includes('already exists')
+                                      );
+      
+      if (isEmailAlreadyRegistered) {
+        // Show email already registered message with login option
+        generalError.value = 'This email is already registered. Please login with your existing account.'
+        
+        // Set flag to show login option
+        showLoginOption.value = true
+        
+        // Store email for pre-filling in login page
+        if (formData.email) {
+          localStorage.setItem('prefillEmail', formData.email)
+        }
+        
+        return
+      }
       
       // Handle validation errors from API service
       if (response.errors) {
@@ -963,6 +996,12 @@ const submitKyc = async () => {
 const skipKyc = async () => {
   console.log('Skipping KYC verification - proceeding with clean registration');
   
+  // Prevent duplicate submissions
+  if (loading.value) {
+    console.log('Skip KYC already in progress, ignoring duplicate call');
+    return;
+  }
+  
   // Set the flag to indicate user is skipping KYC
   isSkippingKyc.value = true
   
@@ -989,12 +1028,108 @@ const skipKyc = async () => {
   loading.value = true
   
   try {
-    // Call completeSignup directly with KYC skipping flag
-    await completeSignup()
+    console.log('=== SKIP KYC SIGNUP START ===');
+    console.log('Preparing streamlined signup data for KYC skip');
+    
+    // Prepare streamlined signup data (minimal validation for skip)
+    const signupData = {
+      // Essential user registration data only
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      accountType: formData.accountType,
+      brandName: formData.brandName,
+      
+      // Add Google Sign-In flag
+      isGoogleSignIn: isGoogleSignInUser.value,
+      
+      // Add KYC skipping flag
+      isSkippingKyc: true,
+      
+      // No KYC data - clean registration
+    }
+
+    console.log('Streamlined signup data for KYC skip:', signupData);
+    
+    const response = await apiService.completeSignup(signupData)
+    
+    console.log('Skip KYC backend response:', response);
+    
+    if (response.success) {
+      console.log('Skip KYC signup completed successfully:', response.data)
+      
+      // Store user data in localStorage
+      localStorage.setItem('userData', JSON.stringify({
+        name: response.data.user.name,
+        email: response.data.user.email,
+        phone: response.data.user.phone,
+        userId: response.data.user_id,
+        entityId: response.data.entity_id
+      }))
+      
+      // Store access token and API key
+      localStorage.setItem('access_token', response.data.access_token)
+      localStorage.setItem('api_key', response.data.api_key)
+      
+      // Show success and redirect to ecom3-ui dashboard
+      kycCompleted.value = true
+      showDashboard.value = true
+      alert('Signup completed successfully! Welcome to Vamaship! 🎉')
+      
+      // Prepare redirect URL with authentication parameters
+      const baseUrl = response.data?.redirect_url || 'http://localhost:8080'
+      
+      // Debug the API key and redirect URL
+      console.log('=== SKIP KYC REDIRECT DEBUGGING ===');
+      console.log('API key from response:', response.data.api_key);
+      console.log('Original redirect_url from backend:', response.data?.redirect_url);
+      console.log('Base URL for redirect:', baseUrl);
+      
+      // Always redirect to login-migration first for proper authentication flow
+      let ecom3BaseUrl;
+      if (response.data?.redirect_url) {
+        try {
+          const url = new URL(response.data.redirect_url);
+          ecom3BaseUrl = `${url.protocol}//${url.host}`;
+        } catch (error) {
+          console.warn('Could not parse redirect_url, using fallback:', error);
+          ecom3BaseUrl = 'http://localhost:8080';
+        }
+      } else {
+        ecom3BaseUrl = 'http://localhost:8080';
+      }
+      
+      const loginUrl = `${ecom3BaseUrl}/login-migration`;
+      const queryParams = new URLSearchParams({
+        api_key: response.data.api_key,
+        new_user: 'true',
+        user_id: response.data.user_id || '0',
+        user_name: response.data.user.name || '',
+        user_email: response.data.user.email || '',
+        user_phone: response.data.user.phone || '',
+        from: 'signup'
+      });
+      
+      const finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
+      console.log('Final redirect URL for skip KYC:', finalRedirectUrl);
+      
+      // Redirect to ecom3-ui login-migration page
+      window.location.href = finalRedirectUrl;
+      
+    } else {
+      console.error('Skip KYC signup failed:', response);
+      handleApiError(response);
+    }
   } catch (error) {
-    console.error('Error during KYC skip signup:', error)
+    console.error('Error during KYC skip signup:', error);
+    handleApiError({ 
+      message: 'Network error occurred during signup. Please try again.',
+      errors: {}
+    });
+  } finally {
     loading.value = false
-    // Error handling is done in completeSignup
   }
 }
 
@@ -1283,7 +1418,10 @@ const verifyAadhaar = async () => {
     console.log('Verifying Aadhaar OTP:', otpString, 'for Aadhaar:', formData.aadhaarNumber)
     const response = await apiService.verifyAadhaarOTP(formData.aadhaarNumber || '', otpString)
     
-    if (response.success) {
+    console.log('Aadhaar verification response:', response)
+    
+    // Check for success - backend returns 'result' field, not 'success'
+    if (response.success && response.data && response.data.result === 1) {
       // Mark Aadhaar as verified locally
       aadhaarVerified.value = true
       
@@ -1298,7 +1436,9 @@ const verifyAadhaar = async () => {
       
       // Don't clear the Aadhaar number as it's now verified
     } else {
-      errors.aadhaarOtp = response.message || 'Aadhaar verification failed'
+      const errorMessage = response.data?.message || response.message || 'Aadhaar verification failed'
+      errors.aadhaarOtp = errorMessage
+      console.error('Aadhaar verification failed:', errorMessage)
     }
   } catch (error) {
     console.error('Aadhaar verification error:', error)
@@ -1316,6 +1456,11 @@ const redirectToVamaship = () => {
 
 // Function to navigate to sign-in page
 const goToSignIn = () => {
+  // Store the email in localStorage so it can be pre-filled in sign-in
+  if (formData.email) {
+    localStorage.setItem('prefillEmail', formData.email)
+  }
+  // Navigate to sign-in page
   router.push('/sign-in')
 }
 
@@ -1360,6 +1505,40 @@ const handleGoogleSignInSuccess = async (response: any) => {
     const profile = parseJwt(response.credential)
     
     console.log('Google Sign-In successful:', profile)
+    
+    // Check if email already exists before proceeding
+    if (profile.email) {
+      try {
+        console.log('Checking if email already exists:', profile.email)
+        const emailCheckResponse = await apiService.checkEmailExists(profile.email)
+        
+        if (emailCheckResponse.success && emailCheckResponse.data && emailCheckResponse.data.exists) {
+          // Email already exists - show login option instead
+          console.log('Email already exists, showing login option')
+          isGoogleSignInUser.value = true
+          formData.fullName = profile.name || ''
+          formData.email = profile.email || ''
+          
+          // Set a flag to show login option in step 2
+          showLoginOption.value = true
+          
+          // Move to step 2 to show login option
+          if (currentStep.value === 1) {
+            nextStep()
+          }
+          
+          // Show message that user should login instead
+          generalError.value = 'This email is already registered. Please login with your existing account.'
+          return
+        }
+      } catch (emailCheckError) {
+        console.error('Error checking email existence:', emailCheckError)
+        // Continue with signup if email check fails
+      }
+    }
+    
+    // Email doesn't exist or check failed - proceed with normal signup
+    console.log('Email is new, proceeding with signup')
     
     // Set Google Sign-In user flag
     isGoogleSignInUser.value = true
@@ -1515,6 +1694,7 @@ const clearErrors = () => {
     errors[key] = ''
   })
   generalError.value = ''
+  showLoginOption.value = false
 }
 
 // Function to clear specific field error
@@ -1522,8 +1702,10 @@ const clearFieldError = (fieldName: string) => {
   if (errors[fieldName]) {
     errors[fieldName] = ''
   }
-  // Don't clear general error when clearing field errors
-  // This allows network errors and other general messages to persist
+  // Clear login option when email field error is cleared
+  if (fieldName === 'email') {
+    showLoginOption.value = false
+  }
 }
 
 // Function to handle API errors
@@ -1627,7 +1809,7 @@ const verifyGst = async () => {
   }
 
   if (!validateGstNumber(formData.gstNumber)) {
-    return
+    return; // Error already set by validateGstNumber
   }
 
   gstVerifying.value = true
@@ -1691,20 +1873,37 @@ const verifyPan = async () => {
 }
 
 const verifyBank = async () => {
+  console.log('=== VERIFY BANK FUNCTION CALLED ===')
+  console.log('Current counter:', bankValidationAttempts.value)
+  
+  // Check if attempts are exhausted
+  if (bankValidationAttempts.value >= maxBankValidationAttempts) {
+    bankAttemptsExhausted.value = true
+    errors.accountNumber = 'Contact Sales Team at sales@vamaship.com'
+    errors.ifscCode = 'Contact Sales Team at sales@vamaship.com'
+    return
+  }
+  
+  // Increment attempt counter for all validation attempts (including format failures)
+  bankValidationAttempts.value++
+  console.log(`Counter incremented to: ${bankValidationAttempts.value}/${maxBankValidationAttempts}`)
+
+  const remainingAttempts = maxBankValidationAttempts - bankValidationAttempts.value; // Defined here for all error messages
+
   if (!formData.accountNumber || formData.accountNumber.trim() === '') {
-    errors.accountNumber = 'Please enter an account number to verify'
+    errors.accountNumber = `Please enter an account number to verify. (${remainingAttempts} attempts remaining)`
     return
   }
 
   if (!formData.ifscCode || formData.ifscCode.trim() === '') {
-    errors.ifscCode = 'Please enter an IFSC code to verify'
+    errors.ifscCode = `Please enter an IFSC code to verify. (${remainingAttempts} attempts remaining)`
     return
   }
 
-  // Basic IFSC format validation
+  // Basic IFSC format validation - IFSC codes are 11 characters: 4 letters + 7 alphanumeric
   const ifscPattern = /^[A-Z]{4}[0-9A-Z]{7}$/
   if (!ifscPattern.test(formData.ifscCode)) {
-    errors.ifscCode = 'Please enter a valid IFSC code format (e.g., HDFC0001234)'
+    errors.ifscCode = `Please enter a valid IFSC code format (e.g., HDFC0001234). (${remainingAttempts} attempts remaining)`
     return
   }
 
@@ -1712,7 +1911,7 @@ const verifyBank = async () => {
   clearErrors()
 
   try {
-    console.log('Starting bank verification for:', { accountNumber: formData.accountNumber, ifscCode: formData.ifscCode })
+    console.log(`Starting bank verification (attempt ${bankValidationAttempts.value}/${maxBankValidationAttempts}) for:`, { accountNumber: formData.accountNumber, ifscCode: formData.ifscCode })
     const response = await apiService.validateBankPublic(formData.accountNumber, formData.ifscCode)
     console.log('Bank verification response:', response)
     
@@ -1724,14 +1923,14 @@ const verifyBank = async () => {
       console.log('Bank verification successful')
     } else {
       bankVerified.value = false
-      const errorMessage = response?.message || 'Bank verification failed. Please check the account number and IFSC code.'
+      const errorMessage = response?.message || `Bank verification failed. Please check the account number and IFSC code. (${remainingAttempts} attempts remaining)`
       errors.accountNumber = errorMessage
       errors.ifscCode = errorMessage
       console.log('Bank verification failed:', response)
     }
   } catch (error: any) {
     bankVerified.value = false
-    const errorMessage = 'Network error during bank verification. Please try again.'
+    const errorMessage = `Network error during bank verification. Please try again. (${remainingAttempts} attempts remaining)`
     errors.accountNumber = errorMessage
     errors.ifscCode = errorMessage
     console.error('Bank verification error:', error)
@@ -1778,16 +1977,20 @@ const validateEmailExists = async (email: string) => {
     console.log('API response:', response)
     
     if (response.success && response.data?.exists) {
-      console.log('Email exists, setting error')
+      console.log('Email exists, setting error and login option')
       errors.email = '⚠️ This email is already registered. Please use a different email address or try logging in instead.'
       // Also set a general error for more prominence
       generalError.value = 'This email address is already registered with Vamaship. Please use a different email or try logging in instead.'
+      // Set login option flag to show login option in both Step 2 and Step 3
+      showLoginOption.value = true
     } else {
       console.log('Email is available')
       // Clear any previous general error if email is now valid
       if (generalError.value && (generalError.value.includes('email') || generalError.value.includes('already registered') || generalError.value.includes('Network error'))) {
         generalError.value = ''
       }
+      // Clear login option flag when email is available
+      showLoginOption.value = false
     }
   } catch (error: any) {
     // Show network error to user
@@ -1801,6 +2004,8 @@ const validateEmailExists = async (email: string) => {
       if (backendError.includes('already been taken')) {
         errors.email = '⚠️ This email is already registered. Please use a different email address or try logging in instead.'
         generalError.value = 'This email address is already registered with Vamaship. Please use a different email or try logging in instead.'
+        // Set login option flag for backend validation errors too
+        showLoginOption.value = true
       } else {
         errors.email = backendError
       }
@@ -1938,6 +2143,33 @@ const logNetworkError = () => {
 }
 
 // Validation functions
+
+// Function to reset bank validation attempts when bank details change
+const resetBankValidationAttempts = () => {
+  // Reset counter when user changes bank details
+  if (bankValidationAttempts.value > 0) {
+    bankValidationAttempts.value = 0
+    bankCounterReset.value = true
+    bankAttemptsExhausted.value = false // Reset exhausted state
+    console.log('Bank details changed - Counter reset to 0')
+    
+    // Clear the reset flag after a short delay
+    setTimeout(() => {
+      bankCounterReset.value = false
+    }, 2000)
+  }
+  
+  // Hide bank verification success message when bank details change
+  if (bankVerified.value) {
+    bankVerified.value = false
+    console.log('Bank details changed - Hiding verification success message')
+  }
+  
+  errors.accountNumber = ''
+  errors.ifscCode = ''
+}
+
+// Add email validation function
 </script>
 
 <template>
@@ -2352,15 +2584,17 @@ const logNetworkError = () => {
                 <div class="flex-1">
                   <span class="text-red-700 text-sm font-medium">{{ generalError }}</span>
                   <!-- Show login suggestion for duplicate email errors -->
-                  <div v-if="generalError.includes('already registered')" class="mt-3">
-                    <p class="text-red-600 text-xs mb-2">Already have an account?</p>
-                    <button
-                      @click="goToSignIn"
-                      class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-md hover:bg-red-700 transition-colors"
-                    >
-                      <i class="fas fa-sign-in-alt mr-1"></i>
-                      Login Instead
-                    </button>
+                  <div v-if="generalError.includes('already registered') || generalError.includes('already been taken')" class="mt-3">
+                    <p class="text-red-600 text-sm mb-2 font-medium">Already have an account?</p>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                      <button
+                        @click="goToSignIn"
+                        class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Login Here
+                      </button>
+                    </div>
                   </div>
                   <!-- Show dismiss button for network errors -->
                   <div v-if="generalError.includes('Network error')" class="mt-3">
@@ -2382,6 +2616,29 @@ const logNetworkError = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Login Option for Existing Users -->
+            <div v-if="showLoginOption" class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-lg">
+              <div class="text-center">
+                <div class="flex items-center justify-center mb-4">
+                  <i class="fas fa-exclamation-triangle text-orange-500 text-3xl mr-3"></i>
+                  <h3 class="text-xl font-bold text-blue-900">Email Already Registered!</h3>
+                </div>
+                <p class="text-blue-800 mb-4 text-lg">
+                  The email <strong class="text-blue-900">{{ formData.email }}</strong> is already registered with Vamaship.
+                </p>
+                <button
+                  @click="goToSignIn"
+                  class="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <i class="fas fa-sign-in-alt mr-3 text-lg"></i>
+                  Login Here
+                </button>
+                <p class="text-xs text-blue-600 mt-3">
+                  Your email will be pre-filled automatically
+                </p>
               </div>
             </div>
 
@@ -2655,7 +2912,30 @@ const logNetworkError = () => {
               </div>
             </div>
 
-            <form @submit.prevent="completeSignup" class="space-y-6">
+            <!-- Login Option for Existing Users in Step 3 -->
+            <div v-if="showLoginOption" class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-lg">
+              <div class="text-center">
+                <div class="flex items-center justify-center mb-4">
+                  <i class="fas fa-exclamation-triangle text-orange-500 text-3xl mr-3"></i>
+                  <h3 class="text-xl font-bold text-blue-900">Email Already Registered!</h3>
+                </div>
+                <p class="text-blue-800 mb-4 text-lg">
+                  The email <strong class="text-blue-900">{{ formData.email }}</strong> is already registered with Vamaship.
+                </p>
+                <button
+                  @click="goToSignIn"
+                  class="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <i class="fas fa-sign-in-alt mr-3 text-lg"></i>
+                  Login Here
+                </button>
+                <p class="text-xs text-blue-600 mt-3">
+                  Your email will be pre-filled automatically
+                </p>
+              </div>
+            </div>
+
+            <form v-if="!showLoginOption" @submit.prevent="completeSignup" class="space-y-6">
               <!-- Aadhaar Section -->
               <div class="border border-gray-200 rounded-lg p-6">
                 <button
@@ -3068,6 +3348,7 @@ const logNetworkError = () => {
                       <label class="block text-sm font-medium text-gray-700 mb-2">Account Number <span class="text-red-500">*</span></label>
                       <input
                         v-model="formData.accountNumber"
+                        @input="resetBankValidationAttempts"
                         @keyup.enter="completeSignup"
                         type="text"
                         placeholder="Enter account number"
@@ -3080,6 +3361,7 @@ const logNetworkError = () => {
                       <label class="block text-sm font-medium text-gray-700 mb-2">IFSC Code <span class="text-red-500">*</span></label>
                       <input
                         v-model="formData.ifscCode"
+                        @input="resetBankValidationAttempts"
                         @keyup.enter="completeSignup"
                         type="text"
                         placeholder="Enter IFSC code"
@@ -3091,7 +3373,18 @@ const logNetworkError = () => {
                   </div>
                   
                   <!-- Bank Verification Button -->
-                  <div class="flex justify-center">
+                  <div class="flex flex-col items-center space-y-2">
+                    <!-- Counter Reset Message -->
+                    <div v-if="bankCounterReset" class="text-sm text-green-600 font-medium">
+                      ✓ Counter reset - Fresh attempts available
+                    </div>
+                    
+                    <!-- Attempts Exhausted Message -->
+                    <div v-if="bankAttemptsExhausted" class="text-sm text-red-600 font-medium bg-red-50 px-4 py-2 rounded-md border border-red-200">
+                      <i class="fas fa-exclamation-triangle mr-2"></i>
+                      Contact Sales Team at sales@vamaship.com
+                    </div>
+                    
                     <button
                       type="button"
                       @click="verifyBank"
@@ -3127,9 +3420,11 @@ const logNetworkError = () => {
                 <button
                   type="button"
                   @click="skipKyc"
-                  class="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600 font-semibold"
+                  :disabled="loading"
+                  class="flex-1 bg-gray-500 text-white py-3 px-4 rounded-md hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold flex items-center justify-center"
                 >
-                  Skip KYC
+                  <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
+                  {{ loading ? 'Processing...' : 'Skip KYC' }}
                 </button>
                 <button
                   type="button"

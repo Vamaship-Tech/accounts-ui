@@ -139,6 +139,8 @@ class ApiService {
       
       const data = await response.json();
       console.log('API Response Data:', data);
+      console.log('API Response Data Type:', typeof data);
+      console.log('API Response Data Keys:', Object.keys(data));
 
       if (!response.ok) {
         console.log('API Error Response:', { status: response.status, data });
@@ -169,10 +171,13 @@ class ApiService {
 
       const result = {
         success: true,
-        data,
+        data: data.data || data, // Use data.data if it exists, otherwise use the entire response
+        message: data.message,
       };
       
       console.log('API Success Result:', result);
+      console.log('API Success Result Type:', typeof result);
+      console.log('API Success Result Keys:', Object.keys(result));
       
       return result;
     } catch (error) {
@@ -343,6 +348,7 @@ class ApiService {
 
   // Submit KYC for verify-kyc flow
   async submitKyc(kycData: VerifyKYCData): Promise<APIResponse> {
+    console.log('=== API SERVICE: SUBMIT KYC START ===');
     console.log('API: Submitting KYC data:', kycData)
     
     const endpoint = kycData.businessType === 'gst' 
@@ -350,17 +356,21 @@ class ApiService {
       : API_CONFIG.ENDPOINTS.KYC_GST_UNREGISTERED_PUBLIC;
     
     console.log('API: Using endpoint:', endpoint)
+    console.log('API: Current auth headers:', this.authHeaders)
     
     try {
+      console.log('API: Making request to backend...');
       const response = await this.request(endpoint, {
         method: 'POST',
         body: JSON.stringify(kycData),
       });
       
       console.log('API: KYC submission response:', response)
+      console.log('=== API SERVICE: SUBMIT KYC SUCCESS ===');
       return response
     } catch (error) {
       console.error('API: KYC submission error:', error)
+      console.log('=== API SERVICE: SUBMIT KYC FAILED ===');
       throw error
     }
   }
@@ -505,7 +515,19 @@ class ApiService {
 
   // Check KYC completion status
   async checkKYCStatus(): Promise<APIResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.KYC_STATUS);
+    console.log('=== API SERVICE: CHECK KYC STATUS START ===');
+    
+    try {
+      // Use the same authentication method as other requests
+      const response = await this.request(API_CONFIG.ENDPOINTS.KYC_STATUS);
+      console.log('KYC status response:', response);
+      console.log('=== API SERVICE: CHECK KYC STATUS SUCCESS ===');
+      return response;
+    } catch (error) {
+      console.error('KYC status check error:', error);
+      console.log('=== API SERVICE: CHECK KYC STATUS FAILED ===');
+      throw error;
+    }
   }
 
   // Login user
@@ -513,6 +535,19 @@ class ApiService {
     return this.request(API_CONFIG.ENDPOINTS.LOGIN, {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+    });
+  }
+
+  // Google login user
+  async googleLogin(email: string, credential: string, firstName?: string, lastName?: string): Promise<APIResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.GOOGLE_LOGIN, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        email, 
+        credential,
+        first_name: firstName,
+        last_name: lastName
+      }),
     });
   }
 
