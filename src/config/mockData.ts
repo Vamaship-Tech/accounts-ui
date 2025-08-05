@@ -1,5 +1,5 @@
 // Mock data for API responses
-import { APIResponse } from '../services/api'
+import type { APIResponse } from '../services/api'
 
 // Mock delay function to simulate network latency
 export const mockDelay = (ms: number = 500) => new Promise(resolve => setTimeout(resolve, ms))
