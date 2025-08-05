@@ -889,10 +889,10 @@ const completeSignup = async () => {
         }
         
         // Set field-specific errors
-        Object.keys(response.errors).forEach(backendField => {
+        Object.keys(response.errors!).forEach(backendField => {
           const frontendField = fieldMapping[backendField] || backendField
-          if (response.errors[backendField] && Array.isArray(response.errors[backendField])) {
-            const errorMessage = response.errors[backendField][0]
+          if (response.errors![backendField] && Array.isArray(response.errors![backendField])) {
+            const errorMessage = response.errors![backendField][0]
             errors[frontendField] = errorMessage
           }
         })
