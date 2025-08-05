@@ -23,6 +23,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     // Authentication
     LOGIN: '/login',
+    GOOGLE_LOGIN: '/google-login',
     REGISTER: '/register',
     COMPLETE_SIGNUP: '/complete-signup',
     FORGOT_PASSWORD: '/forgot-password',

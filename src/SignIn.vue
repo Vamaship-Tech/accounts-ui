@@ -1,11 +1,30 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import VamashipLogo from './components/VamashipLogo.vue'
 import apiService from './services/api'
 import authService from './services/auth'
 
+// TypeScript declarations for Google API
+declare global {
+  interface Window {
+    google: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void
+          renderButton: (element: HTMLElement, options: any) => void
+          prompt: () => void
+        }
+      }
+    }
+  }
+}
+
 const router = useRouter()
+
+// Google Sign-In Configuration
+const GOOGLE_CLIENT_ID = '592769281718-u140kqa8ikgtks4usm5m47ds2kvdk6nm.apps.googleusercontent.com'
+const isGoogleLoaded = ref(false)
 
 // Form data
 const formData = reactive({
@@ -158,10 +177,136 @@ const handleSignIn = async () => {
   }
 }
 
-// Handle Google sign in (placeholder for future implementation)
+// Google Sign-In Methods
+const initializeGoogleSignIn = () => {
+  if (typeof window !== 'undefined' && window.google) {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleSignInSuccess,
+      auto_select: false,
+      cancel_on_tap_outside: true
+    })
+    
+    // Render the Google Sign-In button with null checking
+    const buttonElement = document.getElementById('google-signin-button')
+    if (buttonElement) {
+      window.google.accounts.id.renderButton(
+        buttonElement,
+        {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          width: '100%',
+          logo_alignment: 'left'
+        }
+      )
+    }
+    
+    isGoogleLoaded.value = true
+  }
+}
+
+const handleGoogleSignInSuccess = async (response: any) => {
+  try {
+    isLoading.value = true
+    clearErrors()
+    
+    console.log('Google Sign-In response received:', response)
+    
+    // Parse the JWT token to get user info
+    const profile = parseJwt(response.credential)
+    
+    console.log('Google Sign-In successful:', profile)
+    
+    // Call the Google login API
+    const loginResponse = await apiService.googleLogin(
+      profile.email,
+      response.credential,
+      profile.given_name,
+      profile.family_name
+    )
+    
+    console.log('Google login API response:', loginResponse)
+    
+    if (loginResponse.success && loginResponse.data?.token) {
+      // Store the token
+      localStorage.setItem('accessToken', loginResponse.data.token)
+      
+      // Redirect to ecom3-ui dashboard
+      const apiKey = loginResponse.data.token
+      const dashboardUrl = `http://localhost:8080/orders?api_key=${apiKey}`
+      window.location.href = dashboardUrl
+    } else {
+      // Handle login failure
+      errors.general = loginResponse.message || 'Google login failed. Please try again.'
+    }
+    
+  } catch (error: any) {
+    console.error('Google Sign-In error:', error)
+    
+    // Handle specific Google OAuth errors
+    if (error.error === 'origin_mismatch') {
+      errors.general = 'Google Sign-In configuration error. Please contact support.'
+    } else if (error.error === 'popup_closed_by_user') {
+      // User closed the popup, don't show error
+      console.log('User closed Google Sign-In popup')
+    } else if (error.error === 'access_denied') {
+      errors.general = 'Google Sign-In was denied. Please try again.'
+    } else if (error.error === 'invalid_client') {
+      errors.general = 'Google Sign-In configuration error. Please contact support.'
+    } else {
+      errors.general = 'Google Sign-In failed. Please try again.'
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const parseJwt = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      }).join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Error parsing JWT:', error)
+    return {}
+  }
+}
+
+// Load Google Sign-In script
+const loadGoogleSignInScript = () => {
+  console.log('Loading Google Sign-In script...')
+  
+  if (typeof window !== 'undefined' && !window.google) {
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      console.log('Google Sign-In script loaded successfully')
+      initializeGoogleSignIn()
+    }
+    script.onerror = (error) => {
+      console.error('Failed to load Google Sign-In script:', error)
+      errors.general = 'Failed to load Google Sign-In. Please refresh the page and try again.'
+    }
+    document.head.appendChild(script)
+  } else if (typeof window !== 'undefined' && window.google) {
+    console.log('Google Sign-In already available')
+    initializeGoogleSignIn()
+  }
+}
+
+// Handle Google sign in
 const handleGoogleSignIn = () => {
   console.log('Google sign in clicked')
-  errors.general = 'Google sign-in is not yet implemented.'
+  loadGoogleSignInScript()
 }
 
 // Handle Enter key press
@@ -170,6 +315,19 @@ const handleKeyPress = (event: KeyboardEvent) => {
     handleSignIn()
   }
 }
+
+// Pre-fill email from localStorage if available
+onMounted(() => {
+  const prefillEmail = localStorage.getItem('prefillEmail')
+  if (prefillEmail) {
+    formData.email = prefillEmail
+    // Clear the stored email after pre-filling
+    localStorage.removeItem('prefillEmail')
+  }
+  
+  // Initialize Google Sign-In
+  loadGoogleSignInScript()
+})
 </script>
 
 <template>
@@ -298,8 +456,12 @@ const handleKeyPress = (event: KeyboardEvent) => {
         </div>
 
         <!-- Google Sign In -->
+        <div id="google-signin-button" class="w-full"></div>
+        
+        <!-- Fallback button if Google Sign-In fails to load -->
         <button 
-          @click="handleGoogleSignIn"
+          v-if="!isGoogleLoaded"
+          @click="loadGoogleSignInScript"
           :disabled="isLoading"
           class="w-full flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
         >
