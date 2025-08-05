@@ -882,9 +882,6 @@ const completeSignup = async () => {
                                       );
       
       if (isEmailAlreadyRegistered) {
-        // Show email already registered message with login option
-        generalError.value = 'This email is already registered. Please login with your existing account.'
-        
         // Set flag to show login option
         showLoginOption.value = true
         
@@ -1460,6 +1457,10 @@ const goToSignIn = () => {
   if (formData.email) {
     localStorage.setItem('prefillEmail', formData.email)
   }
+  // Store the phone number in localStorage so it can be pre-filled in sign-in
+  if (formData.phone) {
+    localStorage.setItem('prefillPhone', formData.phone)
+  }
   // Navigate to sign-in page
   router.push('/sign-in')
 }
@@ -1527,8 +1528,6 @@ const handleGoogleSignInSuccess = async (response: any) => {
             nextStep()
           }
           
-          // Show message that user should login instead
-          generalError.value = 'This email is already registered. Please login with your existing account.'
           return
         }
       } catch (emailCheckError) {
@@ -1979,8 +1978,6 @@ const validateEmailExists = async (email: string) => {
     if (response.success && response.data?.exists) {
       console.log('Email exists, setting error and login option')
       errors.email = '⚠️ This email is already registered. Please use a different email address or try logging in instead.'
-      // Also set a general error for more prominence
-      generalError.value = 'This email address is already registered with Vamaship. Please use a different email or try logging in instead.'
       // Set login option flag to show login option in both Step 2 and Step 3
       showLoginOption.value = true
     } else {
@@ -2330,6 +2327,25 @@ const resetBankValidationAttempts = () => {
                       <p class="text-xs text-gray-500 mt-1">We'll send a verification code to this number</p>
                     </div>
                     
+                    <!-- Mobile Already Registered Message -->
+                    <div v-if="isMobileAlreadyRegistered" class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
+                      <div class="text-center">
+                        <p class="text-blue-800 mb-2 text-sm">
+                          The mobile number <strong class="text-blue-900">{{ formData.phone }}</strong> is already registered with Vamaship.
+                        </p>
+                        <button
+                          @click="goToSignIn"
+                          class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
+                          Login Here
+                        </button>
+                        <p class="text-xs text-blue-600 mt-1">
+                          Your mobile will be pre-filled automatically
+                        </p>
+                      </div>
+                    </div>
+                    
                     <button 
                       v-if="!otpSent && !isMobileAlreadyRegistered"
                       @click="() => { console.log('Send OTP button clicked'); sendOtp(); }"
@@ -2583,19 +2599,6 @@ const resetBankValidationAttempts = () => {
                 <i class="fas fa-exclamation-circle text-red-500 mr-3 mt-0.5"></i>
                 <div class="flex-1">
                   <span class="text-red-700 text-sm font-medium">{{ generalError }}</span>
-                  <!-- Show login suggestion for duplicate email errors -->
-                  <div v-if="generalError.includes('already registered') || generalError.includes('already been taken')" class="mt-3">
-                    <p class="text-red-600 text-sm mb-2 font-medium">Already have an account?</p>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                      <button
-                        @click="goToSignIn"
-                        class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
-                      >
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        Login Here
-                      </button>
-                    </div>
-                  </div>
                   <!-- Show dismiss button for network errors -->
                   <div v-if="generalError.includes('Network error')" class="mt-3">
                     <div class="flex space-x-2">
@@ -2620,23 +2623,19 @@ const resetBankValidationAttempts = () => {
             </div>
 
             <!-- Login Option for Existing Users -->
-            <div v-if="showLoginOption" class="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-lg">
+            <div v-if="showLoginOption" class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
               <div class="text-center">
-                <div class="flex items-center justify-center mb-4">
-                  <i class="fas fa-exclamation-triangle text-orange-500 text-3xl mr-3"></i>
-                  <h3 class="text-xl font-bold text-blue-900">Email Already Registered!</h3>
-                </div>
-                <p class="text-blue-800 mb-4 text-lg">
+                <p class="text-blue-800 mb-2 text-sm">
                   The email <strong class="text-blue-900">{{ formData.email }}</strong> is already registered with Vamaship.
                 </p>
                 <button
                   @click="goToSignIn"
-                  class="inline-flex items-center px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  <i class="fas fa-sign-in-alt mr-3 text-lg"></i>
+                  <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
                   Login Here
                 </button>
-                <p class="text-xs text-blue-600 mt-3">
+                <p class="text-xs text-blue-600 mt-1">
                   Your email will be pre-filled automatically
                 </p>
               </div>
