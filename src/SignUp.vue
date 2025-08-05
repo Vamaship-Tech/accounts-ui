@@ -290,6 +290,19 @@ const sendOtp = async () => {
   clearErrors() // Clear previous errors
   
   try {
+    // First check if mobile number already exists
+    console.log('Checking if mobile number already exists...')
+    const mobileCheckResponse = await apiService.checkMobileExists(formData.phone)
+    console.log('Mobile existence check response:', mobileCheckResponse)
+    
+    if (mobileCheckResponse.success && mobileCheckResponse.data?.exists) {
+      console.log('Mobile number already exists, showing login option')
+      isMobileAlreadyRegistered.value = true
+      return
+    }
+    
+    // Mobile number doesn't exist, proceed to send OTP
+    console.log('Mobile number is available, sending OTP...')
     console.log('Calling apiService.sendOTP with phone:', formData.phone)
     const response = await apiService.sendOTP(formData.phone)
     console.log('API response received:', response)
@@ -311,10 +324,6 @@ const sendOtp = async () => {
       // Check for mobile already registered error
       if (response && !response.success && response.data?.is_registered) {
         isMobileAlreadyRegistered.value = true
-        generalError.value = response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
-        // Clear phone number to allow user to enter a different one
-        formData.phone = ''
-        errors.phone = 'This mobile number is already registered'
       } else {
         handleApiError(response)
       }
@@ -337,10 +346,6 @@ const sendOtp = async () => {
     } else if (error.response?.status === 422 && error.response.data?.is_registered) {
       // Handle mobile already registered error
       isMobileAlreadyRegistered.value = true
-      generalError.value = error.response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
-      // Clear phone number to allow user to enter a different one
-      formData.phone = ''
-      errors.phone = 'This mobile number is already registered'
     } else if (error.response?.status === 404 && error.response.data?.user_not_found) {
       // User doesn't exist - this is expected for new signups
       // Proceed to create user during the actual signup process
@@ -367,6 +372,19 @@ const resendOtp = async () => {
     loading.value = true
     clearErrors()
     
+    // First check if mobile number already exists
+    console.log('Checking if mobile number already exists for resend...')
+    const mobileCheckResponse = await apiService.checkMobileExists(formData.phone)
+    console.log('Mobile existence check response for resend:', mobileCheckResponse)
+    
+    if (mobileCheckResponse.success && mobileCheckResponse.data?.exists) {
+      console.log('Mobile number already exists during resend, showing login option')
+      isMobileAlreadyRegistered.value = true
+      return
+    }
+    
+    // Mobile number doesn't exist, proceed to resend OTP
+    console.log('Mobile number is available, resending OTP...')
     const response = await apiService.sendOTP(formData.phone)
     // Check for success - backend doesn't return 'success' field, just check if response exists
     if (response && (response.success || response.message)) {
@@ -385,10 +403,8 @@ const resendOtp = async () => {
     if (error.response?.status === 422 && error.response.data?.is_registered) {
       // Handle mobile already registered error
       isMobileAlreadyRegistered.value = true
-      generalError.value = error.response.data?.message || 'This mobile number is already registered. Please try logging in instead.'
       // Clear phone number to allow user to enter a different one
       formData.phone = ''
-      errors.phone = 'This mobile number is already registered'
     } else {
       generalError.value = 'Network error occurred while resending OTP. Please try again.'
     }
@@ -1194,6 +1210,19 @@ const sendGooglePhoneOtp = async () => {
       return
     }
     
+    // First check if mobile number already exists
+    console.log('Checking if mobile number already exists for Google signup...')
+    const mobileCheckResponse = await apiService.checkMobileExists(formData.phone)
+    console.log('Mobile existence check response for Google signup:', mobileCheckResponse)
+    
+    if (mobileCheckResponse.success && mobileCheckResponse.data?.exists) {
+      console.log('Mobile number already exists during Google signup, showing login option')
+      isMobileAlreadyRegistered.value = true
+      return
+    }
+    
+    // Mobile number doesn't exist, proceed to send OTP
+    console.log('Mobile number is available for Google signup, sending OTP...')
     const response = await apiService.sendOTP(formData.phone)
     
     if (response.success) {
@@ -2189,13 +2218,6 @@ const resetBankValidationAttempts = () => {
             >
               Login
             </button>
-            <button
-              @click="router.push('/sign-up')"
-              class="px-4 py-2 text-white rounded-md hover:opacity-90 font-medium transition-colors"
-              style="background-color: #6A5ACD;"
-            >
-              Sign Up
-            </button>
           </div>
         </div>
       </div>
@@ -2335,14 +2357,12 @@ const resetBankValidationAttempts = () => {
                         </p>
                         <button
                           @click="goToSignIn"
-                          class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                          class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                         >
                           <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
                           Login Here
                         </button>
-                        <p class="text-xs text-blue-600 mt-1">
-                          Your mobile will be pre-filled automatically
-                        </p>
+                      
                       </div>
                     </div>
                     
@@ -2502,7 +2522,6 @@ const resetBankValidationAttempts = () => {
                         :placeholder="trackingPlaceholder"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
                       >
-                      <p class="text-xs text-gray-500 mt-1">Note: You can enter multiple Tracking IDs (upto 20) separated by ',' for tracking multiple shipments.</p>
                       
                       <!-- Track Button -->
                       <button 
@@ -2630,14 +2649,11 @@ const resetBankValidationAttempts = () => {
                 </p>
                 <button
                   @click="goToSignIn"
-                  class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  class="inline-flex items-center px-4 py-1.5 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
                 >
                   <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
                   Login Here
                 </button>
-                <p class="text-xs text-blue-600 mt-1">
-                  Your email will be pre-filled automatically
-                </p>
               </div>
             </div>
 

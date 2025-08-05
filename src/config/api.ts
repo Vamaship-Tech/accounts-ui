@@ -70,6 +70,9 @@ export const API_CONFIG = {
     // Email validation
     CHECK_EMAIL_EXISTS: '/public/check-email-exists',
     
+    // Mobile validation
+    CHECK_MOBILE_EXISTS: '/public/check-mobile-exists',
+    
     // Tracking endpoints
     TRACK_AWB: '/trackawb',
     TRACK_SHIPMENT: '/track',

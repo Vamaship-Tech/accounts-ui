@@ -464,6 +464,40 @@ class ApiService {
     }
   }
 
+  // Check if mobile exists
+  async checkMobileExists(phone: string): Promise<APIResponse> {
+    console.log('API: Checking if mobile exists:', phone);
+    
+    try {
+      const response = await this.request(API_CONFIG.ENDPOINTS.CHECK_MOBILE_EXISTS, {
+        method: 'POST',
+        body: JSON.stringify({ phone }),
+      });
+      console.log('API: Mobile exists check response:', response);
+      return response;
+    } catch (error) {
+      console.error('API: Mobile exists check error:', error);
+      throw error;
+    }
+  }
+
+  // Check if mobile exists
+  async checkMobileExists(phone: string): Promise<APIResponse> {
+    console.log('API: Checking if mobile exists:', phone);
+    
+    try {
+      const response = await this.request(API_CONFIG.ENDPOINTS.CHECK_MOBILE_EXISTS, {
+        method: 'POST',
+        body: JSON.stringify({ phone }),
+      });
+      console.log('API: Mobile exists check response:', response);
+      return response;
+    } catch (error) {
+      console.error('API: Mobile exists check error:', error);
+      throw error;
+    }
+  }
+
   // Get banks list
   async getBanksList(): Promise<APIResponse> {
     console.log('=== API GET BANKS LIST START ===');
