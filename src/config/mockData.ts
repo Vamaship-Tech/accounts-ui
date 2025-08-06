@@ -25,6 +25,26 @@ export const MOCK_DATA = {
     message: 'Login successful'
   } as APIResponse,
 
+  googleLogin: {
+    success: true,
+    data: {
+      user: {
+        id: 1,
+        fullName: 'Google User',
+        email: 'googleuser@gmail.com',
+        phone: null,
+        accountType: 'buyer',
+        brandName: null,
+        isVerified: true,
+        kycStatus: 'pending',
+        isGoogleUser: true
+      },
+      token: 'mock-jwt-token-google-123456789',
+      refreshToken: 'mock-refresh-token-google-987654321'
+    },
+    message: 'Google login successful'
+  } as APIResponse,
+
   register: {
     success: true,
     data: {

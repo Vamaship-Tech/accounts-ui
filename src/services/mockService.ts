@@ -285,6 +285,20 @@ class MockApiService {
     }
   }
 
+  // Google login user
+  async googleLogin(email: string, credential: string, firstName?: string, lastName?: string): Promise<APIResponse> {
+    console.log('=== MOCK GOOGLE LOGIN START ===');
+    console.log('Mock: Google login for email:', email);
+    console.log('Mock: Credential received:', credential);
+    console.log('Mock: Name:', firstName, lastName);
+    
+    await mockDelay();
+    
+    console.log('Mock: Google login response:', MOCK_DATA.googleLogin);
+    console.log('=== MOCK GOOGLE LOGIN SUCCESS ===');
+    return MOCK_DATA.googleLogin;
+  }
+
   // Forgot password
   async forgotPassword(email: string): Promise<APIResponse> {
     console.log('Mock: Processing forgot password for:', email);
