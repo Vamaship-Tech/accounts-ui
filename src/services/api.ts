@@ -1,6 +1,8 @@
 // API Service for connecting with accounts2.0 backend
 import { API_CONFIG } from '../config/api'
-import { authService } from './auth'
+import authService from './auth'
+import mockApiService from './mockService'
+
 
 const API_BASE_URL = API_CONFIG.BASE_URL
 
@@ -649,7 +651,9 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService();
+
+export const apiService = mockApiService;
+// export const apiService = new ApiService();
 export default apiService; 
 
 // Tracking API methods
