@@ -229,6 +229,26 @@ class MockApiService {
     return response;
   }
 
+  // Check if mobile number exists
+  async checkMobileExists(phone: string): Promise<APIResponse> {
+    console.log('Mock: Checking if mobile exists:', phone);
+    
+    await mockDelay();
+    
+    // Simulate that 9999999999 already exists
+    const exists = phone === '9999999999';
+    const response = {
+      success: true,
+      data: {
+        exists,
+        message: exists ? 'Mobile number already exists' : 'Mobile number is available'
+      }
+    };
+    
+    console.log('Mock: Mobile exists check response:', response);
+    return response;
+  }
+
   // Get banks list
   async getBanksList(): Promise<APIResponse> {
     console.log('=== MOCK GET BANKS LIST START ===');

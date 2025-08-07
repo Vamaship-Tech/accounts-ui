@@ -1,6 +1,6 @@
 // API Service for connecting with accounts2.0 backend
 import { API_CONFIG } from '../config/api'
-import authService from './auth'
+import { authService } from './auth'
 import mockApiService from './mockService'
 
 

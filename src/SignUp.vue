@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import apiService, { type SignUpData, type KYCData } from './services/api'
 import { trackingAPI } from './services/api'
@@ -57,6 +57,8 @@ const formData = reactive<SignUpData & KYCData>({
 const GOOGLE_CLIENT_ID = '592769281718-u140kqa8ikgtks4usm5m47ds2kvdk6nm.apps.googleusercontent.com'
 const isGoogleLoaded = ref(false)
 const isGoogleSignInUser = ref(false)
+const isGoogleMobileLoaded = ref(false)
+const isGoogleDesktopLoaded = ref(false)
 
 // Google Sign-In Phone OTP States
 const googlePhoneOtpSent = ref(false)
@@ -161,14 +163,14 @@ const isStep3Valid = computed(() => {
 // Computed properties for OTP inputs
 const otpInputs = computed(() => {
   return Array.from({ length: 6 }, (_, i) => ({
-    value: (formData.otp && formData.otp[i]) || '',
+    value: formData.otp?.[i] || '',
     index: i
   }))
 })
 
 const aadhaarOtpInputs = computed(() => {
   return Array.from({ length: 6 }, (_, i) => ({
-    value: (formData.aadhaarOtp && formData.aadhaarOtp[i]) || '',
+    value: formData.aadhaarOtp?.[i] || '',
     index: i
   }))
 })
@@ -356,7 +358,7 @@ const sendOtp = async () => {
         handleApiError(response)
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('OTP send error:', error)
     console.error('Error details:', {
       message: error.message,
@@ -425,7 +427,7 @@ const resendOtp = async () => {
     } else {
       handleApiError(response)
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('OTP resend error:', error)
     
     if (error.response?.status === 422 && error.response.data?.is_registered) {
@@ -496,7 +498,7 @@ const verifyOtp = async () => {
         handleApiError(response)
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('OTP verification error:', error)
     // Handle network errors or specific error responses
     if (error.response?.status === 400 || error.response?.status === 422) {
@@ -1206,12 +1208,15 @@ const handleOtpInput = (index: number, value: string) => {
   
   formData.otp![index] = value.replace(/\D/g, '')
   
-  // Auto-focus to next field
+  // Auto-focus to next field with setTimeout for better compatibility
   if (value && index < 5) {
-    const nextInput = document.querySelector(`[data-otp-index="${index + 1}"]`) as HTMLInputElement
-    if (nextInput) {
-      nextInput.focus()
-    }
+    setTimeout(() => {
+      const nextInput = document.querySelector(`[data-otp-index="${index + 1}"]`) as HTMLInputElement
+      if (nextInput) {
+        nextInput.focus()
+        nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length)
+      }
+    }, 50) // Same delay as Aadhaar OTP for consistency
   }
 }
 
@@ -1232,12 +1237,15 @@ const handleAadhaarOtpInput = (index: number, value: string) => {
   
   formData.aadhaarOtp![index] = value.replace(/\D/g, '')
   
-  // Auto-focus to next field
+  // Auto-focus to next field with setTimeout for better compatibility
   if (value && index < 5) {
-    const nextInput = document.querySelector(`[data-aadhaar-otp-index="${index + 1}"]`) as HTMLInputElement
-    if (nextInput) {
-      nextInput.focus()
-    }
+    setTimeout(() => {
+      const nextInput = document.querySelector(`[data-aadhaar-otp-index="${index + 1}"]`) as HTMLInputElement
+      if (nextInput) {
+        nextInput.focus()
+        nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length)
+      }
+    }, 50) // Increased delay for better reliability
   }
 }
 
@@ -1335,12 +1343,15 @@ const handleGooglePhoneOtpInput = (index: number, value: string) => {
   }
   googlePhoneOtpInputs.value[index].value = value.replace(/\D/g, '')
   
-  // Auto-focus to next field
+  // Auto-focus to next field with setTimeout for better compatibility
   if (value && index < 5) {
-    const nextInput = document.querySelector(`[data-google-phone-otp-index="${index + 1}"]`) as HTMLInputElement
-    if (nextInput) {
-      nextInput.focus()
-    }
+    setTimeout(() => {
+      const nextInput = document.querySelector(`[data-google-phone-otp-index="${index + 1}"]`) as HTMLInputElement
+      if (nextInput) {
+        nextInput.focus()
+        nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length)
+      }
+    }, 50) // Increased delay for better reliability
   }
 }
 
@@ -1451,7 +1462,7 @@ const sendAadhaarOtp = async () => {
     } else {
       errors.aadhaarOtp = response.message || 'Failed to send Aadhaar OTP'
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Aadhaar OTP send error:', error)
     if (error.response?.status === 429) {
       // Handle cooldown error
@@ -1556,11 +1567,11 @@ const initializeGoogleSignIn = () => {
       cancel_on_tap_outside: true
     })
     
-    // Render the Google Sign-In button with null checking
-    const buttonElement = document.getElementById('google-signin-button')
-    if (buttonElement) {
+    // Render the Google Sign-In button for mobile
+    const mobileButtonElement = document.getElementById('google-signin-button-mobile')
+    if (mobileButtonElement && !isGoogleMobileLoaded.value) {
       window.google.accounts.id.renderButton(
-        buttonElement,
+        mobileButtonElement,
         {
           theme: 'outline',
           size: 'large',
@@ -1570,6 +1581,24 @@ const initializeGoogleSignIn = () => {
           logo_alignment: 'left'
         }
       )
+      isGoogleMobileLoaded.value = true
+    }
+    
+    // Render the Google Sign-In button for desktop
+    const desktopButtonElement = document.getElementById('google-signin-button-desktop')
+    if (desktopButtonElement && !isGoogleDesktopLoaded.value) {
+      window.google.accounts.id.renderButton(
+        desktopButtonElement,
+        {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          width: '100%',
+          logo_alignment: 'left'
+        }
+      )
+      isGoogleDesktopLoaded.value = true
     }
     
     isGoogleLoaded.value = true
@@ -1638,7 +1667,7 @@ const handleGoogleSignInSuccess = async (response: any) => {
     // Show success message
     console.log('Google Sign-In completed successfully!')
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Google Sign-In error:', error)
     
     // Handle specific Google OAuth errors
@@ -1750,6 +1779,10 @@ const fetchBanksList = async () => {
 
 // Initialize Google Sign-In when component mounts
 onMounted(() => {
+  console.log('=== SIGNUP COMPONENT MOUNTED ===')
+  console.log('Component is mounting successfully!')
+  console.log('Current step:', currentStep.value)
+  
   loadGoogleSignInScript()
   fetchBanksList() // Fetch banks list when component mounts
 })
@@ -2070,7 +2103,7 @@ const validateEmailExists = async (email: string) => {
       // Clear login option flag when email is available
       showLoginOption.value = false
     }
-  } catch (error) {
+  } catch (error: any) {
     // Show network error to user
     console.error('Email validation check failed:', error)
     
@@ -2207,7 +2240,7 @@ const trackOrder = async () => {
     } else {
       trackingError.value = response.message || 'Failed to track shipment'
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Tracking error:', error)
     trackingError.value = error.message || 'Network error occurred while tracking'
   } finally {
@@ -2252,6 +2285,7 @@ const resetBankValidationAttempts = () => {
 
 <template>
   <div class="min-h-screen bg-gray-50">
+   
     <!-- Navigation Bar - Show only on first step -->
     <nav v-if="currentStep === 1" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
       <div class="container mx-auto px-4 py-3">
@@ -2385,7 +2419,7 @@ const resetBankValidationAttempts = () => {
                           @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                           @keydown="handleOtpKeydown(index, $event)"
                           type="text" 
-                          class="w-10 h-10 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm xs:text-xs" 
+                          class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base xs:text-xs" 
                           maxlength="1"
                           :data-otp-index="index"
                         />
@@ -2436,7 +2470,7 @@ const resetBankValidationAttempts = () => {
                   </div>
 
                   <!-- Google Sign In -->
-                  <div id="google-signin-button" class="w-full max-w-sm mx-auto"></div>
+                  <div id="google-signin-button-mobile" class="w-full max-w-sm mx-auto"></div>
                   <!-- Fallback button if Google Sign-In fails to load -->
                   <button 
                     v-if="!isGoogleLoaded" 
@@ -2781,7 +2815,7 @@ const resetBankValidationAttempts = () => {
                           @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                           @keydown="handleOtpKeydown(index, $event)"
                           type="text" 
-                          class="w-10 h-10 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm xs:text-xs" 
+                          class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base xs:text-xs" 
                           maxlength="1"
                           :data-otp-index="index"
                         />
@@ -2832,7 +2866,7 @@ const resetBankValidationAttempts = () => {
                   </div>
 
                   <!-- Google Sign In -->
-                  <div id="google-signin-button" class="w-full max-w-sm mx-auto"></div>
+                  <div id="google-signin-button-desktop" class="w-full max-w-sm mx-auto"></div>
                   <!-- Fallback button if Google Sign-In fails to load -->
                   <button 
                     v-if="!isGoogleLoaded" 
@@ -3130,7 +3164,7 @@ const resetBankValidationAttempts = () => {
                           type="text"
                           maxlength="1"
                           :data-google-phone-otp-index="index"
-                          class="w-10 h-10 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm xs:text-xs font-semibold"
+                          class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base xs:text-xs font-semibold"
                           :class="{ 'border-red-500': errors.otp }"
                         />
                       </div>
@@ -3379,7 +3413,7 @@ const resetBankValidationAttempts = () => {
                         type="text"
                         maxlength="1"
                         :data-aadhaar-otp-index="index"
-                        class="w-10 h-10 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm xs:text-xs font-semibold"
+                        class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base xs:text-xs font-semibold"
                         :class="{ 'border-red-500': errors.aadhaarOtp }"
                       />
                     </div>
