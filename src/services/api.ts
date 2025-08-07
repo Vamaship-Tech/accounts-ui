@@ -3,6 +3,7 @@ import { API_CONFIG } from '../config/api'
 import authService from './auth'
 import mockApiService from './mockService'
 
+
 const API_BASE_URL = API_CONFIG.BASE_URL
 
 export interface SignUpData {
@@ -110,7 +111,10 @@ class ApiService {
                            endpoint.includes('/register') || 
                            endpoint.includes('/login') || 
                            endpoint.includes('/forgot-password') ||
-                           endpoint.includes('/country-master');
+                           endpoint.includes('/country-master') ||
+                           endpoint.includes('/send-verification/') ||
+                           endpoint.includes('/verify/') ||
+                           endpoint.includes('/complete-signup');
     
     console.log('API Request:', { url, endpoint, isPublic: isPublicEndpoint });
     console.log('Custom auth headers:', this.authHeaders);
@@ -376,6 +380,27 @@ class ApiService {
     }
   }
 
+  // Generate fresh token for KYC completion
+  async generateKycToken(apiKey: string): Promise<APIResponse> {
+    console.log('=== API SERVICE: GENERATE KYC TOKEN START ===');
+    console.log('API: Generating token for API key:', apiKey);
+    
+    try {
+      const response = await this.request(API_CONFIG.ENDPOINTS.GENERATE_KYC_TOKEN, {
+        method: 'POST',
+        body: JSON.stringify({ api_key: apiKey }),
+      });
+      
+      console.log('API: Token generation response:', response);
+      console.log('=== API SERVICE: GENERATE KYC TOKEN SUCCESS ===');
+      return response;
+    } catch (error) {
+      console.error('API: Token generation error:', error);
+      console.log('=== API SERVICE: GENERATE KYC TOKEN FAILED ===');
+      throw error;
+    }
+  }
+
   // Skip KYC
   async skipKYC(): Promise<APIResponse> {
     return this.request(API_CONFIG.ENDPOINTS.KYC_SKIP, {
@@ -482,23 +507,6 @@ class ApiService {
     }
   }
 
-  // Check if mobile exists
-  async checkMobileExists(phone: string): Promise<APIResponse> {
-    console.log('API: Checking if mobile exists:', phone);
-    
-    try {
-      const response = await this.request(API_CONFIG.ENDPOINTS.CHECK_MOBILE_EXISTS, {
-        method: 'POST',
-        body: JSON.stringify({ phone }),
-      });
-      console.log('API: Mobile exists check response:', response);
-      return response;
-    } catch (error) {
-      console.error('API: Mobile exists check error:', error);
-      throw error;
-    }
-  }
-
   // Get banks list
   async getBanksList(): Promise<APIResponse> {
     console.log('=== API GET BANKS LIST START ===');
@@ -548,19 +556,36 @@ class ApiService {
     return this.request(`${API_CONFIG.ENDPOINTS.PINCODE_DETAILS}/${pincode}`);
   }
 
-  // Check KYC completion status
+  // Check KYC status
   async checkKYCStatus(): Promise<APIResponse> {
     console.log('=== API SERVICE: CHECK KYC STATUS START ===');
+    console.log('API: Checking KYC completion status');
     
     try {
-      // Use the same authentication method as other requests
       const response = await this.request(API_CONFIG.ENDPOINTS.KYC_STATUS);
-      console.log('KYC status response:', response);
+      console.log('API: KYC status response:', response);
       console.log('=== API SERVICE: CHECK KYC STATUS SUCCESS ===');
       return response;
     } catch (error) {
-      console.error('KYC status check error:', error);
+      console.error('API: KYC status check error:', error);
       console.log('=== API SERVICE: CHECK KYC STATUS FAILED ===');
+      throw error;
+    }
+  }
+
+  // Get user details using existing /me endpoint
+  async getUserDetails(): Promise<APIResponse> {
+    console.log('=== API SERVICE: GET USER DETAILS START ===');
+    console.log('API: Fetching user details via /me endpoint');
+    
+    try {
+      const response = await this.request(API_CONFIG.ENDPOINTS.ME);
+      console.log('API: User details response:', response);
+      console.log('=== API SERVICE: GET USER DETAILS SUCCESS ===');
+      return response;
+    } catch (error) {
+      console.error('API: User details fetch error:', error);
+      console.log('=== API SERVICE: GET USER DETAILS FAILED ===');
       throw error;
     }
   }

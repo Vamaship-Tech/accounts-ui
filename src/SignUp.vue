@@ -3,7 +3,6 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiService, { type SignUpData, type KYCData } from './services/api'
 import { trackingAPI } from './services/api'
-import { authService } from './services/auth'
 
 // TypeScript declarations for Google API
 declare global {
@@ -328,7 +327,7 @@ const sendOtp = async () => {
         handleApiError(response)
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('OTP send error:', error)
     console.error('Error details:', {
       message: error.message,
@@ -397,7 +396,7 @@ const resendOtp = async () => {
     } else {
       handleApiError(response)
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('OTP resend error:', error)
     
     if (error.response?.status === 422 && error.response.data?.is_registered) {
@@ -468,7 +467,7 @@ const verifyOtp = async () => {
         handleApiError(response)
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('OTP verification error:', error)
     // Handle network errors or specific error responses
     if (error.response?.status === 400 || error.response?.status === 422) {
@@ -798,8 +797,8 @@ const completeSignup = async () => {
     if (response.success) {
       console.log('Signup completed successfully:', response.data)
       
-      // Store user data in localStorage
-      localStorage.setItem('userData', JSON.stringify({
+      // Store user data securely in sessionStorage (not localStorage)
+      sessionStorage.setItem('userData', JSON.stringify({
         name: response.data.user.name,
         email: response.data.user.email,
         phone: response.data.user.phone,
@@ -807,16 +806,19 @@ const completeSignup = async () => {
         entityId: response.data.entity_id
       }))
       
-      // Store access token and API key
-      localStorage.setItem('access_token', response.data.access_token)
-      localStorage.setItem('api_key', response.data.api_key)
+      // Store access token and API key securely in sessionStorage
+      sessionStorage.setItem('access_token', response.data.access_token)
+      sessionStorage.setItem('api_key', response.data.api_key)
+      if (response.data.access_token) {
+        sessionStorage.setItem('auth_token', response.data.access_token);
+      }
       
       // Show success and redirect to ecom3-ui dashboard
       kycCompleted.value = true
       showDashboard.value = true
       alert('Signup completed successfully! Welcome to Vamaship! 🎉')
       
-      // Prepare redirect URL with authentication parameters
+      // Prepare redirect URL with secure authentication parameters
       const baseUrl = response.data?.redirect_url || 'http://localhost:8080'
       
       // Debug the API key and redirect URL
@@ -827,38 +829,43 @@ const completeSignup = async () => {
       console.log('Original redirect_url from backend:', response.data?.redirect_url);
       console.log('Base URL:', baseUrl);
       
-      // Always redirect to login-migration first for proper authentication flow
-      // Extract the base URL from the backend redirect_url if it exists
-      let ecom3BaseUrl;
+      // Use the redirect_url from backend response directly
+      let finalRedirectUrl;
       if (response.data?.redirect_url) {
-        try {
-          const url = new URL(response.data.redirect_url);
-          ecom3BaseUrl = `${url.protocol}//${url.host}`;
-        } catch (error) {
-          console.warn('Could not parse redirect_url, using fallback:', error);
-          ecom3BaseUrl = 'http://localhost:8080';
-        }
+        finalRedirectUrl = response.data.redirect_url;
+        console.log('Using backend redirect URL:', finalRedirectUrl);
       } else {
-        ecom3BaseUrl = 'http://localhost:8080';
+        // Fallback to login-migration if no redirect_url provided
+        const ecom3BaseUrl = 'http://localhost:8080';
+        const loginUrl = `${ecom3BaseUrl}/login-migration`;
+        
+        // Build query parameters for secure authentication
+        const queryParams = new URLSearchParams({
+          new_user: 'true',
+          user_id: response.data.user_id || '0',
+          user_name: response.data.user.name || '',
+          user_email: response.data.user.email || '',
+          user_phone: response.data.user.phone || '',
+          from: 'signup',
+          auth_method: 'session_storage'
+        });
+        
+        finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
+        console.log('Using fallback login-migration URL:', finalRedirectUrl);
       }
       
-      const loginUrl = `${ecom3BaseUrl}/login-migration`;
-      console.log('Ecom3 Base URL:', ecom3BaseUrl);
-      console.log('Login URL:', loginUrl);
+      // Store authentication tokens securely for ecom3-ui to retrieve
+      if (response.data.access_token) {
+        sessionStorage.setItem('ecom3_auth_token', response.data.access_token);
+      }
+      if (response.data.api_key) {
+        sessionStorage.setItem('ecom3_api_key', response.data.api_key);
+      }
       
-      // Build query parameters for seamless authentication
-      const queryParams = new URLSearchParams({
-        api_key: response.data.api_key,
-        new_user: 'true',
-        user_id: response.data.user_id || '0',
-        user_name: response.data.user.name || '',
-        user_email: response.data.user.email || '',
-        user_phone: response.data.user.phone || '',
-        from: 'signup'
-      });
-      
-      const finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
-      console.log('Query parameters:', queryParams.toString());
+      // Store password temporarily for accounts2.0 authentication
+      if (formData.password) {
+        sessionStorage.setItem('temp_password', formData.password);
+      }
       
       console.log('Final redirect URL:', finalRedirectUrl);
       console.log('=== REDIRECT URL DEBUGGING END ===');
@@ -961,7 +968,7 @@ const completeSignup = async () => {
         }
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Network error during signup:', error)
     
     // Handle network errors or unexpected errors
@@ -1073,8 +1080,8 @@ const skipKyc = async () => {
     if (response.success) {
       console.log('Skip KYC signup completed successfully:', response.data)
       
-      // Store user data in localStorage
-      localStorage.setItem('userData', JSON.stringify({
+      // Store user data securely in sessionStorage (not localStorage)
+      sessionStorage.setItem('userData', JSON.stringify({
         name: response.data.user.name,
         email: response.data.user.email,
         phone: response.data.user.phone,
@@ -1082,9 +1089,12 @@ const skipKyc = async () => {
         entityId: response.data.entity_id
       }))
       
-      // Store access token and API key
-      localStorage.setItem('access_token', response.data.access_token)
-      localStorage.setItem('api_key', response.data.api_key)
+      // Store access token and API key securely in sessionStorage
+      sessionStorage.setItem('access_token', response.data.access_token)
+      sessionStorage.setItem('api_key', response.data.api_key)
+      if (response.data.access_token) {
+        sessionStorage.setItem('auth_token', response.data.access_token);
+      }
       
       // Show success and redirect to ecom3-ui dashboard
       kycCompleted.value = true
@@ -1101,36 +1111,49 @@ const skipKyc = async () => {
       console.log('Base URL for redirect:', baseUrl);
       
       // Always redirect to login-migration first for proper authentication flow
-      let ecom3BaseUrl;
+      // Use the redirect_url from backend response directly
+      let finalRedirectUrl;
       if (response.data?.redirect_url) {
-        try {
-          const url = new URL(response.data.redirect_url);
-          ecom3BaseUrl = `${url.protocol}//${url.host}`;
-        } catch (error) {
-          console.warn('Could not parse redirect_url, using fallback:', error);
-          ecom3BaseUrl = 'http://localhost:8080';
-        }
+        finalRedirectUrl = response.data.redirect_url;
+        console.log("Using backend redirect URL for skip KYC:", finalRedirectUrl);
       } else {
-        ecom3BaseUrl = 'http://localhost:8080';
+        // Fallback to login-migration if no redirect_url provided
+        const ecom3BaseUrl = "http://localhost:8080";
+        const loginUrl = `${ecom3BaseUrl}/login-migration`;
+        
+        // Build query parameters for secure authentication
+        const queryParams = new URLSearchParams({
+          new_user: "true",
+          user_id: response.data.user_id || "0",
+          user_name: response.data.user.name || "",
+          user_email: response.data.user.email || "",
+          user_phone: response.data.user.phone || "",
+          from: "signup",
+          auth_method: "session_storage"
+        });
+        
+        finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
+        console.log('Using fallback login-migration URL for skip KYC:', finalRedirectUrl);
       }
       
-      const loginUrl = `${ecom3BaseUrl}/login-migration`;
-      const queryParams = new URLSearchParams({
-        api_key: response.data.api_key,
-        new_user: 'true',
-        user_id: response.data.user_id || '0',
-        user_name: response.data.user.name || '',
-        user_email: response.data.user.email || '',
-        user_phone: response.data.user.phone || '',
-        from: 'signup'
-      });
+      // Store authentication tokens securely for ecom3-ui to retrieve
+      if (response.data.access_token) {
+        sessionStorage.setItem("ecom3_auth_token", response.data.access_token);
+      }
+      if (response.data.api_key) {
+        sessionStorage.setItem("ecom3_api_key", response.data.api_key);
+      }
       
-      const finalRedirectUrl = `${loginUrl}?${queryParams.toString()}`;
+      // Store password temporarily for accounts2.0 authentication
+      if (formData.password) {
+        sessionStorage.setItem("temp_password", formData.password);
+      }
+      
       console.log('Final redirect URL for skip KYC:', finalRedirectUrl);
+      console.log('=== SKIP KYC REDIRECT DEBUGGING END ===');
       
-      // Redirect to ecom3-ui login-migration page
+      // Redirect to ecom3-ui
       window.location.href = finalRedirectUrl;
-      
     } else {
       console.error('Skip KYC signup failed:', response);
       handleApiError(response);
@@ -1239,7 +1262,7 @@ const sendGooglePhoneOtp = async () => {
       
       console.log('Google Phone OTP sent successfully')
     }
-  } catch (error: any) {
+  } catch (error) {
     handleApiError(error)
   } finally {
     loading.value = false
@@ -1265,7 +1288,7 @@ const verifyGooglePhoneOtp = async () => {
       googlePhoneVerified.value = true // Set phone as verified
       // Don't move to step 3 yet - let user fill password fields
     }
-  } catch (error: any) {
+  } catch (error) {
     handleApiError(error)
   } finally {
     loading.value = false
@@ -1355,7 +1378,7 @@ const validateAadhaar = (aadhaarNumber: string) => {
     return false
   }
   
-  // Check if it doesn't start with 0 or 1 (common validation)
+  // Check if it doesn't start with 0 or 1 (common validation             )
   if (cleanAadhaar.startsWith('0') || cleanAadhaar.startsWith('1')) {
     console.log('Aadhaar cannot start with 0 or 1')
     errors.aadhaarNumber = 'Aadhaar number cannot start with 0 or 1'
@@ -1399,7 +1422,7 @@ const sendAadhaarOtp = async () => {
     } else {
       errors.aadhaarOtp = response.message || 'Failed to send Aadhaar OTP'
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Aadhaar OTP send error:', error)
     if (error.response?.status === 429) {
       // Handle cooldown error
@@ -1586,7 +1609,7 @@ const handleGoogleSignInSuccess = async (response: any) => {
     // Show success message
     console.log('Google Sign-In completed successfully!')
     
-  } catch (error: any) {
+  } catch (error) {
     console.error('Google Sign-In error:', error)
     
     // Handle specific Google OAuth errors
@@ -1801,7 +1824,7 @@ const handleApiError = (error: any) => {
         generalError.value = error.message
       }
     } else {
-      generalError.value = error.message
+      generalError.value = error.message    
     }
   } else {
     generalError.value = 'An unexpected error occurred. Please try again.'
@@ -1843,7 +1866,7 @@ const verifyGst = async () => {
   gstVerifying.value = true
   clearErrors()
 
-  try {
+  try {   
     const response = await apiService.validateGstPublic(formData.gstNumber)
     
     // Check if response is successful
@@ -1856,7 +1879,7 @@ const verifyGst = async () => {
       errors.gstNumber = response?.message || 'GST verification failed. Please check the number and try again.'
       console.error('GST verification failed')
     }
-  } catch (error: any) {
+  } catch (error) {
     gstVerified.value = false
     errors.gstNumber = 'Network error during GST verification. Please try again.'
     console.error('GST verification error:', error)
@@ -1891,7 +1914,7 @@ const verifyPan = async () => {
       errors.panNumber = response?.message || 'PAN verification failed. Please check the number and try again.'
       console.error('PAN verification failed')
     }
-  } catch (error: any) {
+  } catch (error) {
     panVerified.value = false
     errors.panNumber = 'Network error during PAN verification. Please try again.'
     console.error('PAN verification error:', error)
@@ -1956,7 +1979,7 @@ const verifyBank = async () => {
       errors.ifscCode = errorMessage
       console.log('Bank verification failed:', response)
     }
-  } catch (error: any) {
+  } catch (error) {
     bankVerified.value = false
     const errorMessage = `Network error during bank verification. Please try again. (${remainingAttempts} attempts remaining)`
     errors.accountNumber = errorMessage
@@ -2018,7 +2041,7 @@ const validateEmailExists = async (email: string) => {
       // Clear login option flag when email is available
       showLoginOption.value = false
     }
-  } catch (error: any) {
+  } catch (error) {
     // Show network error to user
     console.error('Email validation check failed:', error)
     
@@ -2155,7 +2178,7 @@ const trackOrder = async () => {
     } else {
       trackingError.value = response.message || 'Failed to track shipment'
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Tracking error:', error)
     trackingError.value = error.message || 'Network error occurred while tracking'
   } finally {

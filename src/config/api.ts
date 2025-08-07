@@ -43,6 +43,9 @@ export const API_CONFIG = {
     
     // KYC
     KYC_STATUS: '/kyc/check-completion-status',
+    
+    // User details (existing endpoint)
+    ME: '/me',
     KYC_GST_REGISTERED: '/kyc/gst-registered',
     KYC_GST_UNREGISTERED: '/kyc/gst-unregistered',
     KYC_SKIP: '/kyc/skip',
@@ -50,6 +53,9 @@ export const API_CONFIG = {
     // Public KYC endpoints for verify-kyc flow
     KYC_GST_REGISTERED_PUBLIC: '/public/kyc/gst-registered',
     KYC_GST_UNREGISTERED_PUBLIC: '/public/kyc/gst-unregistered',
+    
+    // Token generation for KYC completion
+    GENERATE_KYC_TOKEN: '/public/generate-kyc-token',
     
     // Validation
     VALIDATE_GST: '/validate-gst',

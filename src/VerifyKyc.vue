@@ -1025,7 +1025,7 @@ const resetBankSelection = () => {
 }
 
 const goBack = () => {
-  router.push('/signin')
+  router.push('/sign-in')
 }
 
 const submitKyc = async () => {
@@ -1106,24 +1106,31 @@ const submitKyc = async () => {
       return
     }
     
-    // Get API key from localStorage for authentication
-    const apiKey = localStorage.getItem('api_key')
-    if (!apiKey) {
-      console.error('No API key found in localStorage');
+    // Get authentication token or API key
+    const authToken = sessionStorage.getItem('auth_token')
+    const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
+    
+    if (!authToken && !apiKey) {
+      console.error('No authentication found');
       generalError.value = 'Authentication required. Please login again.'
-      router.push('/signin')
+      router.push('/sign-in')
       return
     }
     
-    console.log('API key found:', apiKey ? 'Yes' : 'No');
-    console.log('Using API key for KYC submission:', apiKey);
+    console.log('Auth Token found:', authToken ? 'Yes' : 'No');
+    console.log('API Key found:', apiKey ? 'Yes' : 'No');
     
-    // Set the API key in the request headers
-    const originalHeaders = apiService.getAuthHeader()
-    apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+    // Set the appropriate authentication header
+    if (authToken) {
+      apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
+      console.log('Set JWT token for KYC submission:', authToken)
+    } else if (apiKey) {
+      apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+      console.log('Set API key for KYC submission:', apiKey)
+    }
     
     console.log(`Submitting KYC data to backend (submission #${currentSubmissionId})...`);
-    console.log('Request headers:', { 'Authorization': `Bearer ${apiKey}` });
+    console.log('Request headers:', { 'Authorization': authToken ? `Bearer ${authToken}` : `Bearer ${apiKey}` });
     const response = await apiService.submitKyc(kycData)
     
     console.log(`KYC submission response (submission #${currentSubmissionId}):`, response);
@@ -1145,80 +1152,32 @@ const submitKyc = async () => {
     console.log('Response keys:', Object.keys(response));
     console.log('=== END RESPONSE ANALYSIS ===');
     
-    // Restore original headers
-    apiService.setAuthHeader(originalHeaders)
-    
-    // Check if this is still the latest submission
-    if (currentSubmissionId !== submissionId.value) {
-      console.log(`Submission #${currentSubmissionId} is outdated, ignoring response`);
-      return;
-    }
-    
-    // Check for success - the response structure is { success: true, data: { success: true, message: "..." }, message: "..." }
-    if (response.success && response.data && response.data.success) {
-      console.log(`KYC submission #${currentSubmissionId} successful!`);
-      console.log('Setting success state...');
+    // Handle successful KYC submission
+    if (response.success) {
+      console.log('KYC submission successful!');
       
-      // Immediately show success feedback
-      kycSubmitted.value = true // Mark as submitted to prevent duplicates
+      // Mark KYC as submitted
+      kycSubmitted.value = true
       showSuccess.value = true
-      generalError.value = '' // Clear any previous errors
       
-      console.log('Success state set:', {
-        kycSubmitted: kycSubmitted.value,
-        showSuccess: showSuccess.value
-      });
+      // Store KYC submission status
+      localStorage.setItem('kyc_submission_status', 'completed')
+      localStorage.setItem('kyc_submission_timestamp', Date.now().toString())
       
-      // Verify KYC status by making a status check
-      try {
-        console.log('Verifying KYC status...');
-        
-        // Ensure we use the same API key for status check
-        const apiKey = localStorage.getItem('api_key')
-        if (apiKey) {
-          apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
-          console.log('Set API key for status check:', apiKey)
-        }
-        
-        const statusResponse = await apiService.checkKYCStatus();
-        console.log('KYC status check response:', statusResponse);
-        
-        if (statusResponse.success && statusResponse.data) {
-          console.log('KYC status verified:', statusResponse.data);
-          
-          // Show detailed success message with verification
-          const status = statusResponse.data;
-          let successMessage = 'KYC verification completed successfully!\n\n';
-          successMessage += '✅ Your data has been stored in our system.\n';
-          successMessage += `📧 Email Verified: ${status.email_verified ? 'Yes' : 'No'}\n`;
-          successMessage += `📱 Mobile Verified: ${status.mobile_verified ? 'Yes' : 'No'}\n`;
-          successMessage += `🆔 KYC Completed: ${status.kyc_completed ? 'Yes' : 'No'}\n`;
-          successMessage += `🆔 Aadhaar Verified: ${status.aadhaar_verified ? 'Yes' : 'No'}\n\n`;
-          successMessage += 'Redirecting to dashboard...';
-          
-          alert(successMessage);
-        } else {
-          // Fallback success message
-          alert('KYC verification completed successfully! Your data has been stored. Redirecting to dashboard...');
-        }
-      } catch (error) {
-        console.error('KYC status check failed:', error);
-        // Fallback success message
-        alert('KYC verification completed successfully! Your data has been stored. Redirecting to dashboard...');
+      // Store form data for future reference
+      localStorage.setItem('kyc_form_data', JSON.stringify(formData))
+      
+      // Store password temporarily for accounts2.0 authentication (if available)
+      const tempPassword = sessionStorage.getItem('temp_password')
+      if (tempPassword) {
+        console.log('Password found in sessionStorage, will be used for ecom3-ui authentication')
       }
       
-      // Save submission status to localStorage
-      localStorage.setItem('kyc_submission_status', 'completed')
-      localStorage.setItem('kyc_submission_timestamp', new Date().toISOString())
-      
-      // Clear saved form data since submission was successful
-      localStorage.removeItem('kyc_form_data')
-      
-      // Automatically redirect to ecom3-ui dashboard after successful KYC submission
-      console.log('KYC submission successful - redirecting to dashboard')
+      // Show success message
+      console.log('KYC submitted successfully! Redirecting to dashboard...')
       
       // Start countdown for automatic redirect
-      redirectCountdown.value = 2
+      redirectCountdown.value = 3
       const countdownInterval = setInterval(() => {
         redirectCountdown.value--
         if (redirectCountdown.value <= 0) {
@@ -1227,23 +1186,22 @@ const submitKyc = async () => {
         }
       }, 1000)
       
-      // Also add a fallback timeout in case countdown fails
-      setTimeout(() => {
-        clearInterval(countdownInterval)
-        redirectToDashboard()
-      }, 3000) // 3 second fallback
+      // Show success alert
+      alert('KYC submitted successfully! 🎉 Redirecting to dashboard...')
       
     } else {
-      console.error(`KYC submission #${currentSubmissionId} failed:`, response.data?.message || response.message);
-      generalError.value = response.data?.message || response.message || 'KYC submission failed'
+      // Handle unsuccessful submission
+      console.error('KYC submission failed:', response.message)
+      generalError.value = response.message || 'KYC submission failed. Please try again.'
       
-      // Reset kycSubmitted flag on failure to allow retry
+      // Reset submission flags
       kycSubmitted.value = false
       showSuccess.value = false
       
       // Show error alert
-      alert(`KYC submission failed: ${response.data?.message || response.message || 'Unknown error occurred'}. Please try again.`)
+      alert('KYC submission failed: ' + (response.message || 'Unknown error'))
     }
+    
   } catch (error) {
     console.error(`KYC submission #${currentSubmissionId} error:`, error)
     generalError.value = 'Network error occurred during KYC submission'
@@ -1320,70 +1278,93 @@ const verifyCurrentUser = async () => {
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   console.log('VerifyKyc component mounted!')
   
-  // Check if user is authenticated with API key
-  const apiKey = localStorage.getItem('api_key')
-  console.log('API Key found:', apiKey ? 'Yes' : 'No')
+  // Check if user is authenticated with API key or token
+  const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
+  const authToken = sessionStorage.getItem('auth_token')
   
-  if (!apiKey) {
-    console.log('No API key found, redirecting to signin')
+  console.log('API Key found:', apiKey ? 'Yes' : 'No')
+  console.log('Auth Token found:', authToken ? 'Yes' : 'No')
+  
+  if (!apiKey && !authToken) {
+    console.log('No authentication found, redirecting to signin')
     generalError.value = 'Authentication required. Please login again.'
-    router.push('/signin')
+    router.push('/sign-in')
     return
   }
   
-  // Check if we have user info in URL params
-  const urlParams = new URLSearchParams(window.location.search)
-  const urlApiKey = urlParams.get('api_key')
-  const userInfo = urlParams.get('user_info')
-  
-  console.log('URL API Key:', urlApiKey)
-  console.log('Stored API Key:', apiKey)
-  console.log('User Info from URL:', userInfo)
-  
-  // If URL has a different API key, update localStorage
-  if (urlApiKey && urlApiKey !== apiKey) {
-    console.log('Updating API key from URL:', urlApiKey)
-    localStorage.setItem('api_key', urlApiKey)
-    // Clear any old user data
-    localStorage.removeItem('kyc_submission_status')
-    localStorage.removeItem('kyc_submission_timestamp')
-    localStorage.removeItem('kyc_form_data')
-  }
-  
-  // Parse user info if available
-  if (userInfo) {
-    try {
-      const parsedUserInfo = JSON.parse(decodeURIComponent(userInfo))
-      console.log('Parsed user info:', parsedUserInfo)
-      localStorage.setItem('user_info', JSON.stringify(parsedUserInfo))
+  // Authenticate using existing endpoints
+  try {
+    console.log('=== EXISTING AUTHENTICATION START ===')
+    
+    // Set authentication header
+    if (authToken) {
+      // Use JWT token for authentication
+      console.log('Authenticating with JWT token')
+      apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
+    } else if (apiKey) {
+      // Use API key for authentication
+      console.log('Authenticating with API key')
+      apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+    }
+    
+    // Use existing /me endpoint to get user details
+    console.log('Fetching user details via /me endpoint')
+    const userResponse = await apiService.getUserDetails()
+    console.log('User details response:', userResponse)
+    
+    if (userResponse.success && userResponse.data) {
+      console.log('User authentication successful:', userResponse.data)
+      
+      // Store user and entity information securely
+      sessionStorage.setItem('user_info', JSON.stringify(userResponse.data.user))
+      sessionStorage.setItem('entity_info', JSON.stringify(userResponse.data.entity))
+      
+      // Use existing KYC status endpoint
+      console.log('Fetching KYC status via /kyc/check-completion-status endpoint')
+      const kycResponse = await apiService.checkKYCStatus()
+      console.log('KYC status response:', kycResponse)
+      
+      if (kycResponse.success && kycResponse.data) {
+        const kycStatus = kycResponse.data
+        sessionStorage.setItem('kyc_status', JSON.stringify(kycStatus))
+        
+        // Check if KYC is already completed
+        if (kycStatus.kyc_completed) {
+          console.log('KYC already completed, showing success state')
+          showSuccess.value = true
+          generalError.value = ''
+          
+          // Initialize form with user data for display purposes
+          initializeFormWithUserData(userResponse.data.user)
+          return
+        }
+      }
       
       // Initialize form with user data
-      initializeFormWithUserData(parsedUserInfo)
-    } catch (error) {
-      console.error('Error parsing user info:', error)
+      initializeFormWithUserData(userResponse.data.user)
+      
+      // Check KYC status and handle accordingly
+      checkKycStatusAndHandle()
+      
+    } else {
+      console.error('User authentication failed:', userResponse.message)
+      generalError.value = 'Authentication failed: ' + (userResponse.message || 'Unknown error')
+      router.push('/sign-in')
+      return
     }
-  } else {
-    // Try to get user info from localStorage
-    const storedUserInfo = localStorage.getItem('user_info')
-    if (storedUserInfo) {
-      try {
-        const parsedUserInfo = JSON.parse(storedUserInfo)
-        console.log('Using stored user info:', parsedUserInfo)
-        initializeFormWithUserData(parsedUserInfo)
-      } catch (error) {
-        console.error('Error parsing stored user info:', error)
-      }
-    }
+    
+  } catch (error) {
+    console.error('Authentication error:', error)
+    generalError.value = 'Authentication failed. Please login again.'
+    router.push('/sign-in')
+    return
   }
   
-  // Check KYC status and handle accordingly
-  checkKycStatusAndHandle()
-  
-  // Load form data from localStorage if available
-  const savedFormData = localStorage.getItem('kyc_form_data')
+  // Load form data from sessionStorage if available
+  const savedFormData = sessionStorage.getItem('kyc_form_data')
   if (savedFormData) {
     try {
       const parsedData = JSON.parse(savedFormData)
@@ -1574,13 +1555,34 @@ const resetForResubmission = () => {
 }
 
 const redirectToDashboard = () => {
-  const apiKey = localStorage.getItem('api_key')
-  if (apiKey) {
-    const redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
-    console.log('Redirecting to:', redirectUrl);
-    window.location.href = redirectUrl
+  const freshToken = sessionStorage.getItem('auth_token')
+  const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
+  
+  if (freshToken) {
+    // Use fresh JWT token for authentication - store securely and redirect without exposing in URL
+    console.log('Using fresh token for secure authentication');
+    
+    // Store token securely for ecom3-ui to retrieve
+    sessionStorage.setItem('ecom3_auth_token', freshToken);
+    
+    // Redirect without exposing token in URL - ecom3-ui will authenticate via sessionStorage
+    const redirectUrl = `http://localhost:8080/orders?auth_method=token&session_id=${Date.now()}`;
+    console.log('Redirecting with secure token to:', redirectUrl);
+    window.location.href = redirectUrl;
+  } else if (apiKey) {
+    // Fall back to API key - also store securely
+    console.log('Using API key for authentication');
+    
+    // Store API key securely for ecom3-ui to retrieve
+    sessionStorage.setItem('ecom3_api_key', apiKey);
+    
+    // Redirect without exposing API key in URL - ecom3-ui will authenticate via sessionStorage
+    const redirectUrl = `http://localhost:8080/orders?auth_method=api_key&session_id=${Date.now()}`;
+    console.log('Redirecting with secure API key to:', redirectUrl);
+    window.location.href = redirectUrl;
   } else {
-    router.push('/signin')
+    console.log('No authentication token found, redirecting to signin');
+    router.push('/sign-in')
   }
 }
 </script>

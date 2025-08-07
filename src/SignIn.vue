@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import VamashipLogo from './components/VamashipLogo.vue'
 import apiService from './services/api'
-import authService from './services/auth'
+import { authService } from './services/auth'
 
 // TypeScript declarations for Google API
 declare global {
