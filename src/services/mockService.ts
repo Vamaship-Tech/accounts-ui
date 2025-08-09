@@ -348,6 +348,25 @@ class MockApiService {
     await mockDelay();
     return MOCK_DATA.updatePassword;
   }
+
+  // Get user details
+  async getUserDetails(): Promise<APIResponse> {
+    console.log('Mock: Getting user details');
+    await mockDelay();
+    return {
+      success: true,
+      message: 'User details retrieved successfully',
+      data: {
+        id: 1,
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        phone: '+91-9876543210',
+        isEmailVerified: true,
+        isMobileVerified: true,
+        kycCompleted: false
+      }
+    };
+  }
 }
 
 export const mockApiService = new MockApiService();

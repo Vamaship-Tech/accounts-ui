@@ -2,7 +2,6 @@
   <div class="min-h-screen flex items-center justify-center p-4 lg:p-8 bg-image">
     <div class="w-full max-w-md lg:max-w-4xl">
       <div class="bg-white/95 backdrop-blur-sm rounded-lg shadow-2xl border border-gray-200 p-6 lg:p-8">
-        <!-- Header -->
         <div class="text-center mb-6 lg:mb-8">
           <img class="mx-auto h-12 w-auto mb-4" src="/images/logo-blue.png" alt="Vamaship" />
           <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
@@ -13,7 +12,6 @@
           </p>
         </div>
 
-        <!-- General Error Banner -->
         <div v-if="generalError" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
           <div class="flex items-center">
             <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
@@ -22,7 +20,6 @@
         </div>
 
         <form @submit.prevent="submitKyc" class="space-y-6" :class="{ 'pointer-events-none opacity-50': kycSubmitted }">
-          <!-- Form submission debug info -->
           <div v-if="loading || kycSubmitted" class="p-4 bg-blue-50 border border-blue-200 rounded-md">
             <div class="flex items-center">
               <i class="fas fa-info-circle text-blue-500 mr-2"></i>
@@ -33,7 +30,6 @@
             </div>
           </div>
           
-          <!-- Aadhaar Verification Section -->
           <div class="border border-gray-200 rounded-lg p-6">
             <button
               type="button"
@@ -91,7 +87,6 @@
                 </p>
               </div>
 
-              <!-- Aadhaar OTP Section -->
               <div v-if="aadhaarOtpSent && !aadhaarVerified" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <label class="block text-sm font-medium text-gray-700 mb-3">Enter Aadhaar OTP <span class="text-red-500">*</span></label>
                 <div class="flex space-x-2 mb-3">
@@ -132,7 +127,6 @@
             </div>
           </div>
 
-          <!-- Business Type Selection -->
           <div class="border border-gray-200 rounded-lg p-6">
             <label class="block text-sm font-medium text-gray-700 mb-4">Select Business Type</label>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,7 +159,6 @@
             </div>
           </div>
 
-          <!-- GST Section -->
           <div v-if="businessType === 'gst'" class="border border-gray-200 rounded-lg p-6">
             <button
               type="button"
@@ -251,7 +244,6 @@
             </div>
           </div>
 
-          <!-- PAN Section -->
           <div v-if="businessType === 'pan'" class="border border-gray-200 rounded-lg p-6">
             <button
               type="button"
@@ -355,7 +347,6 @@
             </div>
           </div>
 
-          <!-- Bank Details Section -->
           <div class="border border-gray-200 rounded-lg p-6">
             <button
               type="button"
@@ -386,7 +377,6 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name <span class="text-red-500">*</span></label>
                   
-                  <!-- Bank Dropdown -->
                   <select
                     v-if="!isOtherBank && !banksLoading"
                     v-model="formData.bankName"
@@ -399,13 +389,11 @@
                     <option value="other">Other</option>
                   </select>
                   
-                  <!-- Loading State -->
                   <div v-if="banksLoading" class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 flex items-center">
                     <i class="fas fa-spinner fa-spin text-gray-400 mr-2"></i>
                     <span class="text-gray-500 text-sm">Loading banks...</span>
                   </div>
                   
-                  <!-- Error State -->
                   <div v-if="banksError && !banksLoading" class="w-full px-3 py-2 border border-red-300 rounded-md bg-red-50">
                     <div class="flex items-center">
                       <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
@@ -419,7 +407,6 @@
                     </button>
                   </div>
                   
-                  <!-- Custom Bank Input (shown when "Other" is selected) -->
                   <div v-if="isOtherBank" class="space-y-2">
                     <input
                       v-model="formData.bankName"
@@ -468,7 +455,6 @@
                 </div>
               </div>
               
-              <!-- Bank Verification Button -->
               <div class="flex justify-center">
                 <button
                   type="button"
@@ -483,7 +469,6 @@
                 </button>
               </div>
               
-              <!-- Bank Verification Success Message -->
               <div v-if="bankVerified" class="p-3 bg-green-50 border border-green-200 rounded-md">
                 <div class="flex items-center">
                   <i class="fas fa-check-circle text-green-500 mr-2"></i>
@@ -493,7 +478,6 @@
             </div>
           </div>
 
-          <!-- Action Buttons -->
           <div class="flex space-x-4">
             <button
               type="button"
@@ -518,7 +502,6 @@
           </div>
         </form>
 
-        <!-- Success Message -->
         <div v-if="showSuccess" class="text-center py-8">
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
             <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -543,40 +526,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import apiService from './services/api'
-import type { VerifyKYCData } from './services/api'
+import apiService from '../services/api'
+import type { VerifyKYCData } from '../services/api'
+import { isAuthenticationValid, clearAllAuthenticationData } from '../utils/auth'
 
 const router = useRouter()
 
-// State
+let authCheckInterval: number | null = null
+
+const startAuthenticationMonitoring = () => {
+  authCheckInterval = setInterval(() => {
+    if (!isAuthenticationValid()) {
+      clearAllAuthenticationData()
+      generalError.value = 'Session expired. Please login again.'
+      router.push('/sign-in')
+    }
+  }, 10000)
+}
+
+const stopAuthenticationMonitoring = () => {
+  if (authCheckInterval) {
+    clearInterval(authCheckInterval)
+    authCheckInterval = null
+  }
+}
+
 const businessType = ref('')
 const loading = ref(false)
 const showSuccess = ref(false)
 const generalError = ref('')
-const submissionId = ref(0) // Add submission ID to prevent race conditions
-const kycSubmitted = ref(false) // Add flag to prevent multiple submissions
-const redirectCountdown = ref(2) // Add countdown for redirect
+const submissionId = ref(0)
+const kycSubmitted = ref(false)
+const redirectCountdown = ref(2)
 
-// Section visibility
 const showGstSection = ref(true)
 const showPanSection = ref(true)
 const showBankDetails = ref(true)
-const showAadhaarSection = ref(true) // Added for Aadhaar section
+const showAadhaarSection = ref(true)
 
-// Verification states
 const gstVerified = ref(false)
 const gstVerifying = ref(false)
 const panVerified = ref(false)
 const panVerifying = ref(false)
 const bankVerified = ref(false)
 const bankVerifying = ref(false)
-const aadhaarVerified = ref(false) // Added for Aadhaar verification
-const aadhaarOtpSent = ref(false) // Added for Aadhaar OTP
-const aadhaarOtpCooldown = ref(0) // Added for Aadhaar OTP cooldown
+const aadhaarVerified = ref(false)
+const aadhaarOtpSent = ref(false)
+const aadhaarOtpCooldown = ref(0)
 
-// Bank list
 const banksList = ref<string[]>([])
 const banksLoading = ref(false)
 const banksError = ref('')
@@ -596,8 +595,8 @@ const errors = reactive({
   accountNumber: '',
   ifscCode: '',
   branchName: '',
-  aadhaarNumber: '', // Added for Aadhaar
-  aadhaarOtp: '' // Added for Aadhaar OTP (as string, not array)
+  aadhaarNumber: '',
+  aadhaarOtp: ''
 })
 
 const formData = reactive({
@@ -614,18 +613,15 @@ const formData = reactive({
   accountNumber: '',
   ifscCode: '',
   branchName: '',
-  aadhaarNumber: '', // Added for Aadhaar
-  aadhaarOtp: ['', '', '', '', '', ''] // Added for Aadhaar OTP
+  aadhaarNumber: '',
+  aadhaarOtp: ['', '', '', '', '', '']
 })
 
-// Watch for business type changes
 watch(businessType, (newType) => {
-  // Clear errors when business type changes
   Object.keys(errors).forEach(key => {
     (errors as any)[key] = ''
   })
   
-  // Clear entity name when switching to GST (not needed for GST)
   if (newType === 'gst') {
     formData.entityName = ''
     formData.entityType = ''
@@ -633,7 +629,6 @@ watch(businessType, (newType) => {
     formData.billingAddress = ''
     formData.panPincode = ''
   } else if (newType === 'pan') {
-    // Clear GST fields when switching to PAN
     formData.gstNumber = ''
     formData.gstAddress = ''
     formData.gstPincode = ''
@@ -641,33 +636,24 @@ watch(businessType, (newType) => {
   }
 })
 
-// Watch form data changes and auto-save
 watch(formData, (newData) => {
-  // Auto-save form data to localStorage
   localStorage.setItem('kyc_form_data', JSON.stringify(newData))
-  console.log('Form data auto-saved to localStorage')
   
-  // Auto-verify Aadhaar if number is valid
   if (newData.aadhaarNumber && newData.aadhaarNumber.length === 12 && !aadhaarVerified.value) {
-    console.log('Auto-verifying Aadhaar number:', newData.aadhaarNumber)
     aadhaarVerified.value = true
   }
 }, { deep: true })
 
-// Computed
 const canSubmit = computed(() => {
-  // Business type is required
   if (!businessType.value) {
     return false;
   }
   
-  // Aadhaar verification is required
   if (!aadhaarVerified.value) {
     return false;
   }
   
   if (businessType.value === 'gst') {
-    // Check if all required GST fields are filled
     const requiredFields = [
       formData.gstNumber,
       formData.gstAddress,
@@ -680,7 +666,6 @@ const canSubmit = computed(() => {
     
     return requiredFields.every(field => field && field.trim() !== '');
   } else if (businessType.value === 'pan') {
-    // Check if all required PAN fields are filled
     const requiredFields = [
       formData.panNumber,
       formData.entityType,
@@ -698,7 +683,6 @@ const canSubmit = computed(() => {
   return false;
 })
 
-// Methods
 const toggleGstSection = () => {
   showGstSection.value = !showGstSection.value
 }
@@ -715,58 +699,38 @@ const toggleAadhaarSection = () => {
   showAadhaarSection.value = !showAadhaarSection.value
 }
 
-// Enhanced Aadhaar validation function
 const validateAadhaar = (aadhaarNumber: string) => {
-  console.log('=== AADHAAR VALIDATION START ===')
-  console.log('Validating Aadhaar:', aadhaarNumber)
-  
-  // Clear previous errors
   errors.aadhaarNumber = ''
   
   if (!aadhaarNumber || aadhaarNumber.trim() === '') {
-    console.log('Aadhaar is empty')
     return
   }
   
-  // Clean the Aadhaar number (remove spaces and hyphens)
   const cleanAadhaar = aadhaarNumber.replace(/\s/g, '').replace(/-/g, '')
   
-  // Check length
   if (cleanAadhaar.length !== 12) {
-    console.log('Aadhaar must be exactly 12 digits')
     errors.aadhaarNumber = 'Aadhaar number must be exactly 12 digits'
     return
   }
   
-  // Check if it contains only digits
   if (!/^\d{12}$/.test(cleanAadhaar)) {
-    console.log('Aadhaar must contain only digits')
     errors.aadhaarNumber = 'Aadhaar number must contain only digits'
     return
   }
   
-  // Check if it doesn't start with 0 or 1
   if (cleanAadhaar.startsWith('0') || cleanAadhaar.startsWith('1')) {
-    console.log('Aadhaar cannot start with 0 or 1')
     errors.aadhaarNumber = 'Aadhaar number cannot start with 0 or 1'
     return
   }
   
-  // Check if it's not all repeated digits
   if (/^(\d)\1{11}$/.test(cleanAadhaar)) {
-    console.log('Aadhaar cannot be all repeated digits')
     errors.aadhaarNumber = 'Please enter a valid Aadhaar number'
     return
   }
   
-  // Update the form data with cleaned Aadhaar
   formData.aadhaarNumber = cleanAadhaar
-  
-  console.log('Aadhaar validation passed')
-  console.log('=== AADHAAR VALIDATION END ===')
 }
 
-// Aadhaar OTP Methods
 const sendAadhaarOtp = async () => {
   if (!formData.aadhaarNumber || formData.aadhaarNumber.length !== 12) {
     alert('Please enter a valid 12-digit Aadhaar number')
@@ -774,26 +738,20 @@ const sendAadhaarOtp = async () => {
   }
   
   try {
-    console.log('Sending Aadhaar OTP for:', formData.aadhaarNumber)
     const response = await apiService.sendAadhaarOTP(formData.aadhaarNumber)
     
     if (response.success) {
       aadhaarOtpSent.value = true
       errors.aadhaarOtp = ''
       
-      // Start cooldown timer
-      aadhaarOtpCooldown.value = 60 // 1 minute = 60 seconds
+      aadhaarOtpCooldown.value = 60
       startAadhaarOtpCooldown()
       
-      console.log('Aadhaar OTP sent successfully!', response.data)
       alert('Aadhaar OTP sent successfully to your registered mobile number! 📱')
     } else {
       errors.aadhaarOtp = response.message || 'Failed to send Aadhaar OTP'
     }
   } catch (error: any) {
-    console.error('Aadhaar OTP send error:', error)
-    
-    // Handle cooldown error
     if (error.response?.data?.cooldown_remaining) {
       const cooldownRemaining = error.response.data.cooldown_remaining
       aadhaarOtpCooldown.value = cooldownRemaining
@@ -830,35 +788,26 @@ const verifyAadhaar = async () => {
   }
   
   const otp = formData.aadhaarOtp.join('')
-  console.log('Verifying Aadhaar OTP:', otp)
   
   try {
     const response = await apiService.verifyAadhaarOTP(formData.aadhaarNumber, otp)
     
-    console.log('Aadhaar verification response:', response)
-    
-    // Check for success - backend returns 'result' field, not 'success'
     if (response.success && response.data && response.data.result === 1) {
       aadhaarVerified.value = true
       errors.aadhaarOtp = ''
-      console.log('Aadhaar verification successful!')
       alert('Aadhaar verification successful! ✅')
     } else {
       const errorMessage = response.data?.message || response.message || 'Invalid Aadhaar OTP'
       errors.aadhaarOtp = errorMessage
-      console.log('Aadhaar verification failed:', errorMessage)
     }
   } catch (error: any) {
-    console.error('Aadhaar verification error:', error)
     errors.aadhaarOtp = error.response?.data?.message || 'Network error occurred'
   }
 }
 
 const handleAadhaarOtpInput = (index: number, value: string) => {
-  // Only allow digits
   formData.aadhaarOtp![index] = value.replace(/\D/g, '')
   
-  // Move to next input if current input is filled
   if (formData.aadhaarOtp![index] && index < 5) {
     const nextInput = document.querySelector(`[data-aadhaar-otp-index="${index + 1}"]`) as HTMLInputElement
     if (nextInput) nextInput.focus()
@@ -866,7 +815,6 @@ const handleAadhaarOtpInput = (index: number, value: string) => {
 }
 
 const handleAadhaarOtpKeydown = (index: number, event: KeyboardEvent) => {
-  // Handle backspace
   if (event.key === 'Backspace' && !formData.aadhaarOtp![index] && index > 0) {
     const prevInput = document.querySelector(`[data-aadhaar-otp-index="${index - 1}"]`) as HTMLInputElement
     if (prevInput) prevInput.focus()
@@ -956,28 +904,11 @@ const verifyBank = async () => {
   
   bankVerifying.value = true
   try {
-    // TEMPORARILY DISABLED: Skip actual bank validation
-    // const response = await apiService.validateBankPublic(formData.accountNumber, formData.ifscCode)
-    
-    // Simulate successful validation
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
     bankVerified.value = true
     errors.accountNumber = ''
     errors.ifscCode = ''
-    console.log('Bank validation temporarily disabled - auto-approving')
-    
-    // Uncomment the following lines to re-enable actual validation:
-    // const response = await apiService.validateBankPublic(formData.accountNumber, formData.ifscCode)
-    // if (response.success) {
-    //   bankVerified.value = true
-    //   errors.accountNumber = ''
-    //   errors.ifscCode = ''
-    // } else {
-    //   errors.accountNumber = 'Invalid bank details'
-    //   errors.ifscCode = 'Invalid bank details'
-    //   bankVerified.value = false
-    // }
   } catch (error) {
     errors.accountNumber = 'Failed to verify bank details'
     errors.ifscCode = 'Failed to verify bank details'
@@ -992,18 +923,13 @@ const fetchBanksList = async () => {
   banksError.value = ''
   try {
     const response = await apiService.getBanksList()
-    console.log('Banks list response:', response)
     
     if (response.success && response.data && response.data.banks) {
-      // Extract bank names from the response
       banksList.value = response.data.banks.map((bank: any) => bank.name)
-      console.log('Processed banks list:', banksList.value)
     } else {
       banksError.value = 'Failed to load banks list'
-      console.error('Invalid banks response:', response)
     }
   } catch (error) {
-    console.error('Error fetching banks list:', error)
     banksError.value = 'Failed to load banks list'
   } finally {
     banksLoading.value = false
@@ -1029,154 +955,110 @@ const goBack = () => {
 }
 
 const submitKyc = async () => {
-  console.log('=== FRONTEND KYC SUBMISSION TRIGGERED ===');
-  console.log('Current state:', {
-    loading: loading.value,
-    kycSubmitted: kycSubmitted.value,
-    canSubmit: canSubmit.value,
-    businessType: businessType.value,
-    aadhaarVerified: aadhaarVerified.value
-  });
-  
-  // Prevent duplicate submissions
   if (loading.value) {
-    console.log('KYC submission already in progress, ignoring duplicate call');
     return;
   }
   
-  // Prevent multiple submissions after success
   if (kycSubmitted.value) {
-    console.log('KYC already submitted successfully, ignoring duplicate call');
     return;
   }
   
   if (!canSubmit.value) {
-    console.log('Cannot submit KYC - validation failed');
-    console.log('Validation details:', {
-      businessType: businessType.value,
-      aadhaarVerified: aadhaarVerified.value,
-      formData: formData
-    });
     return;
   }
   
-  // Generate unique submission ID
   const currentSubmissionId = ++submissionId.value;
-  console.log(`Starting KYC submission #${currentSubmissionId}`);
   
   loading.value = true
   generalError.value = ''
   
   try {
-    console.log(`=== KYC SUBMISSION #${currentSubmissionId} START ===`);
-    console.log('Preparing KYC data for submission...');
+    const userInfoStr = localStorage.getItem('user_info')
+    let userInfo = null
+    if (userInfoStr) {
+      try {
+        userInfo = JSON.parse(userInfoStr)
+      } catch (error) {
+      }
+    }
     
     const kycData: VerifyKYCData = {
       businessType: businessType.value as 'gst' | 'pan',
       ...formData,
-      // Include Aadhaar number if verified
-      ...(aadhaarVerified.value ? { aadhaarNumber: formData.aadhaarNumber } : {})
+      ...(aadhaarVerified.value ? { aadhaarNumber: formData.aadhaarNumber } : {}),
+      ...(userInfo ? {
+        user_id: userInfo.id,
+        entity_id: userInfo.entity_id,
+        email: userInfo.email
+      } : {})
     }
     
-    // Use original entity name from user info if entityName is empty for GST business type
     if (businessType.value === 'gst' && (!kycData.entityName || kycData.entityName.trim() === '')) {
-      // Get original entity name from user info stored in localStorage
       const userInfoStr = localStorage.getItem('user_info')
       if (userInfoStr) {
         try {
           const userInfo = JSON.parse(userInfoStr)
           if (userInfo.entity && userInfo.entity.entity_name) {
             kycData.entityName = userInfo.entity.entity_name
-            console.log('Using original entity name from user info:', kycData.entityName)
           }
         } catch (error) {
-          console.error('Error parsing user info:', error)
         }
       }
       
     }
     
-    console.log(`Final KYC data to submit (submission #${currentSubmissionId}):`, kycData);
-    
-    // Verify current user before submission
-    const userVerified = await verifyCurrentUser()
-    if (!userVerified) {
-      console.error('User verification failed, cannot submit KYC');
-      generalError.value = 'Authentication failed. Please login again.'
-      return
-    }
-    
-    // Get authentication token or API key
-    const authToken = sessionStorage.getItem('auth_token')
     const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
+    const authToken = sessionStorage.getItem('auth_token')
     
-    if (!authToken && !apiKey) {
-      console.error('No authentication found');
-      generalError.value = 'Authentication required. Please login again.'
-      router.push('/sign-in')
-      return
+    const endpoint = businessType.value === 'gst' 
+      ? '/public/kyc/gst-registered'
+      : '/public/kyc/gst-unregistered';
+    
+    const isPublicEndpoint = endpoint.includes('/public/');
+    
+    if (isPublicEndpoint) {
+      if (!userInfo || !userInfo.id) {
+        generalError.value = 'User identification required. Please login again.'
+        router.push('/sign-in')
+        return
+      }
+      
+      if (apiKey) {
+        apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+      } else if (authToken) {
+        apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
+      } else {
+        generalError.value = 'Authentication required. Please login again.'
+        router.push('/sign-in')
+        return
+      }
+    } else {
+      if (!apiKey && !authToken) {
+        generalError.value = 'Authentication required. Please login again.'
+        router.push('/sign-in')
+        return
+      }
+      
+      if (apiKey) {
+        apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
+      } else if (authToken) {
+        apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
+      }
     }
     
-    console.log('Auth Token found:', authToken ? 'Yes' : 'No');
-    console.log('API Key found:', apiKey ? 'Yes' : 'No');
-    
-    // Set the appropriate authentication header
-    if (authToken) {
-      apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
-      console.log('Set JWT token for KYC submission:', authToken)
-    } else if (apiKey) {
-      apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
-      console.log('Set API key for KYC submission:', apiKey)
-    }
-    
-    console.log(`Submitting KYC data to backend (submission #${currentSubmissionId})...`);
-    console.log('Request headers:', { 'Authorization': authToken ? `Bearer ${authToken}` : `Bearer ${apiKey}` });
     const response = await apiService.submitKyc(kycData)
     
-    console.log(`KYC submission response (submission #${currentSubmissionId}):`, response);
-    console.log('Response structure:', {
-      success: response.success,
-      message: response.message,
-      data: response.data,
-      hasData: !!response.data,
-      responseType: typeof response,
-      keys: Object.keys(response)
-    });
-    
-    // Add detailed response logging
-    console.log('=== DETAILED RESPONSE ANALYSIS ===');
-    console.log('Response success:', response.success);
-    console.log('Response message:', response.message);
-    console.log('Response data:', response.data);
-    console.log('Response type:', typeof response);
-    console.log('Response keys:', Object.keys(response));
-    console.log('=== END RESPONSE ANALYSIS ===');
-    
-    // Handle successful KYC submission
     if (response.success) {
-      console.log('KYC submission successful!');
-      
-      // Mark KYC as submitted
       kycSubmitted.value = true
       showSuccess.value = true
       
-      // Store KYC submission status
       localStorage.setItem('kyc_submission_status', 'completed')
       localStorage.setItem('kyc_submission_timestamp', Date.now().toString())
       
-      // Store form data for future reference
       localStorage.setItem('kyc_form_data', JSON.stringify(formData))
       
-      // Store password temporarily for accounts2.0 authentication (if available)
       const tempPassword = sessionStorage.getItem('temp_password')
-      if (tempPassword) {
-        console.log('Password found in sessionStorage, will be used for ecom3-ui authentication')
-      }
       
-      // Show success message
-      console.log('KYC submitted successfully! Redirecting to dashboard...')
-      
-      // Start countdown for automatic redirect
       redirectCountdown.value = 3
       const countdownInterval = setInterval(() => {
         redirectCountdown.value--
@@ -1186,230 +1068,190 @@ const submitKyc = async () => {
         }
       }, 1000)
       
-      // Show success alert
       alert('KYC submitted successfully! 🎉 Redirecting to dashboard...')
       
     } else {
-      // Handle unsuccessful submission
-      console.error('KYC submission failed:', response.message)
       generalError.value = response.message || 'KYC submission failed. Please try again.'
       
-      // Reset submission flags
       kycSubmitted.value = false
       showSuccess.value = false
       
-      // Show error alert
       alert('KYC submission failed: ' + (response.message || 'Unknown error'))
     }
     
   } catch (error) {
-    console.error(`KYC submission #${currentSubmissionId} error:`, error)
     generalError.value = 'Network error occurred during KYC submission'
     
-    // Reset kycSubmitted flag on error to allow retry
     kycSubmitted.value = false
     showSuccess.value = false
     
-    // Show error alert
     alert('Network error occurred during KYC submission. Please check your connection and try again.')
   } finally {
-    // Only clear loading if this is still the latest submission
     if (currentSubmissionId === submissionId.value) {
       loading.value = false
     }
-    console.log(`=== KYC SUBMISSION #${currentSubmissionId} END ===`);
   }
 }
 
 const verifyKycCompletion = async () => {
   try {
-    console.log('Verifying KYC completion status from backend...');
     const response = await apiService.checkKYCStatus();
-    console.log('KYC completion verification response:', response);
     
     if (response.success && response.data) {
       const status = response.data;
-      console.log('KYC status from backend:', status);
       
       if (status.kyc_completed) {
-        console.log('KYC is actually completed according to backend');
         return true;
       } else {
-        console.log('KYC is not completed according to backend');
         return false;
       }
     } else {
-      console.log('Could not verify KYC status from backend');
       return false;
     }
   } catch (error) {
-    console.error('Error verifying KYC completion:', error);
     return false;
   }
 }
 
 const verifyCurrentUser = async () => {
   try {
-    console.log('=== VERIFYING CURRENT USER ===');
     const apiKey = localStorage.getItem('api_key')
-    console.log('Current API Key:', apiKey);
     
-    // Set the API key for the status check
     if (apiKey) {
       apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
-      console.log('Set API key for user verification:', apiKey)
     }
     
-    // Make a test API call to verify the current user
     const response = await apiService.checkKYCStatus()
-    console.log('User verification response:', response);
     
     if (response.success && response.data) {
-      console.log('Current user verified:', response.data);
       return true;
     } else {
-      console.error('User verification failed');
       return false;
     }
   } catch (error) {
-    console.error('Error verifying current user:', error);
     return false;
   }
 }
 
-// Lifecycle
 onMounted(async () => {
-  console.log('VerifyKyc component mounted!')
-  
-  // Check if user is authenticated with API key or token
   const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
   const authToken = sessionStorage.getItem('auth_token')
+  const userInfo = localStorage.getItem('user_info')
   
-  console.log('API Key found:', apiKey ? 'Yes' : 'No')
-  console.log('Auth Token found:', authToken ? 'Yes' : 'No')
+  const isValidApiKey = apiKey && 
+                       apiKey !== 'undefined' && 
+                       apiKey !== 'null' && 
+                       apiKey.trim() !== '' &&
+                       apiKey.length > 10;
   
-  if (!apiKey && !authToken) {
-    console.log('No authentication found, redirecting to signin')
-    generalError.value = 'Authentication required. Please login again.'
-    router.push('/sign-in')
-    return
+  let isValidUserInfo = false;
+  if (userInfo && userInfo !== 'undefined' && userInfo !== 'null') {
+    try {
+      const parsedUserInfo = JSON.parse(userInfo);
+      isValidUserInfo = parsedUserInfo && 
+                       typeof parsedUserInfo === 'object' &&
+                       (parsedUserInfo.id || parsedUserInfo.user_id || parsedUserInfo.email);
+    } catch (error) {
+      isValidUserInfo = false;
+    }
   }
   
-  // Authenticate using existing endpoints
-  try {
-    console.log('=== EXISTING AUTHENTICATION START ===')
+  if (!isValidApiKey || !isValidUserInfo) {
+    localStorage.removeItem('api_key');
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user_info');
+    sessionStorage.removeItem('api_key');
+    sessionStorage.removeItem('access_token');
     
-    // Set authentication header
+    generalError.value = 'Authentication expired. Please login again.';
+    router.push('/sign-in');
+    return;
+  }
+  
+  startAuthenticationMonitoring();
+  
+  try {
     if (authToken) {
-      // Use JWT token for authentication
-      console.log('Authenticating with JWT token')
       apiService.setAuthHeader({ 'Authorization': `Bearer ${authToken}` })
     } else if (apiKey) {
-      // Use API key for authentication
-      console.log('Authenticating with API key')
       apiService.setAuthHeader({ 'Authorization': `Bearer ${apiKey}` })
     }
     
-    // Use existing /me endpoint to get user details
-    console.log('Fetching user details via /me endpoint')
     const userResponse = await apiService.getUserDetails()
-    console.log('User details response:', userResponse)
     
     if (userResponse.success && userResponse.data) {
-      console.log('User authentication successful:', userResponse.data)
-      
-      // Store user and entity information securely
       sessionStorage.setItem('user_info', JSON.stringify(userResponse.data.user))
       sessionStorage.setItem('entity_info', JSON.stringify(userResponse.data.entity))
       
-      // Use existing KYC status endpoint
-      console.log('Fetching KYC status via /kyc/check-completion-status endpoint')
       const kycResponse = await apiService.checkKYCStatus()
-      console.log('KYC status response:', kycResponse)
       
       if (kycResponse.success && kycResponse.data) {
         const kycStatus = kycResponse.data
         sessionStorage.setItem('kyc_status', JSON.stringify(kycStatus))
         
-        // Check if KYC is already completed
         if (kycStatus.kyc_completed) {
-          console.log('KYC already completed, showing success state')
           showSuccess.value = true
           generalError.value = ''
           
-          // Initialize form with user data for display purposes
           initializeFormWithUserData(userResponse.data.user)
           return
         }
       }
       
-      // Initialize form with user data
       initializeFormWithUserData(userResponse.data.user)
       
-      // Check KYC status and handle accordingly
       checkKycStatusAndHandle()
       
     } else {
-      console.error('User authentication failed:', userResponse.message)
       generalError.value = 'Authentication failed: ' + (userResponse.message || 'Unknown error')
       router.push('/sign-in')
       return
     }
     
   } catch (error) {
-    console.error('Authentication error:', error)
     generalError.value = 'Authentication failed. Please login again.'
     router.push('/sign-in')
     return
   }
   
-  // Load form data from sessionStorage if available
   const savedFormData = sessionStorage.getItem('kyc_form_data')
   if (savedFormData) {
     try {
       const parsedData = JSON.parse(savedFormData)
       Object.assign(formData, parsedData)
-      console.log('Loaded saved form data:', parsedData)
     } catch (error) {
-      console.error('Error loading saved form data:', error)
     }
   }
   
-  // Fetch banks list
   fetchBanksList()
   
-  // Ensure business type is always set
   if (!businessType.value) {
     businessType.value = 'gst'
-    console.log('Setting default business type to gst (fallback)')
   }
   
-  // Clear any validation errors that might be preventing submission
   Object.keys(errors).forEach(key => {
     (errors as any)[key] = ''
   })
   
-  // Auto-verify Aadhaar if number is already filled and valid
   if (formData.aadhaarNumber && formData.aadhaarNumber.length === 12) {
-    console.log('Auto-verifying Aadhaar number:', formData.aadhaarNumber)
     aadhaarVerified.value = true
   }
-  
-  // Force re-evaluation of canSubmit
-  console.log('Form initialization complete. Can submit:', canSubmit.value)
+})
+
+onUnmounted(() => {
+  stopAuthenticationMonitoring()
 })
 
 const initializeFormWithUserData = (userInfo: any) => {
-  console.log('Initializing form with user data:', userInfo)
-  
-  // Initialize with user data from branches and banks if available
   if (userInfo.branches && userInfo.branches.length > 0) {
     const branch = userInfo.branches[0]
     formData.gstNumber = branch.gst_number || ''
     formData.gstAddress = branch.address1 || ''
     formData.gstPincode = branch.pincode || ''
     formData.branchName = branch.branch || ''
-    console.log('Pre-filling GST details from branch:', branch)
   }
   
   if (userInfo.banks && userInfo.banks.length > 0) {
@@ -1418,76 +1260,52 @@ const initializeFormWithUserData = (userInfo: any) => {
     formData.bankName = bank.bank_name || ''
     formData.accountNumber = bank.account_number || ''
     formData.ifscCode = bank.ifsc_code || ''
-    console.log('Pre-filling bank details from bank:', bank)
   }
   
-  // Set Aadhaar number if available
   if (userInfo.kyc_data && userInfo.kyc_data.aadhaar_number) {
     formData.aadhaarNumber = userInfo.kyc_data.aadhaar_number
-    console.log('Pre-filling Aadhaar number:', userInfo.kyc_data.aadhaar_number)
   }
   
-  // Set business type based on available data
   if (formData.gstNumber && formData.gstNumber.trim() !== '') {
     businessType.value = 'gst'
-    console.log('Setting business type to gst based on GST number')
   } else if (userInfo.kyc_data && userInfo.kyc_data.business_type) {
     businessType.value = userInfo.kyc_data.business_type
-    console.log('Setting business type from user info:', userInfo.kyc_data.business_type)
   } else {
     businessType.value = 'gst'
-    console.log('Setting default business type to gst')
   }
   
-  // Auto-verify Aadhaar if number is valid
   if (formData.aadhaarNumber && formData.aadhaarNumber.length === 12) {
-    console.log('Auto-verifying Aadhaar number:', formData.aadhaarNumber)
     aadhaarVerified.value = true
   }
-  
-  console.log('Form initialization complete. Can submit:', canSubmit.value)
 }
 
 const checkKycStatusAndHandle = async () => {
-  // Check if KYC was already submitted successfully
   const kycSubmissionStatus = localStorage.getItem('kyc_submission_status')
   if (kycSubmissionStatus === 'completed') {
-    console.log('KYC marked as completed in localStorage, verifying with backend...');
-    
-    // Verify with backend if KYC is actually completed
     const isActuallyCompleted = await verifyKycCompletion()
     
     if (isActuallyCompleted) {
-      console.log('KYC is actually completed according to backend');
-      // Don't redirect immediately - let user see the form and decide to submit again if needed
-      // Show a success message that KYC is already completed, but allow form access
       showSuccess.value = true
-      generalError.value = '' // Clear any error messages
+      generalError.value = ''
       
-      // Pre-fill the form with existing data if available
       const savedFormData = localStorage.getItem('kyc_form_data')
       if (savedFormData) {
         try {
           const parsedData = JSON.parse(savedFormData)
           Object.assign(formData, parsedData)
-          console.log('Loaded saved form data for completed KYC:', parsedData)
         } catch (error) {
-          console.error('Error loading saved form data:', error)
         }
       }
       
       return
     } else {
-      console.log('KYC marked as completed in localStorage but not actually completed, clearing status');
       localStorage.removeItem('kyc_submission_status')
       localStorage.removeItem('kyc_submission_timestamp')
-      console.log('KYC status cleared, allowing fresh submission');
     }
   }
 }
 
 const resetKycStatus = () => {
-  console.log('Resetting KYC status...');
   localStorage.removeItem('kyc_submission_status');
   localStorage.removeItem('kyc_submission_timestamp');
   localStorage.removeItem('kyc_form_data');
@@ -1530,65 +1348,45 @@ const resetKycStatus = () => {
   formData.bankName = '';
   formData.accountNumber = '';
   formData.ifscCode = '';
-  console.log('KYC status reset successfully.');
   alert('KYC status reset successfully. You can now submit a new KYC.');
 }
 
 const resetForResubmission = () => {
-  console.log('Resetting form for resubmission...')
-  
-  // Reset all submission flags
   kycSubmitted.value = false
   showSuccess.value = false
   generalError.value = ''
   loading.value = false
   
-  // Clear any previous errors
   Object.keys(errors).forEach(key => {
     errors[key as keyof typeof errors] = ''
   })
   
-  // Reset submission ID
   submissionId.value = 0
-  
-  console.log('Form reset completed. Ready for resubmission.')
 }
 
 const redirectToDashboard = () => {
   const freshToken = sessionStorage.getItem('auth_token')
   const apiKey = sessionStorage.getItem('api_key') || localStorage.getItem('api_key')
   
-  if (freshToken) {
-    // Use fresh JWT token for authentication - store securely and redirect without exposing in URL
-    console.log('Using fresh token for secure authentication');
+  if (apiKey) {
+    const redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`;
     
-    // Store token securely for ecom3-ui to retrieve
-    sessionStorage.setItem('ecom3_auth_token', freshToken);
+    alert('🎉 KYC submitted successfully! Redirecting to dashboard...');
     
-    // Redirect without exposing token in URL - ecom3-ui will authenticate via sessionStorage
-    const redirectUrl = `http://localhost:8080/orders?auth_method=token&session_id=${Date.now()}`;
-    console.log('Redirecting with secure token to:', redirectUrl);
     window.location.href = redirectUrl;
-  } else if (apiKey) {
-    // Fall back to API key - also store securely
-    console.log('Using API key for authentication');
+  } else if (freshToken) {
+    const redirectUrl = `http://localhost:8080/orders?token=${freshToken}`;
     
-    // Store API key securely for ecom3-ui to retrieve
-    sessionStorage.setItem('ecom3_api_key', apiKey);
-    
-    // Redirect without exposing API key in URL - ecom3-ui will authenticate via sessionStorage
-    const redirectUrl = `http://localhost:8080/orders?auth_method=api_key&session_id=${Date.now()}`;
-    console.log('Redirecting with secure API key to:', redirectUrl);
+    alert('🎉 KYC submitted successfully! Redirecting to dashboard...');
     window.location.href = redirectUrl;
   } else {
-    console.log('No authentication token found, redirecting to signin');
+    alert('⚠️ Authentication expired. Please login again.');
     router.push('/sign-in')
   }
 }
 </script>
 
 <style scoped>
-/* Background image styling */
 .bg-image {
   background-image: url('/img/background-image.png');
   background-size: cover;
@@ -1600,7 +1398,6 @@ const redirectToDashboard = () => {
   min-height: 100vh;
 }
 
-/* Optional overlay for better readability */
 .bg-image::before {
   content: "";
   position: absolute;
@@ -1612,13 +1409,11 @@ const redirectToDashboard = () => {
   z-index: 1;
 }
 
-/* Ensure content is above the overlay */
 .bg-image > * {
   position: relative;
   z-index: 2;
 }
 
-/* Responsive background adjustments */
 @media (max-width: 768px) {
   .bg-image {
     background-attachment: scroll;
@@ -1626,9 +1421,8 @@ const redirectToDashboard = () => {
   }
 }
 
-/* Enhanced container styling */
 .bg-white\/95 {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-</style> 
+</style>
