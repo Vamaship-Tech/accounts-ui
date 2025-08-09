@@ -15,7 +15,6 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Welcome Message -->
       <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -30,7 +29,6 @@
         </div>
       </div>
 
-      <!-- Quick Actions -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center">
@@ -76,7 +74,6 @@
         </div>
       </div>
 
-      <!-- Recent Activity -->
       <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
@@ -99,20 +96,17 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-// Component name for ESLint
 defineOptions({
   name: 'UserDashboard'
 })
 
 const router = useRouter()
 
-// Get user data from localStorage - in real app this would come from a store or API
 const userData = ref({
   fullName: 'John Doe',
   email: 'john@example.com'
 })
 
-// Load user data from localStorage if available
 const loadUserData = () => {
   const stored = localStorage.getItem('userData')
   if (stored) {
@@ -125,13 +119,10 @@ const loadUserData = () => {
   }
 }
 
-// Load data on component mount
 loadUserData()
 
 const logout = () => {
-  // Clear any stored data
   localStorage.removeItem('userData')
-  // Redirect to sign in
   router.push('/sign-in')
 }
 </script> 

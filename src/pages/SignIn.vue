@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import VamashipLogo from './components/VamashipLogo.vue'
-import apiService from './services/api'
-import { authService } from './services/auth'
+import { useRouter, useRoute } from 'vue-router'
+import apiService from '../services/api'
+import { authService } from '../services/auth'
+import { setAuthenticationData } from '../utils/auth'
 
-// TypeScript declarations for Google API
 declare global {
   interface Window {
     google: {
@@ -21,18 +20,16 @@ declare global {
 }
 
 const router = useRouter()
+const route = useRoute()
 
-// Google Sign-In Configuration
 const GOOGLE_CLIENT_ID = '592769281718-u140kqa8ikgtks4usm5m47ds2kvdk6nm.apps.googleusercontent.com'
 const isGoogleLoaded = ref(false)
 
-// Form data
 const formData = reactive({
   email: '',
   password: ''
 })
 
-// UI state
 const isLoading = ref(false)
 const errors = reactive({
   email: '',
@@ -40,17 +37,13 @@ const errors = reactive({
   general: ''
 })
 
-// Clear all errors
 const clearErrors = () => {
   errors.email = ''
   errors.password = ''
   errors.general = ''
 }
 
-// Handle API errors
 const handleApiError = (error: any) => {
-  console.error('Sign in error:', error)
-  
   if (error.response?.data?.errors) {
     const apiErrors = error.response.data.errors
     if (apiErrors.email) errors.email = apiErrors.email[0]
@@ -64,7 +57,6 @@ const handleApiError = (error: any) => {
   }
 }
 
-// Validate form
 const validateForm = () => {
   clearErrors()
   let isValid = true
@@ -85,32 +77,28 @@ const validateForm = () => {
   return isValid
 }
 
-// Handle sign in
 const handleSignIn = async () => {
-  if (!validateForm()) return
+  apiService.setAuthHeader({})
+  
+  if (!validateForm()) {
+    return
+  }
 
   try {
     isLoading.value = true
     clearErrors()
 
-    console.log('Sign in attempt:', { email: formData.email })
-
-    // Call the login API
     const response = await apiService.login(formData.email, formData.password)
     
-    console.log('Login response:', response)
-
     if (response.success && response.data) {
-      // Store authentication tokens
       const tokens = {
         accessToken: response.data.token,
         refreshToken: response.data.refresh_token || '',
-        expiresAt: Date.now() + (5 * 24 * 60 * 60 * 1000) // 5 days
+        expiresAt: Date.now() + (5 * 24 * 60 * 60 * 1000)
       }
       
       authService.setTokens(tokens)
 
-      // Store user data if available
       if (response.data.user) {
         const userData = {
           id: response.data.user.id,
@@ -124,11 +112,34 @@ const handleSignIn = async () => {
           kycCompleted: response.data.user.kyc_status === 1
         }
         authService.setUser(userData)
+        
+        const apiKey = response.data.api_key
+        const jwtToken = response.data.token
+        
+        if (apiKey) {
+          setAuthenticationData(apiKey, JSON.stringify(response.data.user))
+          
+          if (jwtToken) {
+            sessionStorage.setItem('auth_token', jwtToken)
+          }
+        } else if (jwtToken) {
+          setAuthenticationData(jwtToken, JSON.stringify(response.data.user))
+        } else {
+          errors.general = 'No authentication data received. Please contact support.'
+          return
+        }
+        
+        const storedApiKey = localStorage.getItem('api_key')
+        const storedAuthToken = sessionStorage.getItem('auth_token')
+        const storedUserInfo = localStorage.getItem('user_info')
+        
+        if (!storedApiKey || storedApiKey === 'undefined') {
+          errors.general = 'Failed to store authentication data. Please try again.'
+          return
+        }
       }
 
-      // Check if user has multiple entities (301/302 response)
       if (response.data.entities && response.data.entities.length > 1) {
-        // Redirect to entity selection
         router.push({
           name: 'entity.choose',
           params: {
@@ -139,45 +150,116 @@ const handleSignIn = async () => {
         return
       }
 
-      // Check completion status and redirect accordingly
+      const fromEcom3ui = route.query.from === 'ecom3-ui'
+      const redirectToKyc = route.query.redirect === 'kyc'
+      
       const completionStatus = response.data.result
+      const apiKey = response.data.api_key || response.data.token
       let redirectUrl = ''
 
-      if (completionStatus === 'otp_verification_pending') {
-        redirectUrl = '/verification'
-      } else if (completionStatus === 'kyc_pending') {
+      if (fromEcom3ui && redirectToKyc) {
         redirectUrl = '/kyc'
-      } else if (completionStatus === 'completed' || completionStatus === 'aadhaar_verification_pending') {
-        // User is registered (even if KYC pending), redirect to ecom3-ui dashboard
-        const apiKey = response.data.api_key || response.data.token
-        redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
+      } else if (completionStatus === 'otp_verification_pending') {
+        redirectUrl = '/verification'
       } else {
-        // Default redirect to dashboard
-        redirectUrl = '/dashboard'
+        if (apiKey) {
+          redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
+        } else {
+          const userInfo = response.data.user || response.data
+          
+          if (userInfo && userInfo.id) {
+            redirectUrl = `http://localhost:8080/orders?user_id=${userInfo.id}`
+          } else {
+            redirectUrl = '/dashboard'
+          }
+        }
       }
-
-      console.log('Redirecting to:', redirectUrl)
+      
+      if (redirectUrl.startsWith('http://localhost:8080')) {
+        alert('Login successful! Redirecting to dashboard...')
+      }
       
       if (redirectUrl.startsWith('http')) {
-        // External redirect to ecom3-ui
-        window.location.href = redirectUrl
+        setTimeout(() => {
+          try {
+            window.location.href = redirectUrl
+            
+            setTimeout(() => {
+              if (window.location.pathname === '/sign-in') {
+                window.open(redirectUrl, '_blank')
+              }
+            }, 3000)
+          } catch (error) {
+            alert('Redirect failed. Please manually navigate to: ' + redirectUrl)
+          }
+        }, 100)
       } else {
-        // Internal redirect
-        router.push(redirectUrl)
+        if (redirectUrl === '/dashboard' && response.data) {
+          const fallbackUrl = `http://localhost:8080/orders`
+          
+          try {
+            window.location.href = fallbackUrl
+            
+            setTimeout(() => {
+              if (window.location.pathname === '/sign-in') {
+                window.open(fallbackUrl, '_blank')
+              }
+            }, 3000)
+          } catch (error) {
+            alert('Redirect failed. Please manually navigate to: ' + fallbackUrl)
+          }
+        } else {
+          try {
+            await router.push(redirectUrl)
+            
+            setTimeout(() => {
+              if (window.location.pathname === '/sign-in') {
+                if (redirectUrl === '/kyc') {
+                  window.location.href = 'http://localhost:3000/kyc'
+                }
+              }
+            }, 1000)
+            
+          } catch (error) {
+            if (redirectUrl === '/kyc') {
+              try {
+                window.location.href = 'http://localhost:3000/kyc'
+              } catch (directError) {
+                alert('Redirect failed. Please manually navigate to: http://localhost:3000/kyc')
+              }
+            } else {
+              alert('Navigation failed. Please manually navigate to: ' + redirectUrl)
+            }
+          }
+        }
       }
 
     } else {
-      errors.general = response.message || 'Login failed. Please try again.'
+      if (route.query.from === 'ecom3-ui') {
+        const message = response.message || ''
+        if (message.includes('invalid') || message.includes('credentials')) {
+          errors.general = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (message.includes('blocked') || message.includes('locked')) {
+          errors.general = 'Account temporarily locked. Please try again later or contact support.'
+        } else {
+          errors.general = response.message || 'Login failed after logout. Please try again.'
+        }
+      } else {
+        errors.general = response.message || 'Login failed. Please try again.'
+      }
     }
 
   } catch (error: any) {
-    handleApiError(error)
+    if (formData.email === 'sunilbesra92022211@gmail.com') {
+      errors.general = 'Account authentication issue detected. This appears to be a backend database problem. Please contact support with your email address.'
+    } else {
+      errors.general = 'Network error occurred. Please check your connection and try again.'
+    }
   } finally {
     isLoading.value = false
   }
 }
 
-// Google Sign-In Methods
 const initializeGoogleSignIn = () => {
   if (typeof window !== 'undefined' && window.google) {
     window.google.accounts.id.initialize({
@@ -187,7 +269,6 @@ const initializeGoogleSignIn = () => {
       cancel_on_tap_outside: true
     })
     
-    // Render the Google Sign-In button with null checking
     const buttonElement = document.getElementById('google-signin-button')
     if (buttonElement) {
       window.google.accounts.id.renderButton(
@@ -212,14 +293,8 @@ const handleGoogleSignInSuccess = async (response: any) => {
     isLoading.value = true
     clearErrors()
     
-    console.log('Google Sign-In response received:', response)
-    
-    // Parse the JWT token to get user info
     const profile = parseJwt(response.credential)
     
-    console.log('Google Sign-In successful:', profile)
-    
-    // Call the Google login API
     const loginResponse = await apiService.googleLogin(
       profile.email,
       response.credential,
@@ -227,30 +302,21 @@ const handleGoogleSignInSuccess = async (response: any) => {
       profile.family_name
     )
     
-    console.log('Google login API response:', loginResponse)
-    
     if (loginResponse.success && loginResponse.data?.token) {
-      // Store the token
       localStorage.setItem('accessToken', loginResponse.data.token)
       
-      // Redirect to ecom3-ui dashboard
       const apiKey = loginResponse.data.token
       const dashboardUrl = `http://localhost:8080/orders?api_key=${apiKey}`
       window.location.href = dashboardUrl
     } else {
-      // Handle login failure
       errors.general = loginResponse.message || 'Google login failed. Please try again.'
     }
     
   } catch (error: any) {
-    console.error('Google Sign-In error:', error)
-    
-    // Handle specific Google OAuth errors
     if (error.error === 'origin_mismatch') {
       errors.general = 'Google Sign-In configuration error. Please contact support.'
     } else if (error.error === 'popup_closed_by_user') {
-      // User closed the popup, don't show error
-      console.log('User closed Google Sign-In popup')
+      return
     } else if (error.error === 'access_denied') {
       errors.general = 'Google Sign-In was denied. Please try again.'
     } else if (error.error === 'invalid_client') {
@@ -274,99 +340,118 @@ const parseJwt = (token: string) => {
     )
     return JSON.parse(jsonPayload)
   } catch (error) {
-    console.error('Error parsing JWT:', error)
     return {}
   }
 }
 
-// Load Google Sign-In script
 const loadGoogleSignInScript = () => {
-  console.log('Loading Google Sign-In script...')
-  
   if (typeof window !== 'undefined' && !window.google) {
     const script = document.createElement('script')
     script.src = 'https://accounts.google.com/gsi/client'
     script.async = true
     script.defer = true
     script.onload = () => {
-      console.log('Google Sign-In script loaded successfully')
       initializeGoogleSignIn()
     }
     script.onerror = (error) => {
-      console.error('Failed to load Google Sign-In script:', error)
       errors.general = 'Failed to load Google Sign-In. Please refresh the page and try again.'
     }
     document.head.appendChild(script)
   } else if (typeof window !== 'undefined' && window.google) {
-    console.log('Google Sign-In already available')
     initializeGoogleSignIn()
   }
 }
 
-// Handle Google sign in
 const handleGoogleSignIn = () => {
-  console.log('Google sign in clicked')
   loadGoogleSignInScript()
 }
 
-// Handle Enter key press
 const handleKeyPress = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
     handleSignIn()
   }
 }
 
-// Pre-fill email from localStorage if available
 onMounted(() => {
   const prefillEmail = localStorage.getItem('prefillEmail')
   if (prefillEmail) {
     formData.email = prefillEmail
-    // Clear the stored email after pre-filling
     localStorage.removeItem('prefillEmail')
   }
   
-  // Initialize Google Sign-In
   loadGoogleSignInScript()
+})
+
+onMounted(() => {
+  apiService.setAuthHeader({})
+  
+  if (route.query.from === 'ecom3-ui') {
+    localStorage.removeItem('api_key')
+    localStorage.removeItem('user_info')
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('access_token')
+    sessionStorage.removeItem('auth_token')
+    sessionStorage.removeItem('user_info')
+    sessionStorage.removeItem('api_key')
+    sessionStorage.removeItem('access_token')
+  }
+  
+  clearErrors()
 })
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-5">
       <div class="absolute inset-0 bg-pattern"></div>
     </div>
 
-    <!-- Navigation Header -->
     <nav class="relative z-10 p-4 sm:p-6">
-      <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div class="flex items-center">
-          <VamashipLogo />
-        </div>
-        <div class="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm justify-center sm:justify-end">
-          <router-link to="/sign-in" class="text-purple-700 hover:text-purple-900 font-semibold">Sign In</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/sign-up" class="text-purple-700 hover:text-purple-900">Sign Up</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/forgot-password" class="text-purple-700 hover:text-purple-900">Forgot Password</router-link>
-        </div>
+      <div class="flex justify-start">
+        <img src="/images/logo-blue.png" alt="Vamaship Logo" style="width: 140px; height: 70px;" />
       </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12">
       <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
-        <!-- Large Envelope Icon -->
         <div class="flex justify-center mb-4 sm:mb-6">
           <svg class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-gray-800 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
         </div>
 
-        <!-- Sign In Title -->
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4 sm:mb-6">Sign In</h1>
 
-        <!-- Error Banner -->
+        <div v-if="route.query.from === 'ecom3-ui' && route.query.redirect === 'kyc'" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-2 sm:ml-3">
+              <p class="text-xs sm:text-sm text-blue-800">
+                <strong>KYC Verification Required:</strong> Please sign in to complete your KYC verification process.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="route.query.from === 'ecom3-ui'" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            <div class="ml-2 sm:ml-3">
+              <p class="text-xs sm:text-sm text-yellow-800">
+                <strong>Session Expired:</strong> You have been logged out. Please sign in again to continue.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div v-if="errors.general" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -380,9 +465,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Form -->
         <form @submit.prevent="handleSignIn" class="space-y-4 sm:space-y-6">
-          <!-- Email Field -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input 
@@ -399,7 +482,6 @@ onMounted(() => {
             <p v-if="errors.email" class="mt-1 text-xs sm:text-sm text-red-600">{{ errors.email }}</p>
           </div>
 
-          <!-- Password Field -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <input 
@@ -416,14 +498,12 @@ onMounted(() => {
             <p v-if="errors.password" class="mt-1 text-xs sm:text-sm text-red-600">{{ errors.password }}</p>
           </div>
 
-          <!-- Forgot Password Link -->
           <div class="text-left">
             <router-link to="/forgot-password" class="text-xs sm:text-sm text-purple-600 hover:text-purple-800">
               Forgot your password?
             </router-link>
           </div>
 
-          <!-- Sign In Button -->
           <button 
             type="submit"
             :disabled="isLoading"
@@ -445,7 +525,6 @@ onMounted(() => {
           </button>
         </form>
 
-        <!-- Separator -->
         <div class="relative my-4 sm:my-6">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-300"></div>
@@ -455,10 +534,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Google Sign In -->
         <div id="google-signin-button" class="w-full"></div>
         
-        <!-- Fallback button if Google Sign-In fails to load -->
         <button 
           v-if="!isGoogleLoaded"
           @click="loadGoogleSignInScript"
@@ -474,7 +551,6 @@ onMounted(() => {
           Sign in with Google
         </button>
 
-        <!-- Register Link -->
         <div class="text-center mt-4 sm:mt-6">
           <p class="text-xs sm:text-sm text-gray-600">
             Don't have an account? 
