@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import apiService from './services/api'
+import apiService from '../services/api'
 
 const router = useRouter()
 const route = useRoute()
 
-// Form data
 const formData = reactive({
   password: '',
   confirmPassword: ''
 })
 
-// UI State
 const loading = ref(false)
 const success = ref(false)
 const error = ref('')
@@ -21,21 +19,17 @@ const confirmPasswordError = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// Get token from URL
 const token = ref('')
 
 onMounted(() => {
-  // Get token from URL query parameter
   const urlToken = route.query.token as string
   if (urlToken) {
     token.value = urlToken
   } else {
-    // If no token, redirect to forgot password
     router.push('/forgot-password')
   }
 })
 
-// Password validation
 const validatePassword = (password: string): boolean => {
   if (!password) {
     passwordError.value = 'Password is required'
@@ -61,7 +55,6 @@ const validatePassword = (password: string): boolean => {
   return true
 }
 
-// Confirm password validation
 const validateConfirmPassword = (confirmPassword: string): boolean => {
   if (!confirmPassword) {
     confirmPasswordError.value = 'Please confirm your password'
@@ -75,7 +68,6 @@ const validateConfirmPassword = (confirmPassword: string): boolean => {
   return true
 }
 
-// Clear field error
 const clearFieldError = (field: string) => {
   if (field === 'password') {
     passwordError.value = ''
@@ -86,12 +78,9 @@ const clearFieldError = (field: string) => {
   error.value = ''
 }
 
-// Handle reset password
 const handleResetPassword = async () => {
-  // Clear previous errors
   error.value = ''
   
-  // Validate passwords
   const isPasswordValid = validatePassword(formData.password)
   const isConfirmPasswordValid = validateConfirmPassword(formData.confirmPassword)
   
@@ -111,26 +100,22 @@ const handleResetPassword = async () => {
     
     if (response.success) {
       success.value = true
-      // Reset form
       formData.password = ''
       formData.confirmPassword = ''
     } else {
       error.value = response.message || 'Failed to reset password. Please try again.'
     }
   } catch (err: any) {
-    console.error('Reset password error:', err)
     error.value = err.message || 'Network error occurred. Please check your connection.'
   } finally {
     loading.value = false
   }
 }
 
-// Go to sign in
 const goToSignIn = () => {
   router.push('/sign-in')
 }
 
-// Go to forgot password
 const goToForgotPassword = () => {
   router.push('/forgot-password')
 }
@@ -138,12 +123,10 @@ const goToForgotPassword = () => {
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-5">
       <div class="absolute inset-0 bg-pattern"></div>
     </div>
 
-    <!-- Navigation Header -->
     <nav class="relative z-10 p-4 sm:p-6">
       <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div class="flex items-center">
@@ -159,20 +142,15 @@ const goToForgotPassword = () => {
       </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12">
-      <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
-        <!-- Large Key Icon -->
+              <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
         <div class="flex justify-center mb-4 sm:mb-6">
           <svg class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-gray-800 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
           </svg>
         </div>
 
-        <!-- Reset Password Title -->
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4 sm:mb-6">Reset Password</h1>
-
-        <!-- Success Message -->
         <div v-if="success" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -189,7 +167,6 @@ const goToForgotPassword = () => {
           </div>
         </div>
 
-        <!-- Error Message -->
         <div v-if="error" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -203,9 +180,7 @@ const goToForgotPassword = () => {
           </div>
         </div>
 
-        <!-- Form -->
         <form v-if="!success" @submit.prevent="handleResetPassword" class="space-y-4 sm:space-y-6">
-          <!-- Password Field -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
             <div class="relative">
@@ -241,7 +216,6 @@ const goToForgotPassword = () => {
             </p>
           </div>
 
-          <!-- Confirm Password Field -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
             <div class="relative">
@@ -274,7 +248,6 @@ const goToForgotPassword = () => {
             <p v-if="confirmPasswordError" class="mt-1 text-xs sm:text-sm text-red-600">{{ confirmPasswordError }}</p>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="loading || !formData.password || !formData.confirmPassword"
@@ -296,9 +269,7 @@ const goToForgotPassword = () => {
           </button>
         </form>
 
-        <!-- Action Buttons -->
         <div class="mt-6 space-y-3">
-          <!-- Sign In Button (shown after success) -->
           <button
             v-if="success"
             @click="goToSignIn"
@@ -307,7 +278,6 @@ const goToForgotPassword = () => {
             Sign In
           </button>
 
-          <!-- Back to Sign In (shown before success) -->
           <button
             v-if="!success"
             @click="goToSignIn"
@@ -316,7 +286,6 @@ const goToForgotPassword = () => {
             Back to Sign In
           </button>
 
-          <!-- Forgot Password Link -->
           <button
             v-if="!success"
             @click="goToForgotPassword"

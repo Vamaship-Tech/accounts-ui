@@ -215,8 +215,9 @@ class MockApiService {
     
     await mockDelay();
     
-    // Simulate that test@example.com already exists
-    const exists = email === 'test@example.com';
+    // Mock service returns false for all emails since frontend uses real API
+    // This method is only used when explicitly testing with mock service
+    const exists = false;
     const response = {
       success: true,
       data: {
@@ -226,6 +227,26 @@ class MockApiService {
     };
     
     console.log('Mock: Email exists check response:', response);
+    return response;
+  }
+
+  // Check if mobile number exists
+  async checkMobileExists(phone: string): Promise<APIResponse> {
+    console.log('Mock: Checking if mobile exists:', phone);
+    
+    await mockDelay();
+    
+    // Simulate that 9999999999 already exists
+    const exists = phone === '9999999999';
+    const response = {
+      success: true,
+      data: {
+        exists,
+        message: exists ? 'Mobile number already exists' : 'Mobile number is available'
+      }
+    };
+    
+    console.log('Mock: Mobile exists check response:', response);
     return response;
   }
 
@@ -327,6 +348,25 @@ class MockApiService {
     console.log('Mock: Updating password');
     await mockDelay();
     return MOCK_DATA.updatePassword;
+  }
+
+  // Get user details
+  async getUserDetails(): Promise<APIResponse> {
+    console.log('Mock: Getting user details');
+    await mockDelay();
+    return {
+      success: true,
+      message: 'User details retrieved successfully',
+      data: {
+        id: 1,
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        phone: '+91-9876543210',
+        isEmailVerified: true,
+        isMobileVerified: true,
+        kycCompleted: false
+      }
+    };
   }
 }
 

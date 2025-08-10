@@ -1,22 +1,19 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import apiService from './services/api'
+import apiService from '../services/api'
 
 const router = useRouter()
 
-// Form data
 const formData = reactive({
   email: ''
 })
 
-// UI State
 const loading = ref(false)
 const success = ref(false)
 const error = ref('')
 const emailError = ref('')
 
-// Email validation
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!email) {
@@ -31,7 +28,6 @@ const validateEmail = (email: string): boolean => {
   return true
 }
 
-// Clear field error
 const clearFieldError = (field: string) => {
   if (field === 'email') {
     emailError.value = ''
@@ -39,12 +35,9 @@ const clearFieldError = (field: string) => {
   error.value = ''
 }
 
-// Handle forgot password
 const handleForgotPassword = async () => {
-  // Clear previous errors
   error.value = ''
   
-  // Validate email
   if (!validateEmail(formData.email)) {
     return
   }
@@ -56,7 +49,6 @@ const handleForgotPassword = async () => {
     
     if (response.success) {
       success.value = true
-      // Reset form
       formData.email = ''
     } else {
       error.value = response.message || 'Failed to send reset link. Please try again.'
@@ -69,12 +61,10 @@ const handleForgotPassword = async () => {
   }
 }
 
-// Go back to sign in
 const goToSignIn = () => {
   router.push('/sign-in')
 }
 
-// Go to sign up
 const goToSignUp = () => {
   router.push('/sign-up')
 }
@@ -82,41 +72,28 @@ const goToSignUp = () => {
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
-    <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-5">
       <div class="absolute inset-0 bg-pattern"></div>
     </div>
 
-    <!-- Navigation Header -->
     <nav class="relative z-10 p-4 sm:p-6">
       <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div class="flex items-center">
-          <img src="/images/logo-blue.png" alt="Vamaship" class="h-8 sm:h-10" />
-        </div>
-        <div class="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm justify-center sm:justify-end">
-          <router-link to="/sign-in" class="text-purple-700 hover:text-purple-900 font-semibold">Sign In</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/sign-up" class="text-purple-700 hover:text-purple-900">Sign Up</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/forgot-password" class="text-purple-700 hover:text-purple-900">Forgot Password</router-link>
+          <img src="/images/logo-blue.png" alt="Vamaship" class="w-35 h-17" />
         </div>
       </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12">
       <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
-        <!-- Large Lock Icon -->
         <div class="flex justify-center mb-4 sm:mb-6">
           <svg class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-gray-800 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
           </svg>
         </div>
 
-        <!-- Forgot Password Title -->
         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center mb-4 sm:mb-6">Forgot Password</h1>
 
-        <!-- Success Message -->
         <div v-if="success" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -133,7 +110,6 @@ const goToSignUp = () => {
           </div>
         </div>
 
-        <!-- Error Message -->
         <div v-if="error" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -147,9 +123,7 @@ const goToSignUp = () => {
           </div>
         </div>
 
-        <!-- Form -->
         <form v-if="!success" @submit.prevent="handleForgotPassword" class="space-y-4 sm:space-y-6">
-          <!-- Email Field -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
@@ -167,7 +141,6 @@ const goToSignUp = () => {
             <p v-if="emailError" class="mt-1 text-xs sm:text-sm text-red-600">{{ emailError }}</p>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="loading || !formData.email"
@@ -189,9 +162,7 @@ const goToSignUp = () => {
           </button>
         </form>
 
-        <!-- Action Buttons -->
         <div class="mt-6 space-y-3">
-          <!-- Back to Sign In -->
           <button
             @click="goToSignIn"
             class="w-full py-2 sm:py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
@@ -199,7 +170,6 @@ const goToSignUp = () => {
             Back to Sign In
           </button>
 
-          <!-- Divider -->
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
               <div class="w-full border-t border-gray-300"></div>
@@ -209,7 +179,6 @@ const goToSignUp = () => {
             </div>
           </div>
 
-          <!-- Sign Up Link -->
           <button
             @click="goToSignUp"
             class="w-full py-2 sm:py-3 px-4 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-50 font-medium transition-colors text-sm sm:text-base"
@@ -218,7 +187,6 @@ const goToSignUp = () => {
           </button>
         </div>
 
-        <!-- Additional Help -->
         <div class="mt-6 text-center">
           <p class="text-xs sm:text-sm text-gray-500">
             Don't see the email? Check your spam folder or 
