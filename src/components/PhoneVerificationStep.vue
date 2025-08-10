@@ -1,15 +1,10 @@
 <template>
-  <div class="min-h-screen relative gradient-bg">
-    <div class="purple-hue"></div>
-    
-    <div class="blue-hue"></div>
-    
-    <div class="pink-hue"></div>
-    
-    <div class="container mx-auto py-6 px-4 relative z-[2]">
-      <div class="max-w-6xl mx-auto">
+  <div class="min-h-screen w-full relative overflow-hidden" style="background: linear-gradient(135deg, #EAEFFC 0%, #EDE6FF 50%, #F5F5FA 100%); background-size: 100% 100%; background-position: center; background-repeat: no-repeat;">
+    <div class="relative z-[2] w-full h-full">
+      <div class="max-w-6xl mx-auto px-4 pt-0 pb-6 h-full">
         <div class="lg:hidden space-y-6">
           <div class="space-y-6">
+            <!-- Main Form - Separate Shadow Box -->
             <div class="bg-white rounded-lg p-8 shadow-lg max-w-md mx-auto">
               <h2 class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
               
@@ -76,7 +71,7 @@
                 </div>
               </div>
 
-              <div v-if="otpSent && !isMobileAlreadyRegistered" class="mt-4 pt-4 border-t max-w-sm mx-auto">
+              <div v-if="otpSent && !isMobileAlreadyRegistered" class="mt-4 pt-4 max-w-sm mx-auto">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
                   <div class="flex space-x-2 justify-center">
@@ -87,7 +82,7 @@
                       @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                       @keydown="handleOtpKeydown(index, $event)"
                       type="text" 
-                      class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base xs:text-xs" 
+                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
                       maxlength="1"
                       :data-otp-index="index"
                     />
@@ -149,7 +144,10 @@
               </button>
             </div>
 
-            <TrackingSection />
+            <!-- Tracking Section - Separate Shadow Box -->
+            <div class="mt-8 max-w-md mx-auto">
+              <TrackingSection />
+            </div>
           </div>
 
           <div class="space-y-8">
@@ -162,16 +160,16 @@
               </p>
             </div>
 
-            <div class="space-y-6">
-              <h3 class="text-lg font-semibold text-gray-900 text-center">Trusted by 5000+ Brands</h3>
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+              <h3 class="text-lg font-semibold text-gray-900 text-center mb-4">Trusted by 5000+ Brands</h3>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 justify-items-center opacity-60">
-                <div v-for="i in 8" :key="i" class="h-12 w-32 bg-gray-50 rounded flex items-center justify-center p-2">
+                <div v-for="i in 8" :key="i" class="h-12 w-32 bg-transparent rounded flex items-center justify-center p-2">
                   <img :src="`/images/brands/${i}.png`" :alt="`Brand ${i}`" class="h-8 w-auto object-contain" />
                 </div>
               </div>
             </div>
 
-            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-100">
+            <div class="bg-transparent rounded-lg p-6 border border-purple-100">
               <h3 class="font-semibold text-gray-900 mb-4">Why choose Vamaship?</h3>
               <div class="space-y-3 text-sm text-gray-700">
                 <div class="flex items-center">
@@ -207,16 +205,16 @@
               </p>
             </div>
 
-            <div class="space-y-6">
-              <h3 class="text-lg font-semibold text-gray-900 text-center">Trusted by 5000+ Brands</h3>
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+              <h3 class="text-lg font-semibold text-gray-900 text-center mb-4">Trusted by 5000+ Brands</h3>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 justify-items-center opacity-60">
-                <div v-for="i in 8" :key="i" class="h-12 w-32 bg-gray-50 rounded flex items-center justify-center p-2">
+                <div v-for="i in 8" :key="i" class="h-12 w-32 bg-transparent rounded flex items-center justify-center p-2">
                   <img :src="`/images/brands/${i}.png`" :alt="`Brand ${i}`" class="h-8 w-auto object-contain" />
                 </div>
               </div>
             </div>
 
-            <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-100">
+            <div class="bg-transparent rounded-lg p-6 border border-purple-100">
               <h3 class="font-semibold text-gray-900 mb-4">Why choose Vamaship?</h3>
               <div class="space-y-3 text-sm text-gray-700">
                 <div class="flex items-center">
@@ -240,6 +238,7 @@
           </div>
 
           <div class="lg:pl-8">
+            <!-- Main Form - Separate Shadow Box -->
             <div class="bg-white rounded-lg p-8 shadow-lg mt-8 max-w-md mx-auto lg:ml-auto">
               <h2 class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account</h2>
               
@@ -306,7 +305,7 @@
                 </div>
               </div>
 
-              <div v-if="otpSent && !isMobileAlreadyRegistered" class="mt-4 pt-4 border-t max-w-sm mx-auto">
+              <div v-if="otpSent && !isMobileAlreadyRegistered" class="mt-4 pt-4 max-w-sm mx-auto">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
                   <div class="flex space-x-2 justify-center">
@@ -317,7 +316,7 @@
                       @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                       @keydown="handleOtpKeydown(index, $event)"
                       type="text" 
-                      class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base xs:text-xs" 
+                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
                       maxlength="1"
                       :data-otp-index="index"
                     />
@@ -379,12 +378,15 @@
               </button>
             </div>
 
-            <div class="mt-6 pt-6 border-t border-gray-200">
+            <!-- Tracking Section - Separate Shadow Box -->
+            <div class="mt-8 max-w-md mx-auto lg:ml-auto">
               <TrackingSection />
             </div>
           </div>
         </div>
       </div>
+      
+      
     </div>
   </div>
 </template>
@@ -392,6 +394,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import TrackingSection from './TrackingSection.vue'
+
 
 interface Props {
   formData: {
@@ -468,42 +471,22 @@ const formatOtpTime = (seconds: number): string => {
 </script>
 
 <style scoped>
-.gradient-bg {
-  background: linear-gradient(to bottom right, #EAEFFC, #EDE6FF, #F5F5FA);
-  position: relative;
-  overflow: hidden;
+:deep(body), :deep(html) {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
-.purple-hue {
-  content: "";
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  top: -150px;
-  left: -100px;
-  background: radial-gradient(circle, rgba(147,117,255,0.25) 0%, rgba(255,255,255,0) 70%);
-  z-index: 1;
+:deep(*) {
+  box-sizing: border-box;
 }
 
-.blue-hue {
-  content: "";
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  bottom: -150px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(112,171,255,0.2) 0%, rgba(255,255,255,0) 70%);
-  z-index: 1;
+.min-h-screen {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
-.pink-hue {
-  content: "";
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  bottom: -100px;
-  left: -100px;
-  background: radial-gradient(circle, rgba(255,192,203,0.2) 0%, rgba(255,255,255,0) 70%);
-  z-index: 1;
-}
 </style> 

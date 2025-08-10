@@ -88,9 +88,9 @@
                     @keydown="$emit('aadhaar-otp-keydown', index, $event)"
                     @keyup.enter="$emit('verify-aadhaar')"
                     type="text"
+                    class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base font-semibold"
                     maxlength="1"
                     :data-aadhaar-otp-index="index"
-                    class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base xs:text-xs font-semibold"
                     :class="{ 'border-red-500': errors.aadhaarOtp }"
                   />
                 </div>

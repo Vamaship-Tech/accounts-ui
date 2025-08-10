@@ -47,40 +47,40 @@
             </button>
             
             <div v-if="showAadhaarSection" class="mt-4 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number <span class="text-red-500">*</span></label>
-                <div class="flex space-x-2">
-                  <input
-                    v-model="formData.aadhaarNumber"
-                    @input="validateAadhaar(($event.target as HTMLInputElement).value)"
-                    @keyup.enter="submitKyc"
-                    type="text"
-                    placeholder="1234 5678 9012"
-                    maxlength="14"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    :class="{ 'border-red-500': errors.aadhaarNumber, 'border-green-500': aadhaarVerified }"
-                    :disabled="aadhaarVerified"
-                  />
-                  <button
-                    v-if="!aadhaarVerified"
-                    type="button"
-                    @click="sendAadhaarOtp"
-                    :disabled="aadhaarOtpCooldown > 0 || !formData.aadhaarNumber || formData.aadhaarNumber.length !== 12"
-                    class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
-                  >
-                    <i v-if="aadhaarOtpCooldown > 0" class="fas fa-clock mr-1"></i>
-                    <span v-if="aadhaarOtpCooldown > 0">{{ Math.floor(aadhaarOtpCooldown / 60) }}:{{ (aadhaarOtpCooldown % 60).toString().padStart(2, '0') }}</span>
-                    <span v-else>Send OTP</span>
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    disabled
-                    class="px-3 py-2 bg-green-600 text-white rounded-md text-sm font-medium whitespace-nowrap"
-                  >
-                    <i class="fas fa-check mr-1"></i>Verified
-                  </button>
-                </div>
+                              <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number <span class="text-red-500">*</span></label>
+                  <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <input
+                      v-model="formData.aadhaarNumber"
+                      @input="validateAadhaar(($event.target as HTMLInputElement).value)"
+                      @keyup.enter="submitKyc"
+                      type="text"
+                      placeholder="1234 5678 9012"
+                      maxlength="14"
+                      class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      :class="{ 'border-red-500': errors.aadhaarNumber, 'border-green-500': aadhaarVerified }"
+                      :disabled="aadhaarVerified"
+                    />
+                    <button
+                      v-if="!aadhaarVerified"
+                      type="button"
+                      @click="sendAadhaarOtp"
+                      :disabled="aadhaarOtpCooldown > 0 || !formData.aadhaarNumber || formData.aadhaarNumber.length !== 12"
+                      class="w-full sm:w-auto px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
+                    >
+                      <i v-if="aadhaarOtpCooldown > 0" class="fas fa-clock mr-1"></i>
+                      <span v-if="aadhaarOtpCooldown > 0">{{ Math.floor(aadhaarOtpCooldown / 60) }}:{{ (aadhaarOtpCooldown % 60).toString().padStart(2, '0') }}</span>
+                      <span v-else>Send OTP</span>
+                    </button>
+                    <button
+                      v-else
+                      type="button"
+                      disabled
+                      class="w-full sm:w-auto px-3 py-2 bg-green-600 text-white rounded-md text-sm font-medium whitespace-nowrap"
+                    >
+                      <i class="fas fa-check mr-1"></i>Verified
+                    </button>
+                  </div>
                 <p v-if="errors.aadhaarNumber" class="mt-1 text-sm text-red-600">{{ errors.aadhaarNumber }}</p>
                 <p v-else-if="aadhaarVerified" class="mt-1 text-sm text-green-600">
                   <i class="fas fa-check-circle mr-1"></i>Aadhaar number verified successfully!
@@ -99,7 +99,7 @@
                     :data-aadhaar-otp-index="index"
                     type="text"
                     maxlength="1"
-                    class="w-12 h-12 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold"
+                    class="w-10 h-10 sm:w-12 sm:h-12 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold"
                     :class="{ 'border-red-500': errors.aadhaarOtp }"
                   />
                 </div>
@@ -176,21 +176,21 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">GST Number <span class="text-red-500">*</span></label>
-                  <div class="flex space-x-2">
+                  <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <input
                       v-model="formData.gstNumber"
                       @input="validateGst"
                       @keyup.enter="submitKyc"
                       type="text"
                       placeholder="22AAAAA0000A1Z5"
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       :class="{ 'border-red-500': errors.gstNumber, 'border-green-500': gstVerified }"
                     />
                     <button
                       type="button"
                       @click="verifyGst"
                       :disabled="gstVerifying || !formData.gstNumber || formData.gstNumber.trim() === ''"
-                      class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
+                      class="w-full sm:w-auto px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
                     >
                       <i v-if="gstVerifying" class="fas fa-spinner fa-spin mr-1"></i>
                       <span v-if="gstVerifying">Verifying...</span>
@@ -291,21 +291,21 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">PAN Number <span class="text-red-500">*</span></label>
-                  <div class="flex space-x-2">
+                  <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                     <input
                       v-model="formData.panNumber"
                       @input="validatePan"
                       @keyup.enter="submitKyc"
                       type="text"
                       placeholder="ABCDE1234F"
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                       :class="{ 'border-red-500': errors.panNumber, 'border-green-500': panVerified }"
                     />
                     <button
                       type="button"
                       @click="verifyPan"
                       :disabled="panVerifying || !formData.panNumber || formData.panNumber.trim() === ''"
-                      class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
+                      class="w-full sm:w-auto px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
                     >
                       <i v-if="panVerifying" class="fas fa-spinner fa-spin mr-1"></i>
                       <span v-if="panVerifying">Verifying...</span>
@@ -540,7 +540,7 @@ const startAuthenticationMonitoring = () => {
   authCheckInterval = setInterval(() => {
     if (!isAuthenticationValid()) {
       clearAllAuthenticationData()
-      generalError.value = 'Session expired. Please login again.'
+      generalError.value = ''
       router.push('/sign-in')
     }
   }, 10000)

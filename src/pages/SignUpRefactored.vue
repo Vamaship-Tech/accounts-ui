@@ -183,6 +183,17 @@ const startOtpCooldown = () => {
   }, 1000)
 }
 
+const startAadhaarOtpCooldown = () => {
+  if (aadhaarOtpCooldown.value <= 0) return
+  
+  const timer = setInterval(() => { 
+    aadhaarOtpCooldown.value--
+    if (aadhaarOtpCooldown.value <= 0) {
+      clearInterval(timer)
+    }
+  }, 1000)
+}
+
 const clearErrors = () => {
   Object.keys(errors).forEach(key => {
     errors[key] = ''
@@ -201,11 +212,27 @@ const handleApiError = (error: any) => {
 }
 
 const nextStep = async () => {
+  if (currentStep.value === 2) {
+    // Validate email before moving to step 3
+    try {
+      const emailCheckResponse = await apiService.checkEmailExists(formData.email)
+      if (emailCheckResponse.data?.exists) {
+        showLoginOption.value = true
+        return
+      }
+    } catch (error) {
+      // Error handled silently
+    }
+  }
+
   if (currentStep.value < totalSteps) {
     currentStep.value++
     
-    if (currentStep.value === 3 && banksList.value.length === 0) {
-      fetchBanksList()
+    if (currentStep.value === 3) {
+      // Fetch banks list for step 3
+      if (showBankDetails.value && banksList.value.length === 0) {
+        fetchBanksList()
+      }
     }
   }
 }
@@ -287,6 +314,16 @@ const handleVerifyOtp = async () => {
 
 const handleCompleteSignup = async () => {
   if (loading.value) return
+  
+  // Validate email before proceeding with signup
+  if (formData.email) {
+    await validateEmail(formData.email)
+    
+    // If email exists, don't proceed and show login option
+    if (showLoginOption.value) {
+      return
+    }
+  }
   
   loading.value = true
   clearErrors()
@@ -534,16 +571,37 @@ const handleAadhaarOtpKeydown = (index: number, event: KeyboardEvent) => {
 
 const validateEmail = async (email: string) => {
   if (!email) return
-
   try {
     const response = await apiService.checkEmailExists(email)
     if (response.success && response.data?.exists) {
       errors.email = 'This email is already registered'
+      showLoginOption.value = true
     } else {
       delete errors.email
+      showLoginOption.value = false
     }
   } catch (error) {
+    // On error, assume email doesn't exist to allow progression
+    delete errors.email
+    showLoginOption.value = false
   }
+}
+
+// Debounced email validation for better UX
+let emailValidationTimeout: number | null = null
+const handleEmailInput = (email: string) => {
+  // Clear previous timeout
+  if (emailValidationTimeout) {
+    clearTimeout(emailValidationTimeout)
+  }
+  
+  // Clear login option when user starts typing
+  showLoginOption.value = false
+  
+  // Set new timeout for validation
+  emailValidationTimeout = setTimeout(() => {
+    validateEmail(email)
+  }, 500) // 500ms delay
 }
 
 const validateFullName = (name: string) => {
@@ -573,7 +631,7 @@ const validatePasswordStrength = (password: string) => {
 }
 
 const loadGoogleSignInScript = () => {
-  if (window.google) {
+  if (isGoogleLoaded.value) {
     initializeGoogleSignIn()
     return
   }
@@ -582,11 +640,15 @@ const loadGoogleSignInScript = () => {
   script.src = 'https://accounts.google.com/gsi/client'
   script.async = true
   script.defer = true
+  
   script.onload = () => {
     initializeGoogleSignIn()
   }
+  
   script.onerror = () => {
+    // Script loading failed silently
   }
+  
   document.head.appendChild(script)
 }
 
@@ -605,28 +667,37 @@ const initializeGoogleSignIn = () => {
 
     const mobileButton = document.getElementById('google-signin-button-mobile')
     if (mobileButton && !isGoogleMobileLoaded.value) {
-      window.google.accounts.id.renderButton(mobileButton, {
-        theme: 'outline',
-        size: 'large',
-        width: '100%',
-        text: 'continue_with'
-      })
-      isGoogleMobileLoaded.value = true
+      try {
+        window.google.accounts.id.renderButton(mobileButton, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'continue_with'
+        })
+        isGoogleMobileLoaded.value = true
+      } catch (error) {
+        // Button rendering failed silently
+      }
     }
 
     const desktopButton = document.getElementById('google-signin-button-desktop')
     if (desktopButton && !isGoogleDesktopLoaded.value) {
-      window.google.accounts.id.renderButton(desktopButton, {
-        theme: 'outline',
-        size: 'large',
-        width: '100%',
-        text: 'continue_with'
-      })
-      isGoogleDesktopLoaded.value = true
+      try {
+        window.google.accounts.id.renderButton(desktopButton, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'continue_with'
+        })
+        isGoogleDesktopLoaded.value = true
+      } catch (error) {
+        // Button rendering failed silently
+      }
     }
 
     isGoogleLoaded.value = true
   } catch (error) {
+    // Google initialization failed silently
   }
 }
 
@@ -634,34 +705,37 @@ const handleGoogleSignIn = async (response: any) => {
   try {
     loading.value = true
     
-    const token = response.credential
-    const payload = JSON.parse(atob(token.split('.')[1]))
+    const idToken = response.credential
+    // Decode the JWT token manually since jwtDecode is not imported
+    const payload = JSON.parse(atob(idToken.split('.')[1]))
     
+    if (!payload.email) {
+      generalError.value = 'Failed to get email from Google sign-in'
+      return
+    }
+
+    // Set form data from Google
     formData.email = payload.email
-    formData.fullName = payload.name
-    isGoogleSignInUser.value = true
+    formData.fullName = `${payload.given_name || ''} ${payload.family_name || ''}`.trim()
     
-    delete errors.email
-    delete errors.fullName
-    
-    const apiResponse = await apiService.googleLogin(
-      payload.email,
-      token,
-      payload.given_name,
-      payload.family_name
-    )
-    
-    if (apiResponse.success) {
-      if (apiResponse.data?.userExists) {
-        generalError.value = 'Account already exists. Please sign in instead.'
-        goToSignIn()
+    // Check if email exists
+    try {
+      const emailCheckResponse = await apiService.checkEmailExists(payload.email)
+      if (emailCheckResponse.data?.exists) {
+        // Email exists - still proceed to step 2 but mark as duplicate
+        isGoogleSignInUser.value = true
+        showLoginOption.value = true
+        currentStep.value = 2
         return
       }
-      
-      nextStep()
-    } else {
-      generalError.value = apiResponse.message || 'Google sign-in failed. Please try again.'
+    } catch (error) {
+      // Error handled silently
     }
+
+    // Email doesn't exist - proceed with Google sign-in
+    isGoogleSignInUser.value = true
+    currentStep.value = 2
+    
   } catch (error) {
     generalError.value = 'Google sign-in failed. Please try again.'
   } finally {
@@ -751,6 +825,9 @@ const sendAadhaarOtp = async () => {
     const response = await apiService.sendAadhaarOTP(formData.aadhaarNumber)
     if (response.success) {
       aadhaarOtpSent.value = true
+      // Set cooldown and start countdown
+      aadhaarOtpCooldown.value = 60 // 1 minute = 60 seconds
+      startAadhaarOtpCooldown()
     } else {
       errors.aadhaarNumber = response.message || 'Failed to send Aadhaar OTP'
     }
@@ -787,6 +864,7 @@ const verifyAadhaar = async () => {
 }
 
 const resendAadhaarOtp = () => {
+  if (aadhaarOtpCooldown.value > 0) return
   sendAadhaarOtp()
 }
 
@@ -949,147 +1027,152 @@ const toggleBankDetails = () => {
   }
 }
 
+
 onMounted(() => {
   setTimeout(() => {
     loadGoogleSignInScript()
   }, 100)
 })
+
+
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-   
-    <nav v-if="currentStep === 1" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
-      <div class="container mx-auto px-4 py-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <img src="/images/logo-blue.png" alt="Vamaship" style="width: 140px; height: 70px; object-fit: contain;" />
-          </div>
-          
-          <div class="flex items-center space-x-4">
-            <button
-              @click="router.push('/sign-in')"
-              class="px-4 py-2 text-white rounded-md hover:opacity-90 font-medium transition-colors"
-              style="background-color: #6A5ACD;"
-            >
-              Login
-            </button>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div class="container mx-auto px-4 py-8">
+      
+      <nav v-if="currentStep === 1" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <img src="/images/logo-blue.png" alt="Vamaship" style="width: 140px; height: 70px; object-fit: contain;" />
+            </div>
+            
+            <div class="flex items-center space-x-4">
+              <button
+                @click="router.push('/sign-in')"
+                class="px-4 py-2 text-white rounded-md hover:opacity-90 font-medium transition-colors"
+                style="background-color: #6A5ACD;"
+              >
+                Login
+              </button>
+            </div>
           </div>
         </div>
+      </nav>
+
+      <div v-if="currentStep > 1" class="fixed inset-0 bg-cover bg-no-repeat pointer-events-none" style="background-image: url('/img/background-image.png?v=5'); background-position: center 30%;">
+        <div class="absolute inset-0 bg-blue-900 bg-opacity-30"></div>
       </div>
-    </nav>
 
-    <div v-if="currentStep > 1" class="fixed inset-0 bg-cover bg-no-repeat pointer-events-none" style="background-image: url('/img/background-image.png?v=5'); background-position: center 30%;">
-      <div class="absolute inset-0 bg-blue-900 bg-opacity-30"></div>
-    </div>
+      <div class="relative z-10 pt-20">
+        <PhoneVerificationStep
+          v-if="currentStep === 1"
+          :form-data="formData"
+          :loading="loading"
+          :otp-sent="otpSent"
+          :otp-cooldown="otpCooldown"
+          :is-mobile-already-registered="isMobileAlreadyRegistered"
+          :general-error="generalError"
+          :errors="errors"
+          :otp-inputs="otpInputs"
+          :is-google-loaded="isGoogleLoaded"
+          @send-otp="handleSendOtp"
+          @resend-otp="handleSendOtp"
+          @verify-otp="handleVerifyOtp"
+          @go-to-signin="goToSignIn"
+          @load-google-signin="loadGoogleSignInScript"
+          @phone-input="(value) => { formData.phone = validatePhone(value); resetMobileRegistrationFlag(); }"
+          @otp-input="handleOtpInput"
+          @otp-keydown="handleOtpKeydown"
+        />
 
-    <div class="relative z-10 pt-20">
-      <PhoneVerificationStep
-        v-if="currentStep === 1"
-        :form-data="formData"
-        :loading="loading"
-        :otp-sent="otpSent"
-        :otp-cooldown="otpCooldown"
-        :is-mobile-already-registered="isMobileAlreadyRegistered"
-        :general-error="generalError"
-        :errors="errors"
-        :otp-inputs="otpInputs"
-        :is-google-loaded="isGoogleLoaded"
-        @send-otp="handleSendOtp"
-        @resend-otp="handleSendOtp"
-        @verify-otp="handleVerifyOtp"
-        @go-to-signin="goToSignIn"
-        @load-google-signin="loadGoogleSignInScript"
-        @phone-input="(value) => { formData.phone = validatePhone(value); resetMobileRegistrationFlag(); }"
-        @otp-input="handleOtpInput"
-        @otp-keydown="handleOtpKeydown"
-      />
+        <UserDetailsStep
+          v-if="currentStep === 2"
+          :form-data="formData"
+          :errors="errors"
+          :general-error="generalError"
+          :show-login-option="showLoginOption"
+          :is-google-sign-in-user="isGoogleSignInUser"
+          :google-phone-verified="googlePhoneVerified"
+          :google-phone-otp-sent="googlePhoneOtpSent"
+          :google-phone-otp-cooldown="googlePhoneOtpCooldown"
+          :google-phone-otp-inputs="googlePhoneOtpInputs"
+          :show-password="showPassword"
+          :show-confirm-password="showConfirmPassword"
+          :loading="loading"
+          :is-step2-valid="isStep2Valid"
+          @validate-full-name="validateFullName"
+          @email-input="handleEmailInput"
+          @phone-input="(value) => { formData.phone = validatePhone(value); resetMobileRegistrationFlag(); }"
+          @validate-password="() => validatePasswordStrength(formData.password)"
+          @toggle-password-visibility="(field) => { if (field === 'password') showPassword = !showPassword; else showConfirmPassword = !showConfirmPassword; }"
+          @send-google-phone-otp="sendGooglePhoneOtp"
+          @verify-google-phone-otp="verifyGooglePhoneOtp"
+          @resend-google-phone-otp="resendGooglePhoneOtp"
+          @google-phone-otp-input="handleGooglePhoneOtpInput"
+          @google-phone-otp-keydown="handleGooglePhoneOtpKeydown"
+          @next-step="nextStep"
+          @prev-step="prevStep"
+          @go-to-signin="goToSignIn"
+          @log-network-error="() => {}"
+          @dismiss-error="() => generalError = ''"
+        />
 
-      <UserDetailsStep
-        v-if="currentStep === 2"
-        :form-data="formData"
-        :errors="errors"
-        :general-error="generalError"
-        :show-login-option="showLoginOption"
-        :is-google-sign-in-user="isGoogleSignInUser"
-        :google-phone-verified="googlePhoneVerified"
-        :google-phone-otp-sent="googlePhoneOtpSent"
-        :google-phone-otp-cooldown="googlePhoneOtpCooldown"
-        :google-phone-otp-inputs="googlePhoneOtpInputs"
-        :show-password="showPassword"
-        :show-confirm-password="showConfirmPassword"
-        :loading="loading"
-        :is-step2-valid="isStep2Valid"
-        @validate-full-name="validateFullName"
-        @email-input="validateEmail"
-        @phone-input="(value) => { formData.phone = validatePhone(value); resetMobileRegistrationFlag(); }"
-        @validate-password="() => validatePasswordStrength(formData.password)"
-        @toggle-password-visibility="(field) => { if (field === 'password') showPassword = !showPassword; else showConfirmPassword = !showConfirmPassword; }"
-        @send-google-phone-otp="sendGooglePhoneOtp"
-        @verify-google-phone-otp="verifyGooglePhoneOtp"
-        @resend-google-phone-otp="resendGooglePhoneOtp"
-        @google-phone-otp-input="handleGooglePhoneOtpInput"
-        @google-phone-otp-keydown="handleGooglePhoneOtpKeydown"
-        @next-step="nextStep"
-        @prev-step="prevStep"
-        @go-to-signin="goToSignIn"
-        @log-network-error="console.error"
-        @dismiss-error="() => generalError = ''"
-      />
-
-      <KYCVerificationStep
-        v-if="currentStep === 3"
-        :form-data="formData"
-        :errors="errors"
-        :general-error="generalError"
-        :show-login-option="showLoginOption"
-        :aadhaar-verified="aadhaarVerified"
-        :show-aadhaar-section="showAadhaarSection"
-        :aadhaar-otp-sent="aadhaarOtpSent"
-        :aadhaar-otp-cooldown="aadhaarOtpCooldown"
-        :aadhaar-otp-inputs="aadhaarOtpInputs"
-        :show-gst-section="showGstSection"
-        :gst-verifying="gstVerifying"
-        :gst-verified="gstVerified"
-        :show-pan-section="showPanSection"
-        :pan-verifying="panVerifying"
-        :pan-verified="panVerified"
-        :show-bank-details="showBankDetails"
-        :banks-list="banksList"
-        :banks-loading="banksLoading"
-        :banks-error="banksError"
-        :is-other-bank="isOtherBank"
-        :bank-verifying="bankVerifying"
-        :bank-verified="bankVerified"
-        :bank-counter-reset="bankCounterReset"
-        :bank-attempts-exhausted="bankAttemptsExhausted"
-        :loading="loading"
-        :is-step3-valid="isStep3Valid"
-        @go-to-signin="goToSignIn"
-        @toggle-aadhaar-section="showAadhaarSection = !showAadhaarSection"
-        @validate-aadhaar="(value) => validateAadhaar(value)"
-        @send-aadhaar-otp="sendAadhaarOtp"
-        @aadhaar-otp-input="handleAadhaarOtpInput"
-        @aadhaar-otp-keydown="handleAadhaarOtpKeydown"
-        @verify-aadhaar="verifyAadhaar"
-        @resend-aadhaar-otp="resendAadhaarOtp"
-        @set-business-type="(type: string) => formData.businessType = type as 'gst' | 'pan'"
-        @toggle-gst-section="showGstSection = !showGstSection"
-        @validate-gst-number="(value) => validateGstNumber(value)"
-        @verify-gst="verifyGst"
-        @toggle-pan-section="showPanSection = !showPanSection"
-        @verify-pan="verifyPan"
-        @validate-pincode="validatePincodeField"
-        @toggle-bank-details="showBankDetails = !showBankDetails"
-        @handle-bank-selection="handleBankSelection"
-        @reset-bank-selection="resetBankSelection"
-        @fetch-banks-list="fetchBanksList"
-        @reset-bank-validation-attempts="resetBankValidationAttempts"
-        @verify-bank="verifyBank"
-        @prev-step="prevStep"
-        @skip-kyc="handleSkipKyc"
-        @complete-signup="handleCompleteSignup"
-      />
+        <KYCVerificationStep
+          v-if="currentStep === 3"
+          :form-data="formData"
+          :errors="errors"
+          :general-error="generalError"
+          :show-login-option="showLoginOption"
+          :aadhaar-verified="aadhaarVerified"
+          :show-aadhaar-section="showAadhaarSection"
+          :aadhaar-otp-sent="aadhaarOtpSent"
+          :aadhaar-otp-cooldown="aadhaarOtpCooldown"
+          :aadhaar-otp-inputs="aadhaarOtpInputs"
+          :show-gst-section="showGstSection"
+          :gst-verifying="gstVerifying"
+          :gst-verified="gstVerified"
+          :show-pan-section="showPanSection"
+          :pan-verifying="panVerifying"
+          :pan-verified="panVerified"
+          :show-bank-details="showBankDetails"
+          :banks-list="banksList"
+          :banks-loading="banksLoading"
+          :banks-error="banksError"
+          :is-other-bank="isOtherBank"
+          :bank-verifying="bankVerifying"
+          :bank-verified="bankVerified"
+          :bank-counter-reset="bankCounterReset"
+          :bank-attempts-exhausted="bankAttemptsExhausted"
+          :loading="loading"
+          :is-step3-valid="isStep3Valid"
+          @go-to-signin="goToSignIn"
+          @toggle-aadhaar-section="showAadhaarSection = !showAadhaarSection"
+          @validate-aadhaar="(value) => validateAadhaar(value)"
+          @send-aadhaar-otp="sendAadhaarOtp"
+          @aadhaar-otp-input="handleAadhaarOtpInput"
+          @aadhaar-otp-keydown="handleAadhaarOtpKeydown"
+          @verify-aadhaar="verifyAadhaar"
+          @resend-aadhaar-otp="resendAadhaarOtp"
+          @set-business-type="(type: string) => formData.businessType = type as 'gst' | 'pan'"
+          @toggle-gst-section="showGstSection = !showGstSection"
+          @validate-gst-number="(value) => validateGstNumber(value)"
+          @verify-gst="verifyGst"
+          @toggle-pan-section="showPanSection = !showPanSection"
+          @verify-pan="verifyPan"
+          @validate-pincode="validatePincodeField"
+          @toggle-bank-details="toggleBankDetails"
+          @handle-bank-selection="handleBankSelection"
+          @reset-bank-selection="resetBankSelection"
+          @fetch-banks-list="fetchBanksList"
+          @reset-bank-validation-attempts="resetBankValidationAttempts"
+          @verify-bank="verifyBank"
+          @prev-step="prevStep"
+          @skip-kyc="handleSkipKyc"
+          @complete-signup="handleCompleteSignup"
+        />
+      </div>
     </div>
   </div>
 </template>

@@ -90,7 +90,7 @@ const handleSignIn = async () => {
 
     const response = await apiService.login(formData.email, formData.password)
     
-    if (response.success && response.data) {
+      if (response.success && response.data) {
       const tokens = {
         accessToken: response.data.token,
         refreshToken: response.data.refresh_token || '',
@@ -157,10 +157,30 @@ const handleSignIn = async () => {
       const apiKey = response.data.api_key || response.data.token
       let redirectUrl = ''
 
-      if (fromEcom3ui && redirectToKyc) {
-        redirectUrl = '/kyc'
-      } else if (completionStatus === 'otp_verification_pending') {
-        redirectUrl = '/verification'
+      const hasExistingEntity = response.data.user && response.data.user.entity_id
+      const canAccessDashboard = fromEcom3ui || hasExistingEntity
+      
+      if (canAccessDashboard) {
+        if (redirectToKyc) {
+          redirectUrl = '/kyc'
+        } else if (apiKey) {
+          redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
+        } else {
+          const userInfo = response.data.user || response.data
+          if (userInfo && userInfo.id) {
+            redirectUrl = `http://localhost:8080/orders?user_id=${userInfo.id}`
+          } else {
+            redirectUrl = `http://localhost:8080/orders`
+          }
+        }
+      } else if (['otp_verification_pending', 'aadhaar_verification_pending', 'kyc_pending'].includes(completionStatus)) {
+        if (completionStatus === 'otp_verification_pending') {
+          redirectUrl = '/sign-up'
+        } else if (completionStatus === 'aadhaar_verification_pending') {
+          redirectUrl = '/sign-up'
+        } else if (completionStatus === 'kyc_pending') {
+          redirectUrl = '/kyc'
+        }
       } else {
         if (apiKey) {
           redirectUrl = `http://localhost:8080/orders?api_key=${apiKey}`
@@ -209,28 +229,28 @@ const handleSignIn = async () => {
             alert('Redirect failed. Please manually navigate to: ' + fallbackUrl)
           }
         } else {
-          try {
-            await router.push(redirectUrl)
-            
-            setTimeout(() => {
-              if (window.location.pathname === '/sign-in') {
-                if (redirectUrl === '/kyc') {
-                  window.location.href = 'http://localhost:3000/kyc'
+                      try {
+              await router.push(redirectUrl)
+              
+              setTimeout(() => {
+                if (window.location.pathname === '/sign-in') {
+                  if (redirectUrl === '/kyc') {
+                    window.location.href = 'http://localhost:3000/kyc'
+                  }
                 }
+              }, 1000)
+              
+            } catch (error) {
+              if (redirectUrl === '/kyc') {
+                try {
+                  window.location.href = 'http://localhost:3000/kyc'
+                } catch (directError) {
+                  alert('Redirect failed. Please manually navigate to: http://localhost:3000/kyc')
+                }
+              } else {
+                alert('Navigation failed. Please manually navigate to: ' + redirectUrl)
               }
-            }, 1000)
-            
-          } catch (error) {
-            if (redirectUrl === '/kyc') {
-              try {
-                window.location.href = 'http://localhost:3000/kyc'
-              } catch (directError) {
-                alert('Redirect failed. Please manually navigate to: http://localhost:3000/kyc')
-              }
-            } else {
-              alert('Navigation failed. Please manually navigate to: ' + redirectUrl)
             }
-          }
         }
       }
 
@@ -437,20 +457,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div v-else-if="route.query.from === 'ecom3-ui'" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-              </svg>
-            </div>
-            <div class="ml-2 sm:ml-3">
-              <p class="text-xs sm:text-sm text-yellow-800">
-                <strong>Session Expired:</strong> You have been logged out. Please sign in again to continue.
-              </p>
-            </div>
-          </div>
-        </div>
+
 
         <div v-if="errors.general" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
           <div class="flex">

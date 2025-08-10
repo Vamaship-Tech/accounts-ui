@@ -79,14 +79,7 @@ const goToSignUp = () => {
     <nav class="relative z-10 p-4 sm:p-6">
       <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div class="flex items-center">
-          <img src="/images/logo-blue.png" alt="Vamaship" class="h-8 sm:h-10" />
-        </div>
-        <div class="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm justify-center sm:justify-end">
-          <router-link to="/sign-in" class="text-purple-700 hover:text-purple-900 font-semibold">Sign In</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/sign-up" class="text-purple-700 hover:text-purple-900">Sign Up</router-link>
-          <span class="text-purple-700 hidden sm:inline">|</span>
-          <router-link to="/forgot-password" class="text-purple-700 hover:text-purple-900">Forgot Password</router-link>
+          <img src="/images/logo-blue.png" alt="Vamaship" class="w-35 h-17" />
         </div>
       </div>
     </nav>

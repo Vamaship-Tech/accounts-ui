@@ -82,10 +82,10 @@
             <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
           </div>
 
-          <div v-if="isGoogleSignInUser">
+          <div v-if="isGoogleSignInUser" class="w-full">
             <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
-            <div class="flex">
-              <select v-model="formData.countryCode" class="px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50">
+            <div class="flex w-full">
+              <select v-model="formData.countryCode" class="w-20 sm:w-24 px-3 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 flex-shrink-0">
                 <option value="+91">+91</option>
                 <option value="+1">+1</option>
                 <option value="+44">+44</option>
@@ -97,7 +97,7 @@
                 type="tel"
                 placeholder="Enter your phone number"
                 maxlength="10"
-                class="w-48 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                class="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 :class="{ 'border-red-500': errors.phone }"
               />
             </div>
@@ -128,17 +128,17 @@
                   <p class="text-sm text-gray-600 mb-3">Enter the 6-digit OTP sent to {{ formData.countryCode }} {{ formData.phone }}</p>
                   
                   <div class="flex justify-center space-x-2 mb-4">
-                    <input
-                      v-for="(input, index) in googlePhoneOtpInputs"
+                    <input 
+                      v-for="(input, index) in googlePhoneOtpInputs" 
                       :key="index"
                       v-model="input.value"
                       @input="$emit('google-phone-otp-input', index, ($event.target as HTMLInputElement).value)"
                       @keydown="$emit('google-phone-otp-keydown', index, $event)"
                       @keyup.enter="$emit('verify-google-phone-otp')"
-                      type="text"
+                      type="text" 
+                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base font-semibold" 
                       maxlength="1"
                       :data-google-phone-otp-index="index"
-                      class="w-12 h-12 lg:w-14 lg:h-14 xs:w-8 xs:h-8 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm lg:text-base xs:text-xs font-semibold"
                       :class="{ 'border-red-500': errors.otp }"
                     />
                   </div>

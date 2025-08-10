@@ -215,8 +215,9 @@ class MockApiService {
     
     await mockDelay();
     
-    // Simulate that test@example.com already exists
-    const exists = email === 'test@example.com';
+    // Mock service returns false for all emails since frontend uses real API
+    // This method is only used when explicitly testing with mock service
+    const exists = false;
     const response = {
       success: true,
       data: {
