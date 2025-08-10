@@ -82,7 +82,7 @@
                       @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                       @keydown="handleOtpKeydown(index, $event)"
                       type="text" 
-                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
+                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-12 lg:h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
                       maxlength="1"
                       :data-otp-index="index"
                     />
@@ -316,7 +316,7 @@
                       @input="handleOtpInput(index, ($event.target as HTMLInputElement).value)"
                       @keydown="handleOtpKeydown(index, $event)"
                       type="text" 
-                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
+                      class="w-10 h-10 sm:w-12 sm:h-12 lg:w-12 lg:h-12 text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base" 
                       maxlength="1"
                       :data-otp-index="index"
                     />
