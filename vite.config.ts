@@ -15,12 +15,11 @@ export default defineConfig({
     host: true,
     hmr: { overlay: false },
     proxy: {
-      // Proxy API requests to accounts2.0 backend
+      // Proxy API requests to backend
       '/api': {
         target: 'http://localhost:8001',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('proxy error', err);
