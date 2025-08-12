@@ -138,6 +138,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { authService } from '@/services/authService'
 import type { ResetPasswordData } from '@/types/auth'
 
 const router = useRouter()
@@ -202,7 +203,7 @@ const handleResetPassword = async () => {
   if (!validateForm()) return
   
   try {
-    await authStore.resetPassword(form)
+    await authService.resetPassword(form)
     isSuccess.value = true
     
     // Redirect to login after 3 seconds
