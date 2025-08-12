@@ -202,7 +202,7 @@ const handleResetPassword = async () => {
   if (!validateForm()) return
   
   try {
-    await authService.resetPassword(form)
+    await authStore.resetPassword(form)
     isSuccess.value = true
     
     // Redirect to login after 3 seconds
