@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { signupService } from '@/services/signupService'
+import { utilityService } from '@/services/utilityService'
 import { SessionManager } from '@/utils/redirection'
 import { useAuthStore } from '@/stores/auth'
 import type { 
@@ -11,6 +12,7 @@ import type {
   MobileVerificationRequest,
   OTPVerificationRequest 
 } from '@/types/signup'
+import type { EntityType, PincodeData, BankData } from '@/types/utility'
 
 export const useSignupStore = defineStore('signup', () => {
   // State
@@ -63,6 +65,13 @@ export const useSignupStore = defineStore('signup', () => {
   const showPanSection = ref(false)
   const showGstSection = ref(false)
   const showBankDetails = ref(false)
+
+  // API data states
+  const entityTypes = ref<EntityType[]>([])
+  const banksList = ref<BankData[]>([])
+  const pincodeData = ref<PincodeData | null>(null)
+  const isPincodeValid = ref(false)
+  const isPincodeLoading = ref(false)
 
   // Computed
   const isOtpComplete = computed(() => 
@@ -379,11 +388,11 @@ export const useSignupStore = defineStore('signup', () => {
       showAadhaarSection.value = false
       
       // Save progress
-      await saveKycProgress('aadhaarData', {
-        aadhaarNumber: formData.value.aadhaarNumber,
-        verified: true,
-        verificationDate: new Date().toISOString()
-      })
+      // await saveKycProgress('aadhaarData', {
+      //   aadhaarNumber: formData.value.aadhaarNumber,
+      //   verified: true,
+      //   verificationDate: new Date().toISOString()
+      // })
 
       return { success: true }
     } catch (error: any) {
@@ -467,13 +476,13 @@ export const useSignupStore = defineStore('signup', () => {
       bankVerified.value = true
       
       // Save bank progress
-      await saveKycProgress('bankData', {
-        beneficiaryName: formData.value.beneficiaryName,
-        bankName: formData.value.bankName,
-        accountNumber: formData.value.accountNumber,
-        ifscCode: formData.value.ifscCode,
-        verified: true
-      })
+      // await saveKycProgress('bankData', {
+      //   beneficiaryName: formData.value.beneficiaryName,
+      //   bankName: formData.value.bankName,
+      //   accountNumber: formData.value.accountNumber,
+      //   ifscCode: formData.value.ifscCode,
+      //   verified: true
+      // })
 
       return { success: true }
     } catch (error: any) {
@@ -604,6 +613,59 @@ export const useSignupStore = defineStore('signup', () => {
     bankVerified.value = false
   }
 
+  // API methods for utility data
+  const fetchEntityTypes = async () => {
+    try {
+      isLoading.value = true
+      const data = await utilityService.getEntityTypes()
+      entityTypes.value = data.masters
+    } catch (error: any) {
+      console.error('Failed to fetch entity types:', error)
+      setError('general', 'Failed to load entity types')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const fetchBanksList = async () => {
+    try {
+      isLoading.value = true
+      const data = await utilityService.getBanksList()
+      banksList.value = data.banks
+    } catch (error: any) {
+      console.error('Failed to fetch banks list:', error)
+      setError('general', 'Failed to load banks list')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const verifyPincode = async (pincode: string) => {
+    try {
+      isPincodeLoading.value = true
+      clearError('panPincode')
+      
+      if (!pincode || pincode.length !== 6) {
+        setError('panPincode', 'Please enter a valid 6-digit pincode')
+        isPincodeValid.value = false
+        pincodeData.value = null
+        return
+      }
+
+      const data = await utilityService.verifyPincode(pincode)
+      pincodeData.value = data
+      isPincodeValid.value = true
+      clearError('panPincode')
+    } catch (error: any) {
+      console.error('Failed to verify pincode:', error)
+      setError('panPincode', 'Invalid pincode. Please check and try again.')
+      isPincodeValid.value = false
+      pincodeData.value = null
+    } finally {
+      isPincodeLoading.value = false
+    }
+  }
+
   return {
     // State
     formData,
@@ -623,6 +685,11 @@ export const useSignupStore = defineStore('signup', () => {
     showPanSection,
     showGstSection,
     showBankDetails,
+    entityTypes,
+    banksList,
+    pincodeData,
+    isPincodeValid,
+    isPincodeLoading,
     
     // Computed
     isOtpComplete,
@@ -650,6 +717,9 @@ export const useSignupStore = defineStore('signup', () => {
     skipKyc,
     completeKyc,
     initializeFromSession,
-    resetForm
+    resetForm,
+    fetchEntityTypes,
+    fetchBanksList,
+    verifyPincode
   }
 }) 

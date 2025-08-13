@@ -108,7 +108,7 @@ class SignupService {
   async verifyPan(panNumber: string): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>('/kyc/verify-pan', {
       method: 'POST',
-      body: JSON.stringify({ panNumber }),
+      body: JSON.stringify({ 'pan': panNumber }),
     })
   }
 
@@ -126,7 +126,10 @@ class SignupService {
   }): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>('/kyc/verify-bank', {
       method: 'POST',
-      body: JSON.stringify(bankData),
+      body: JSON.stringify({
+        'account_number': bankData.accountNumber,
+        'ifsc_code': bankData.ifscCode,
+      }),
     })
   }
 

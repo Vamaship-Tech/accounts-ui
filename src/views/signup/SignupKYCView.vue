@@ -12,34 +12,148 @@
     <div class="w-full max-w-md lg:max-w-4xl relative z-10">
       <div class="bg-white rounded-lg shadow-2xl border border-gray-200 p-6 lg:p-8">
         <!-- Loading State for Skip KYC -->
-        <div v-if="isSkippingKyc" class="text-center py-12">
-          <div class="mb-8">
-            <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+        <div v-if="isSkippingKyc" class="text-center py-16 px-8">
+          <!-- Enhanced Loading Animation -->
+          <div class="mb-12">
+            <div class="relative inline-block">
+              <!-- Main spinning circle -->
+              <div class="w-24 h-24 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+              
+              <!-- Inner pulsing circle -->
+              <div class="absolute inset-2 w-20 h-20 bg-blue-100 rounded-full animate-pulse"></div>
+              
+              <!-- Center icon -->
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fas fa-rocket text-2xl text-blue-600 animate-bounce"></i>
+              </div>
+              
+              <!-- Orbiting dots -->
+              <div class="absolute inset-0 w-full h-full">
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div class="w-3 h-3 bg-blue-400 rounded-full animate-ping"></div>
+                </div>
+                <div class="absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+                </div>
+                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
+                  <div class="w-2.5 h-2.5 bg-blue-400 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div class="space-y-4">
-            <h2 class="text-2xl font-bold text-gray-900">Setting up your account...</h2>
+          <!-- Enhanced Content -->
+          <div class="space-y-8">
+            <div class="space-y-4">
+              <h2 class="text-3xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Setting up your account...
+              </h2>
+              <p class="text-gray-600 text-lg">We're preparing everything you need to get started</p>
+            </div>
             
-            <div class="space-y-2">
-              <div class="flex items-center justify-center space-x-2">
-                <div class="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                <span class="text-gray-600" :class="{ 'text-blue-600 font-medium': currentStep === 1 }">
-                  Skipping KYC verification
-                </span>
+            <!-- Enhanced Progress Steps -->
+            <div class="max-w-md mx-auto space-y-6">
+              <!-- Step 1: Skipping KYC -->
+              <div class="relative">
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0">
+                    <div :class="[
+                      'w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500',
+                      currentStep >= 1 
+                        ? 'bg-green-500 text-white scale-110 shadow-lg' 
+                        : 'bg-gray-200 text-gray-400'
+                    ]">
+                      <i v-if="currentStep >= 1" class="fas fa-check text-lg"></i>
+                      <i v-else class="fas fa-user-clock text-lg"></i>
+                    </div>
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-semibold text-gray-900" :class="{ 'text-green-600': currentStep >= 1 }">
+                      Skipping KYC verification
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      Setting up basic account access
+                    </div>
+                  </div>
+                  <div v-if="currentStep >= 1" class="text-green-500">
+                    <i class="fas fa-check-circle text-xl"></i>
+                  </div>
+                </div>
+                
+                <!-- Progress line -->
+                <div v-if="currentStep >= 1" class="absolute left-6 top-12 w-0.5 h-8 bg-green-500 transform -translate-x-1/2"></div>
               </div>
               
-              <div class="flex items-center justify-center space-x-2">
-                <div class="w-2 h-2 bg-blue-600 rounded-full animate-pulse" :class="{ 'opacity-50': currentStep < 2 }"></div>
-                <span class="text-gray-600" :class="{ 'text-blue-600 font-medium': currentStep === 2 }">
-                  Setting up your account
-                </span>
+              <!-- Step 2: Setting up account -->
+              <div class="relative">
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0">
+                    <div :class="[
+                      'w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500',
+                      currentStep >= 2 
+                        ? 'bg-green-500 text-white scale-110 shadow-lg' 
+                        : 'bg-gray-200 text-gray-400'
+                    ]">
+                      <i v-if="currentStep >= 2" class="fas fa-check text-lg"></i>
+                      <i v-else class="fas fa-cog text-lg"></i>
+                    </div>
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-semibold text-gray-900" :class="{ 'text-green-600': currentStep >= 2 }">
+                      Setting up your account
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      Configuring preferences and settings
+                    </div>
+                  </div>
+                  <div v-if="currentStep >= 2" class="text-green-500">
+                    <i class="fas fa-check-circle text-xl"></i>
+                  </div>
+                </div>
+                
+                <!-- Progress line -->
+                <div v-if="currentStep >= 2" class="absolute left-6 top-12 w-0.5 h-8 bg-green-500 transform -translate-x-1/2"></div>
               </div>
               
-              <div class="flex items-center justify-center space-x-2">
-                <div class="w-2 h-2 bg-blue-600 rounded-full animate-pulse" :class="{ 'opacity-50': currentStep < 3 }"></div>
-                <span class="text-gray-600" :class="{ 'text-blue-600 font-medium': currentStep === 3 }">
-                  Redirecting to main app
+              <!-- Step 3: Redirecting to main app -->
+              <div class="relative">
+                <div class="flex items-center space-x-4">
+                  <div class="flex-shrink-0">
+                    <div :class="[
+                      'w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500',
+                      currentStep >= 3 
+                        ? 'bg-green-500 text-white scale-110 shadow-lg' 
+                        : 'bg-gray-200 text-gray-400'
+                    ]">
+                      <i v-if="currentStep >= 3" class="fas fa-check text-lg"></i>
+                      <i v-else class="fas fa-arrow-right text-lg"></i>
+                    </div>
+                  </div>
+                  <div class="flex-1 text-left">
+                    <div class="font-semibold text-gray-900" :class="{ 'text-green-600': currentStep >= 3 }">
+                      Redirecting to main app
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      Almost there! Redirecting you now
+                    </div>
+                  </div>
+                  <div v-if="currentStep >= 3" class="text-green-500">
+                    <i class="fas fa-check-circle text-xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Enhanced Status Message -->
+            <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+              <div class="flex items-center justify-center space-x-3">
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span class="text-blue-700 font-medium">
+                  {{ currentStep === 1 ? 'Preparing your account...' : 
+                     currentStep === 2 ? 'Almost ready...' : 
+                     'Redirecting you now...' }}
                 </span>
+                <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
               </div>
             </div>
           </div>
@@ -62,7 +176,8 @@
           </div>
 
           <form @submit.prevent="handleCompleteSignup" class="space-y-6">
-            <!-- Aadhaar Section -->
+            <!-- Aadhaar Section - Hidden for now -->
+            <!-- 
             <div class="border border-gray-200 rounded-lg p-6">
               <button
                 type="button"
@@ -161,36 +276,88 @@
                 </div>
               </div>
             </div>
+            -->
 
             <!-- Business Type Selection -->
             <div class="border border-gray-200 rounded-lg p-6">
               <label class="block text-sm font-medium text-gray-700 mb-4">Select Business Type</label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
                   type="button"
                   @click="signupStore.formData.businessType = 'gst'"
                   :class="[
-                    'p-4 border-2 rounded-lg text-left transition-colors',
+                    'relative p-6 border-2 rounded-xl text-left transition-all duration-200 hover:shadow-lg group',
                     signupStore.formData.businessType === 'gst'
-                      ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-blue-600 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md ring-2 ring-blue-200'
+                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
                   ]"
                 >
-                  <div class="font-semibold">GST Registered Business</div>
-                  <div class="text-sm">For businesses with GST registration</div>
+                  <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                      <div :class="[
+                        'w-12 h-12 rounded-lg flex items-center justify-center transition-colors',
+                        signupStore.formData.businessType === 'gst'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+                      ]">
+                        <i class="fas fa-receipt text-xl"></i>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-bold text-lg text-gray-900 mb-2">GST Registered Business</div>
+                      <div class="text-sm text-gray-600 leading-relaxed">
+                        For businesses with GST registration. Includes GST verification and business address details.
+                      </div>
+                      <div class="mt-3 flex items-center text-xs text-gray-500">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        <span>GST verification required</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="signupStore.formData.businessType === 'gst'" class="absolute top-3 right-3">
+                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                  </div>
                 </button>
+                
                 <button
                   type="button"
                   @click="signupStore.formData.businessType = 'pan'"
                   :class="[
-                    'p-4 border-2 rounded-lg text-left transition-colors',
+                    'relative p-6 border-2 rounded-xl text-left transition-all duration-200 hover:shadow-lg group',
                     signupStore.formData.businessType === 'pan'
-                      ? 'border-blue-600 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-purple-600 bg-gradient-to-br from-purple-50 to-purple-100 shadow-md ring-2 ring-purple-200'
+                      : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
                   ]"
                 >
-                  <div class="font-semibold">PAN Based Business</div>
-                  <div class="text-sm">For businesses with PAN registration</div>
+                  <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                      <div :class="[
+                        'w-12 h-12 rounded-lg flex items-center justify-center transition-colors',
+                        signupStore.formData.businessType === 'pan'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-purple-100 group-hover:text-purple-600'
+                      ]">
+                        <i class="fas fa-id-badge text-xl"></i>
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-bold text-lg text-gray-900 mb-2">PAN Based Business</div>
+                      <div class="text-sm text-gray-600 leading-relaxed">
+                        For businesses with PAN registration. Includes entity type and PAN verification.
+                      </div>
+                      <div class="mt-3 flex items-center text-xs text-gray-500">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        <span>PAN verification required</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="signupStore.formData.businessType === 'pan'" class="absolute top-3 right-3">
+                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                      <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
@@ -244,6 +411,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Branch Name</label>
                     <input
                       v-model="signupStore.formData.branchName"
+                      @input="signupStore.clearError('branchName')"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="Main Branch"
@@ -257,6 +425,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">Registered Address <span class="text-red-500">*</span></label>
                   <textarea
                     v-model="signupStore.formData.gstAddress"
+                    @input="signupStore.clearError('gstAddress')"
                     @keyup.enter="handleCompleteSignup"
                     rows="3"
                     placeholder="Enter your registered business address"
@@ -269,6 +438,7 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">Pincode <span class="text-red-500">*</span></label>
                   <input
                     v-model="signupStore.formData.gstPincode"
+                    @input="signupStore.clearError('gstPincode')"
                     @keyup.enter="handleCompleteSignup"
                     type="text"
                     placeholder="123456"
@@ -284,7 +454,7 @@
             <div v-if="signupStore.formData.businessType === 'pan'" class="border border-gray-200 rounded-lg p-6">
               <button
                 type="button"
-                @click="signupStore.showPanSection = !signupStore.showPanSection"
+                @click="handlePanSectionToggle"
                 class="w-full flex items-center justify-between text-left"
               >
                 <div class="flex items-center">
@@ -298,24 +468,41 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Entity Type <span class="text-red-500">*</span></label>
-                    <select
-                      v-model="signupStore.formData.entityType"
-                      @keyup.enter="handleCompleteSignup"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      :class="{ 'border-red-500': signupStore.errors.entityType }"
-                    >
-                      <option value="">Select Entity Type</option>
-                      <option value="individual">Individual</option>
-                      <option value="company">Company</option>
-                      <option value="partnership">Partnership</option>
-                      <option value="proprietorship">Proprietorship</option>
-                    </select>
-                    <p v-if="signupStore.errors.entityType" class="mt-1 text-sm text-red-600">{{ signupStore.errors.entityType }}</p>
+                    <div class="space-y-2">
+                      <div v-if="signupStore.isLoading && signupStore.entityTypes.length === 0" class="flex items-center justify-center py-4">
+                        <SpinnerLoader size="sm" class="mr-2" />
+                        <span class="text-sm text-gray-500">Loading entity types...</span>
+                      </div>
+                      <select
+                        v-model="signupStore.formData.entityType"
+                        @change="signupStore.clearError('entityType')"
+                        @keyup.enter="handleCompleteSignup"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        :class="{ 'border-red-500': signupStore.errors.entityType }"
+                        :disabled="signupStore.isLoading"
+                      >
+                        <option value="">
+                          {{ signupStore.isLoading ? 'Loading entity types...' : 'Select Entity Type' }}
+                        </option>
+                        <option 
+                          v-for="entityType in filteredEntityTypes" 
+                          :key="entityType.id" 
+                          :value="entityType.entity_type"
+                        >
+                          {{ entityType.entity_type }}
+                        </option>
+                        <option v-if="filteredEntityTypes.length === 0 && !signupStore.isLoading && entityTypeSearchQuery" value="" disabled>
+                          No entity types found
+                        </option>
+                      </select>
+                      <p v-if="signupStore.errors.entityType" class="mt-1 text-sm text-red-600">{{ signupStore.errors.entityType }}</p>
+                    </div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Entity Name <span class="text-red-500">*</span></label>
                     <input
                       v-model="signupStore.formData.entityName"
+                      @input="signupStore.clearError('entityName')"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="Enter entity name"
@@ -328,50 +515,76 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">PAN Number <span class="text-red-500">*</span></label>
-                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                      <input
-                        v-model="signupStore.formData.panNumber"
-                        @keyup.enter="handleVerifyPan"
-                        type="text"
-                        placeholder="ABCDE1234F"
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        :class="{ 'border-red-500': signupStore.errors.panNumber, 'border-green-500': signupStore.panVerified }"
-                      />
-                      <button
-                        type="button"
-                        @click="handleVerifyPan"
-                        :disabled="signupStore.isLoading || !signupStore.formData.panNumber || signupStore.formData.panNumber.trim() === ''"
-                        class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap sm:w-auto w-full"
-                      >
-                        <SpinnerLoader v-if="signupStore.isLoading" size="sm" class="mr-1" />
-                        <span v-if="signupStore.isLoading">Verifying...</span>
-                        <span v-else-if="signupStore.panVerified">✓ Verified</span>
-                        <span v-else>Verify</span>
-                      </button>
+                    <input
+                      v-model="signupStore.formData.panNumber"
+                      @input="signupStore.clearError('panNumber')"
+                      @blur="handleVerifyPan"
+                      @keyup.enter="handleCompleteSignup"
+                      type="text"
+                      placeholder="ABCDE1234F"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      :class="{ 'border-red-500': signupStore.errors.panNumber, 'border-green-500': signupStore.panVerified }"
+                    />
+                    
+                    <!-- Simple spinner below input when verifying -->
+                    <div v-if="signupStore.isLoading && signupStore.formData.panNumber.length > 0" class="mt-0 flex items-center space-x-2">
+                      <SpinnerLoader size="sm" />
+                      <span class="text-xs text-blue-600">Verifying PAN...</span>
                     </div>
-                    <p v-if="signupStore.errors.panNumber" class="mt-1 text-sm text-red-600">{{ signupStore.errors.panNumber }}</p>
-                    <p v-else-if="signupStore.panVerified" class="mt-1 text-sm text-green-600">
-                      <i class="fas fa-check-circle mr-1"></i>PAN number verified successfully!
-                    </p>
+                    
+                    <!-- Success message -->
+                    <div v-else-if="signupStore.panVerified" class="mt-0 p-2">
+                      <div class="text-xs text-green-700">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        PAN number verified successfully!
+                      </div>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <p v-if="signupStore.errors.panNumber" class="mt-0 text-xs text-red-600">{{ signupStore.errors.panNumber }}</p>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
                     <input
                       v-model="signupStore.formData.panPincode"
+                      @input="signupStore.clearError('panPincode')"
+                      @blur="signupStore.verifyPincode(signupStore.formData.panPincode)"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="123456"
                       maxlength="6"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      :class="{ 'border-red-500': signupStore.errors.panPincode }"
+                      class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      :class="{ 
+                        'border-red-500': signupStore.errors.panPincode, 
+                        'border-green-500': signupStore.isPincodeValid && signupStore.formData.panPincode.length === 6,
+                        'border-gray-300': !signupStore.errors.panPincode && !signupStore.isPincodeValid
+                      }"
+                      :disabled="signupStore.isPincodeLoading"
                     />
-                    <p v-if="signupStore.errors.panPincode" class="mt-1 text-sm text-red-600">{{ signupStore.errors.panPincode }}</p>
+                    
+                    <!-- Simple spinner below input when verifying -->
+                    <div v-if="signupStore.isPincodeLoading && signupStore.formData.panPincode.length === 6" class="mt-1 flex items-center space-x-2">
+                      <SpinnerLoader size="sm" />
+                      <span class="text-xs text-blue-600">Verifying pincode...</span>
+                    </div>
+                    
+                    <!-- Success message with city details -->
+                    <div v-else-if="signupStore.isPincodeValid && signupStore.pincodeData" class="mt-1 p-2">
+                      <div class="text-xs text-green-700">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        {{ signupStore.pincodeData.city }}, {{ signupStore.pincodeData.state }}
+                      </div>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <p v-if="signupStore.errors.panPincode" class="mt-1 text-xs text-red-600">{{ signupStore.errors.panPincode }}</p>
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Billing Address <span class="text-red-500">*</span></label>
                   <textarea
                     v-model="signupStore.formData.billingAddress"
+                    @input="signupStore.clearError('billingAddress')"
                     @keyup.enter="handleCompleteSignup"
                     rows="3"
                     placeholder="Enter your billing address"
@@ -387,7 +600,7 @@
             <div class="border border-gray-200 rounded-lg p-6">
               <button
                 type="button"
-                @click="signupStore.showBankDetails = !signupStore.showBankDetails"
+                @click="handleBankSectionToggle"
                 class="w-full flex items-center justify-between text-left"
               >
                 <div class="flex items-center">
@@ -403,6 +616,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Beneficiary Name <span class="text-red-500">*</span></label>
                     <input
                       v-model="signupStore.formData.beneficiaryName"
+                      @input="signupStore.clearError('beneficiaryName')"
+                      @blur="handleVerifyBank"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="Enter beneficiary name"
@@ -413,15 +628,36 @@
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name <span class="text-red-500">*</span></label>
-                    <input
-                      v-model="signupStore.formData.bankName"
-                      @keyup.enter="handleCompleteSignup"
-                      type="text"
-                      placeholder="Enter bank name"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      :class="{ 'border-red-500': signupStore.errors.bankName }"
-                    />
-                    <p v-if="signupStore.errors.bankName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.bankName }}</p>
+                    <div class="space-y-2">
+                      <div v-if="signupStore.isLoading && signupStore.banksList.length === 0" class="flex items-center justify-center py-4">
+                        <SpinnerLoader size="sm" class="mr-2" />
+                        <span class="text-sm text-gray-500">Loading banks...</span>
+                      </div>
+                      <select
+                        v-model="signupStore.formData.bankName"
+                        @change="signupStore.clearError('bankName')"
+                        @blur="handleVerifyBank"
+                        @keyup.enter="handleCompleteSignup"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        :class="{ 'border-red-500': signupStore.errors.bankName }"
+                        :disabled="signupStore.isLoading"
+                      >
+                        <option value="">
+                          {{ signupStore.isLoading ? 'Loading banks...' : 'Select Bank' }}
+                        </option>
+                        <option 
+                          v-for="bank in filteredBanks" 
+                          :key="bank.id" 
+                          :value="bank.name"
+                        >
+                          {{ bank.name }}
+                        </option>
+                        <option v-if="filteredBanks.length === 0 && !signupStore.isLoading && bankSearchQuery" value="" disabled>
+                          No banks found
+                        </option>
+                      </select>
+                      <p v-if="signupStore.errors.bankName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.bankName }}</p>
+                    </div>
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -429,6 +665,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Account Number <span class="text-red-500">*</span></label>
                     <input
                       v-model="signupStore.formData.accountNumber"
+                      @input="signupStore.clearError('accountNumber')"
+                      @blur="handleVerifyBank"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="Enter account number"
@@ -441,36 +679,32 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">IFSC Code <span class="text-red-500">*</span></label>
                     <input
                       v-model="signupStore.formData.ifscCode"
+                      @input="signupStore.clearError('ifscCode')"
+                      @blur="handleVerifyBank"
                       @keyup.enter="handleCompleteSignup"
                       type="text"
                       placeholder="Enter IFSC code"
                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       :class="{ 'border-red-500': signupStore.errors.ifscCode, 'border-green-500': signupStore.bankVerified }"
                     />
-                    <p v-if="signupStore.errors.ifscCode" class="mt-1 text-sm text-red-600">{{ signupStore.errors.ifscCode }}</p>
+                    
+                    <div v-if="signupStore.isLoading && signupStore.formData.accountNumber && signupStore.formData.ifscCode" class="mt-1 flex items-center space-x-2">
+                      <SpinnerLoader size="sm" />
+                      <span class="text-xs text-blue-600">Verifying bank details...</span>
+                    </div>
+                    
+                    <div v-else-if="signupStore.bankVerified" class="mt-1 p-2">
+                      <div class="text-xs text-green-700">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Bank account details verified successfully!
+                      </div>
+                    </div>
+                    
+                    <!-- Error message -->
+                    <p v-if="signupStore.errors.ifscCode" class="mt-1 text-xs text-red-600">{{ signupStore.errors.ifscCode }}</p>
                   </div>
                 </div>
                 
-                <div class="flex flex-col items-center space-y-2">
-                  <button
-                    type="button"
-                    @click="handleVerifyBank"
-                    :disabled="signupStore.isLoading || !signupStore.formData.accountNumber || !signupStore.formData.ifscCode"
-                    class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-                  >
-                    <SpinnerLoader v-if="signupStore.isLoading" size="sm" class="mr-2" />
-                    <span v-if="signupStore.isLoading">Verifying Bank Details...</span>
-                    <span v-else-if="signupStore.bankVerified">✓ Bank Details Verified</span>
-                    <span v-else>Verify Bank Details</span>
-                  </button>
-                </div>
-                
-                <div v-if="signupStore.bankVerified" class="p-3 bg-green-50 border border-green-200 rounded-md">
-                  <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                    <span class="text-green-700 text-sm font-medium">Bank account details verified successfully!</span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -501,7 +735,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
 import { UserRedirection } from '@/utils/redirection'
@@ -516,6 +750,51 @@ const authStore = useAuthStore()
 // Loading state for skip KYC
 const isSkippingKyc = ref(false)
 const currentStep = ref(1)
+
+// Bank search functionality
+const bankSearchQuery = ref('')
+const filteredBanks = ref<any[]>([])
+
+const filterBanks = () => {
+  const query = bankSearchQuery.value.toLowerCase()
+  filteredBanks.value = signupStore.banksList.filter(bank => 
+    bank.name.toLowerCase().includes(query)
+  )
+}
+
+// Watch for changes in banks list to update filtered banks
+watch(() => signupStore.banksList, (newBanksList) => {
+  filteredBanks.value = newBanksList
+}, { immediate: true })
+
+// Entity type search functionality
+const entityTypeSearchQuery = ref('')
+const filteredEntityTypes = ref<any[]>([])
+
+const filterEntityTypes = () => {
+  const query = entityTypeSearchQuery.value.toLowerCase()
+  filteredEntityTypes.value = signupStore.entityTypes.filter(entity => 
+    entity.entity_type.toLowerCase().includes(query)
+  )
+}
+
+// Watch for changes in entity types to update filtered entity types
+watch(() => signupStore.entityTypes, (newEntityTypes) => {
+  filteredEntityTypes.value = newEntityTypes
+}, { immediate: true })
+
+// Fetch data when component mounts
+onMounted(async () => {
+  try {
+    // Fetch entity types and banks list in parallel
+    await Promise.all([
+      signupStore.fetchEntityTypes(),
+      signupStore.fetchBanksList()
+    ])
+  } catch (error) {
+    console.error('Failed to fetch initial data:', error)
+  }
+})
 
 // Remove the onMounted hook that was causing infinite redirection
 // The router navigation guard already handles proper routing based on onboarding status
@@ -558,6 +837,15 @@ const handleResendAadhaarOtp = () => {
 }
 
 const handleVerifyPan = async () => {
+  // Check if entity type is selected before verifying PAN
+  if (!signupStore.formData.entityType) {
+    signupStore.setError('entityType', 'Please select an entity type first')
+    return
+  }
+  
+  // Clear entity type error if it was previously set
+  signupStore.clearError('entityType')
+  
   await signupStore.verifyPan()
 }
 
@@ -566,13 +854,59 @@ const handleVerifyGst = async () => {
 }
 
 const handleVerifyBank = async () => {
+  // Check if bank is selected before verifying bank details
+  if (!signupStore.formData.bankName) {
+    signupStore.setError('bankName', 'Please select a bank first')
+    return
+  }
+  
+  // Check if beneficiary name is provided
+  if (!signupStore.formData.beneficiaryName.trim()) {
+    signupStore.setError('beneficiaryName', 'Please enter beneficiary name first')
+    return
+  }
+  
+  // Check if account number is provided
+  if (!signupStore.formData.accountNumber.trim()) {
+    signupStore.setError('accountNumber', 'Please enter account number first')
+    return
+  }
+  
+  // Check if IFSC code is provided
+  if (!signupStore.formData.ifscCode.trim()) {
+    signupStore.setError('ifscCode', 'Please enter IFSC code first')
+    return
+  }
+  
+  // Clear all bank-related errors if they were previously set
+  signupStore.clearError('bankName')
+  signupStore.clearError('beneficiaryName')
+  signupStore.clearError('accountNumber')
+  signupStore.clearError('ifscCode')
+  
   await signupStore.verifyBank()
+}
+
+const handlePanSectionToggle = () => {
+  // Close other sections when opening PAN section
+  signupStore.showGstSection = false
+  signupStore.showBankDetails = false
+  // Toggle PAN section
+  signupStore.showPanSection = !signupStore.showPanSection
+}
+
+const handleBankSectionToggle = () => {
+  // Close other sections when opening Bank section
+  signupStore.showGstSection = false
+  signupStore.showPanSection = false
+  // Toggle Bank section
+  signupStore.showBankDetails = !signupStore.showBankDetails
 }
 
 const handleSkipKyc = async () => {
   isSkippingKyc.value = true
   
-  // Animate through the steps
+  // Animate through the steps with proper timing
   setTimeout(() => {
     currentStep.value = 2
   }, 1500)
@@ -581,21 +915,90 @@ const handleSkipKyc = async () => {
     currentStep.value = 3
   }, 3000)
   
-  // const result = await signupStore.skipKyc()
-  // if (result.success) {
-    // Wait a bit more for the animation to complete
-    setTimeout(() => {
-      // Redirect to main app
-      UserRedirection.redirectToMainApp()
-    }, 1000)
-  // } else {
-    // Reset loading state if there's an error
-    // isSkippingKyc.value = false
-    // currentStep.value = 1
-  // }
+  // Wait for the full animation to complete before redirecting
+  setTimeout(() => {
+    // Redirect to main app after step 3 is shown
+    UserRedirection.redirectToMainApp()
+  }, 4500) // Increased from 4000 to 4500 to give more time to see step 3
 }
 
 const handleCompleteSignup = async () => {
+  // Validate required fields before proceeding
+  let hasErrors = false
+  
+  if (signupStore.formData.businessType === 'pan') {
+    // Check entity type selection for PAN business type
+    if (!signupStore.formData.entityType) {
+      signupStore.setError('entityType', 'Please select an entity type')
+      hasErrors = true
+    }
+    
+    // Check entity name for PAN business type
+    if (!signupStore.formData.entityName.trim()) {
+      signupStore.setError('entityName', 'Please enter entity name')
+      hasErrors = true
+    }
+    
+    // Check PAN number for PAN business type
+    if (!signupStore.formData.panNumber.trim()) {
+      signupStore.setError('panNumber', 'Please enter PAN number')
+      hasErrors = true
+    }
+    
+    // Check billing address for PAN business type
+    if (!signupStore.formData.billingAddress.trim()) {
+      signupStore.setError('billingAddress', 'Please enter billing address')
+      hasErrors = true
+    }
+  } else if (signupStore.formData.businessType === 'gst') {
+    // Check GST number for GST business type
+    if (!signupStore.formData.gstNumber.trim()) {
+      signupStore.setError('gstNumber', 'Please enter GST number')
+      hasErrors = true
+    }
+    
+    // Check GST address for GST business type
+    if (!signupStore.formData.gstAddress.trim()) {
+      signupStore.setError('gstAddress', 'Please enter registered address')
+      hasErrors = true
+    }
+    
+    // Check GST pincode for GST business type
+    if (!signupStore.formData.gstPincode.trim()) {
+      signupStore.setError('gstPincode', 'Please enter pincode')
+      hasErrors = true
+    }
+  }
+  
+  // Check bank selection
+  if (!signupStore.formData.bankName) {
+    signupStore.setError('bankName', 'Please select a bank')
+    hasErrors = true
+  }
+  
+  // Check beneficiary name
+  if (!signupStore.formData.beneficiaryName.trim()) {
+    signupStore.setError('beneficiaryName', 'Please enter beneficiary name')
+    hasErrors = true
+  }
+  
+  // Check account number
+  if (!signupStore.formData.accountNumber.trim()) {
+    signupStore.setError('accountNumber', 'Please enter account number')
+    hasErrors = true
+  }
+  
+  // Check IFSC code
+  if (!signupStore.formData.ifscCode.trim()) {
+    signupStore.setError('ifscCode', 'Please enter IFSC code')
+    hasErrors = true
+  }
+  
+  // If there are validation errors, don't proceed
+  if (hasErrors) {
+    return
+  }
+  
   const result = await signupStore.completeKyc()
   if (result.success) {
     // Redirect to main app

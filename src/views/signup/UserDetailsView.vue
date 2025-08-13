@@ -143,8 +143,7 @@
           <button
             @click="nextStep"
             :disabled="!signupStore.isStep2Valid"
-            class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
-            :style="{ 'background-color': !signupStore.isStep2Valid ? '#9CA3AF' : '#6A5ACD' }"
+            class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed font-semibold bg-blue-600"
           >
             Continue
           </button>
