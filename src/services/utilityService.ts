@@ -66,8 +66,8 @@ class UtilityService {
   }
 
   // Get banks list
-  async getBanksList(): Promise<BanksResponse[]> {
-    return this.request<BanksResponse[]>('/get-banks-list', {
+  async getBanksList(): Promise<BanksResponse> {
+    return this.request<BanksResponse>('/get-banks-list', {
       method: 'GET',
     })
   }
