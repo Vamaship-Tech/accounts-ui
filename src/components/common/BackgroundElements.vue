@@ -10,8 +10,8 @@
         backgroundImage: 'linear-gradient(to right, #4B6921 1px, transparent 1px), linear-gradient(to bottom, #4B6921 1px, transparent 1px)',
         backgroundSize: '29px 29px',
         opacity: 0.2,
-        maskImage: 'radial-gradient(ellipse at center, white, transparent 70%)',
-        WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent 70%)'
+        maskImage: 'radial-gradient(ellipse at center, white, transparent 90%)',
+        WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent 90%)'
       }"
     />
     

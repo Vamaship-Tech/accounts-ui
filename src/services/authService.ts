@@ -18,12 +18,17 @@ class AuthService {
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`
     
+    // Get token from cookie
+    const token = this.getCookie('auth_token')
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
-      credentials: 'include', // Include cookies in requests
+      // credentials: 'include', // Include cookies in requests
       ...options,
     }
 
@@ -44,6 +49,13 @@ class AuthService {
       }
       throw new Error('Network error occurred')
     }
+  }
+
+  private getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    return null
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -67,7 +79,7 @@ class AuthService {
   }
 
   async getCurrentUser(): Promise<User> {
-    return this.request<User>('/auth/me')
+    return this.request<User>('/me')
   }
 
   async submitKYC(kycData: KYCData): Promise<User> {

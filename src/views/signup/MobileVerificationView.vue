@@ -358,7 +358,7 @@
                       maxlength="1"
                       :data-otp-index="index"
                     />
-                    <span class="text-2xl text-gray-400 font-bold mx-2">--</span>
+                    <span class="text-2xl text-gray-400 font-bold mx-2">-</span>
                     <input 
                       v-for="(digit, index) in signupStore.formData.otp.slice(3, 6)" 
                       :key="index + 3"
@@ -434,16 +434,9 @@
               <GoogleSignIn v-if="!signupStore.otpSent" @google-sign-in="handleGoogleSignIn" />
 
               <!-- Tracking Section -->
-               <div v-if="!signupStore.otpSent" class="mt-auto">
-                 <div class="flex items-center my-4 max-w-sm mx-auto">
-                   <div class="flex-1 h-px bg-gray-300"></div>
-                   <span class="px-3 text-sm text-gray-500"></span>
-                   <div class="flex-1 h-px bg-gray-300"></div>
-                  </div>
-                  <div class="max-w-sm mx-auto">
+              <div v-if="!signupStore.otpSent" class="my-4 mx-auto">
                     <TrackingSection />
-                  </div>
-                </div>
+              </div>
             </div>
           </div>
           <div>

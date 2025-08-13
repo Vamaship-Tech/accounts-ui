@@ -3,7 +3,11 @@ import type { MobileSession } from '@/types/signup'
 import router from '@/router'
 
 export class UserRedirection {
+  private static isRedirecting = false
+
   static redirectBasedOnStatus(user: User): void {
+    if (this.isRedirecting) return
+    
     const { onboardingStatus, kycStatus } = user
 
     switch (onboardingStatus) {
@@ -36,11 +40,27 @@ export class UserRedirection {
   }
 
   static redirectToMainApp(): void {
-    const mainAppUrl = import.meta.env.VITE_MAIN_APP_URL || 'https://app.vamaship.com'
-    window.location.href = mainAppUrl
+    if (this.isRedirecting) return
+    
+    try {
+      this.isRedirecting = true
+      const mainAppUrl = import.meta.env.VITE_MAIN_APP_URL || 'https://app.vamaship.com'
+      
+      // Add a small delay to prevent rapid redirects
+      setTimeout(() => {
+        window.location.href = mainAppUrl
+      }, 100)
+    } catch (error) {
+      console.error('Failed to redirect to main app:', error)
+      this.isRedirecting = false
+      // Fallback: redirect to login
+      router.push('/login')
+    }
   }
 
   static checkAndRedirectOnLogin(user: User): boolean {
+    if (this.isRedirecting) return false
+    
     if (user.onboardingStatus === 'kyc_completed' && user.kycStatus === 'completed') {
       this.redirectToMainApp()
       return true

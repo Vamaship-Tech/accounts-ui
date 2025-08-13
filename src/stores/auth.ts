@@ -21,6 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
       
       const token = getCookie('auth_token')
+      
       if (!token) {
         user.value = null
         return
@@ -157,6 +158,13 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
+  // Update user onboarding status
+  const updateOnboardingStatus = (status: 'mobile_verified' | 'details_completed' | 'kyc_completed') => {
+    if (user.value) {
+      user.value.onboardingStatus = status
+    }
+  }
+
   return {
     user,
     isLoading,
@@ -173,7 +181,8 @@ export const useAuthStore = defineStore('auth', () => {
     skipKYC,
     forgotPassword,
     redirectToMainApp,
-    clearError
+    clearError,
+    updateOnboardingStatus
   }
 })
 

@@ -185,7 +185,8 @@ const handleLogin = async () => {
   const result = await authStore.login(form)
   
   if (result.success) {
-    router.push('/kyc')
+    // The auth store will handle redirection based on user's onboarding status
+    // No need to manually redirect here
   }
 }
 

@@ -67,49 +67,115 @@ const router = createRouter({
 })
 
 // Navigation guards
+let isRedirecting = false
+
 router.beforeEach(async (to, from, next) => {
-  const authStore = useAuthStore()
-  
-  // Check if user is authenticated
-  if (!authStore.isAuthenticated) {
-    await authStore.checkAuth()
-  }
-  
-  // Route requires authentication
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+  // Prevent multiple rapid redirects
+  if (isRedirecting) {
+    next(false)
     return
   }
-  
-  // Route requires guest (not authenticated)
-  if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    // Check if user has completed onboarding
-    if (authStore.user?.onboardingStatus === 'kyc_completed') {
-      // Redirect to main app (external URL)
-      UserRedirection.redirectToMainApp()
-      return
-    } else if (authStore.user?.onboardingStatus === 'details_completed') {
-      // Redirect to KYC if not completed
-      next('/signup/kyc')
-      return
-    } else {
-      // Redirect to details step
-      next('/signup/details')
+
+  try {
+    const authStore = useAuthStore()
+    
+    // Check if user is authenticated
+    if (!authStore.isAuthenticated) {
+      await authStore.checkAuth()
+    }
+    
+    // Route requires authentication
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+      isRedirecting = true
+      next('/login')
+      setTimeout(() => { isRedirecting = false }, 100)
       return
     }
-  }
-  
-  // Route requires mobile session (for signup details)
-  if (to.meta.requiresMobileSession && !authStore.isAuthenticated) {
-    // Check if user has valid mobile session
-    const { SessionManager } = await import('../utils/redirection')
-    if (!SessionManager.isSessionValid()) {
-      next('/signup/mobile')
+    
+    // Route requires guest (not authenticated)
+    if (to.meta.requiresGuest && authStore.isAuthenticated) {
+      // Check if user has completed onboarding
+      if (authStore.user?.onboardingStatus === 'kyc_completed') {
+        // Redirect to main app (external URL)
+        isRedirecting = true
+        UserRedirection.redirectToMainApp()
+        return
+      } else if (authStore.user?.onboardingStatus === 'details_completed') {
+        // Redirect to KYC if not completed
+        isRedirecting = true
+        next('/signup/kyc')
+        setTimeout(() => { isRedirecting = false }, 100)
+        return
+      } else {
+        // Redirect to details step
+        isRedirecting = true
+        next('/signup/details')
+        setTimeout(() => { isRedirecting = false }, 100)
+        return
+      }
+    }
+    
+    // Special case: If user is authenticated and trying to access KYC page during signup
+    if (to.meta.requiresAuth && authStore.isAuthenticated && to.path === '/signup/kyc') {
+      // Check if user should be on KYC page based on onboarding status
+      if (authStore.user?.onboardingStatus === 'kyc_completed') {
+        // User has completed KYC, redirect to main app
+        isRedirecting = true
+        UserRedirection.redirectToMainApp()
+        return
+      } else if (authStore.user?.onboardingStatus === 'mobile_verified') {
+        // User has only completed mobile verification, redirect to details step
+        isRedirecting = true
+        next('/signup/details')
+        setTimeout(() => { isRedirecting = false }, 100)
+        return
+      }
+      // If user has 'details_completed' status, allow access to KYC page
+      next()
       return
     }
+    
+    // Route requires mobile session (for signup details)
+    if (to.meta.requiresMobileSession && !authStore.isAuthenticated) {
+      // Check if user has valid mobile session
+      const { SessionManager } = await import('../utils/redirection')
+      if (!SessionManager.isSessionValid()) {
+        isRedirecting = true
+        next('/signup/mobile')
+        setTimeout(() => { isRedirecting = false }, 100)
+        return
+      }
+    }
+    
+    // If user is authenticated and trying to access a route that requires mobile session,
+    // redirect based on their onboarding status
+    if (to.meta.requiresMobileSession && authStore.isAuthenticated) {
+      if (authStore.user?.onboardingStatus === 'kyc_completed') {
+        // User has completed KYC, redirect to main app
+        isRedirecting = true
+        UserRedirection.redirectToMainApp()
+        return
+      } else if (authStore.user?.onboardingStatus === 'details_completed') {
+        // User has completed details, redirect to KYC
+        isRedirecting = true
+        next('/signup/kyc')
+        setTimeout(() => { isRedirecting = false }, 100)
+        return
+      } else {
+        // User has only mobile verification, allow access to details
+        next()
+        return
+      }
+    }
+    
+    next()
+  } catch (error) {
+    console.error('Router guard error:', error)
+    // If there's an error in the router guard, redirect to login as a fallback
+    isRedirecting = true
+    next('/login')
+    setTimeout(() => { isRedirecting = false }, 100)
   }
-  
-  next()
 })
 
 export default router 

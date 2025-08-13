@@ -16,17 +16,33 @@ class SignupService {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
     })
 
+    const raw = await response.text().catch(() => '')
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Request failed: ${response.status}`)
+      let message = `Request failed: ${response.status}`
+      if (raw) {
+        try {
+          message = JSON.parse(raw).message || message } catch { message = raw }
+      }
+      console.log(message)
+      throw new Error('Request failed')
     }
 
-    return response.json()
+    if (!raw || response.status === 204 || response.status === 205) {
+      return undefined as unknown as T
+    }
+
+    try {
+      return JSON.parse(raw) as T
+    } catch {
+      return raw as unknown as T
+    }
   }
 
   private getCookie(name: string): string | null {
@@ -67,6 +83,7 @@ class SignupService {
   }
 
   async createUser(userData: RegisterData): Promise<AuthResponse> {
+    console.log("createUser", userData)
     return this.request<AuthResponse>('/signup/create-user', {
       method: 'POST',
       body: JSON.stringify(userData),

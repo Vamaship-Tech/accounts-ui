@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { signupService } from '@/services/signupService'
 import { SessionManager } from '@/utils/redirection'
+import { useAuthStore } from '@/stores/auth'
 import type { 
   SignupFormData, 
   SignupErrors, 
@@ -153,10 +154,10 @@ export const useSignupStore = defineStore('signup', () => {
       //   return { success: false, exists: true }
       // }
 
-      // await signupService.sendMobileOtp({
-      //   phone: formData.value.phone,
-      //   countryCode: formData.value.countryCode
-      // })
+      await signupService.sendMobileOtp({
+        phone: formData.value.phone,
+        countryCode: formData.value.countryCode
+      })
 
       otpSent.value = true
       startOtpCooldown()
@@ -307,15 +308,29 @@ export const useSignupStore = defineStore('signup', () => {
         brandName: formData.value.brandName
       }
 
-      // const response = await signupService.createUser(userData)
+      const response = await signupService.createUser(userData)
       
+      const expires = new Date()
+      expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000))
+      document.cookie = `auth_token=${response.token};expires=${expires.toUTCString()};path=/`
+
+      const authStore = useAuthStore()
+      if(response.user) {
+        authStore.user = response.user as any
+        // Update the user's onboarding status to indicate details are completed
+        authStore.updateOnboardingStatus('details_completed')
+      } else {
+        await authStore.checkAuth()
+        // Update the user's onboarding status after fetching from backend
+        authStore.updateOnboardingStatus('details_completed')
+      }
+
       // Clear mobile session as user is now authenticated
       SessionManager.clearMobileSession()
       mobileSession.value = null
       
       currentStep.value = 3
-      // return { success: true, user: response.user, token: response.token }
-      return { success: true , user: userData, token: '1234567890'}
+      return { success: true, user: response.user, token: response.token }
     } catch (error: any) {
       setError('general', error.message || 'Failed to create account')
       return { success: false }
@@ -481,6 +496,11 @@ export const useSignupStore = defineStore('signup', () => {
     try {
       isLoading.value = true
       await signupService.skipKyc()
+      
+      // Update user's onboarding status to indicate KYC is completed (skipped)
+      const authStore = useAuthStore()
+      authStore.updateOnboardingStatus('kyc_completed')
+      
       return { success: true }
     } catch (error: any) {
       setError('general', error.message || 'Failed to skip KYC')
@@ -523,6 +543,10 @@ export const useSignupStore = defineStore('signup', () => {
           verified: bankVerified.value
         }
       })
+
+      // Update user's onboarding status to indicate KYC is completed
+      const authStore = useAuthStore()
+      authStore.updateOnboardingStatus('kyc_completed')
 
       return { success: true }
     } catch (error: any) {

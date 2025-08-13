@@ -1,75 +1,77 @@
 <template>
-  <div class="text-center mb-6">
-    <div class="flex items-center justify-center mb-3">
-      <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mr-3">
-        <i class="fas fa-truck text-blue-600 text-lg"></i>
-      </div>
-      <h4 class="text-xl font-semibold text-gray-800">Track Your Order</h4>
-    </div>
-  </div>
-  
-  <div class="max-w-sm mx-auto space-y-3">
-    <!-- Tracking Type Toggle -->
-    <div class="flex justify-center">
-      <div class="flex bg-white rounded-lg p-1 shadow-md w-full border border-gray-200">
-        <button 
-          @click="switchTrackType('awb')"
-          :class="[
-            'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
-            trackType === 'awb' ? 'active' : ''
-          ]"
-        >
-          AWB
-        </button>
-        <button 
-          @click="switchTrackType('shipment')"
-          :class="[
-            'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
-            trackType === 'shipment' ? 'active' : ''
-          ]"
-        >
-          Shipment
-        </button>
-        <button 
-          @click="switchTrackType('order')"
-          :class="[
-            'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
-            trackType === 'order' ? 'active' : ''
-          ]"
-        >
-          Order ID
-        </button>
+  <div style="background-image: linear-gradient(135deg, #e3eeff 0%, #f3e7e9 100%);" class="p-4 rounded-lg">
+    <div class="text-center mb-6">
+      <div class="flex items-center justify-center mb-3">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mr-3">
+          <i class="fas fa-truck text-blue-600 text-lg"></i>
+        </div>
+        <h4 class="text-xl font-semibold text-gray-800">Track Your Order</h4>
       </div>
     </div>
     
-    <!-- Tracking Input -->
-    <input 
-      v-model="trackingNumber"
-      type="text" 
-      :placeholder="trackingPlaceholder"
-      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-all duration-200 shadow-sm"
-    >
-    
-    <!-- Track Button -->
-    <button 
-      @click="trackOrder"
-      :disabled="!trackingNumber || trackingLoading"
-      class="w-full px-4 py-3 text-white rounded-lg font-semibold transition-all duration-300 text-sm flex items-center justify-center" 
-      :class="{
-        'opacity-80 cursor-not-allowed': !trackingNumber || trackingLoading,
-        'hover:shadow-xl': trackingNumber && !trackingLoading
-      }"
-      style="background-color: #6A5ACD;"
-    >
-      <SpinnerLoader v-if="trackingLoading" size="sm" class="mr-2" />
-      {{ trackingLoading ? 'Tracking...' : 'Track Order' }}
-    </button>
-    
-    <!-- Tracking Error -->
-    <div v-if="trackingError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-      <div class="flex items-center justify-center">
-        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
-        <span class="text-red-700 text-sm font-medium">{{ trackingError }}</span>
+    <div class="max-w-sm mx-auto space-y-3">
+      <!-- Tracking Type Toggle -->
+      <div class="flex justify-center">
+        <div class="flex bg-white rounded-lg p-1 shadow-md w-full border border-gray-200">
+          <button 
+            @click="switchTrackType('awb')"
+            :class="[
+              'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
+              trackType === 'awb' ? 'active' : ''
+            ]"
+          >
+            AWB
+          </button>
+          <button 
+            @click="switchTrackType('shipment')"
+            :class="[
+              'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
+              trackType === 'shipment' ? 'active' : ''
+            ]"
+          >
+            Shipment
+          </button>
+          <button 
+            @click="switchTrackType('order')"
+            :class="[
+              'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
+              trackType === 'order' ? 'active' : ''
+            ]"
+          >
+            Order ID
+          </button>
+        </div>
+      </div>
+      
+      <!-- Tracking Input -->
+      <input 
+        v-model="trackingNumber"
+        type="text" 
+        :placeholder="trackingPlaceholder"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm transition-all duration-200 shadow-sm"
+      >
+      
+      <!-- Track Button -->
+      <button 
+        @click="trackOrder"
+        :disabled="!trackingNumber || trackingLoading"
+        class="w-full px-4 py-3 text-white rounded-lg font-semibold transition-all duration-300 text-sm flex items-center justify-center" 
+        :class="{
+          'opacity-80 cursor-not-allowed': !trackingNumber || trackingLoading,
+          'hover:shadow-xl': trackingNumber && !trackingLoading
+        }"
+        style="background-color: #6A5ACD;"
+      >
+        <SpinnerLoader v-if="trackingLoading" size="sm" class="mr-2" />
+        {{ trackingLoading ? 'Tracking...' : 'Track Order' }}
+      </button>
+      
+      <!-- Tracking Error -->
+      <div v-if="trackingError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-center justify-center">
+          <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+          <span class="text-red-700 text-sm font-medium">{{ trackingError }}</span>
+        </div>
       </div>
     </div>
   </div>
