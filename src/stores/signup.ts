@@ -34,9 +34,11 @@ export const useSignupStore = defineStore('signup', () => {
     panPincode: '',
     billingAddress: '',
     gstNumber: '',
+    gstPanNumber: '',
     branchName: '',
     gstAddress: '',
     gstPincode: '',
+    unitType: '',
     beneficiaryName: '',
     bankName: '',
     accountNumber: '',
@@ -109,8 +111,10 @@ export const useSignupStore = defineStore('signup', () => {
     } else {
       return !!(
         formData.value.gstNumber.trim() &&
+        formData.value.gstPanNumber.trim() &&
         formData.value.gstAddress.trim() &&
         formData.value.gstPincode.trim() &&
+        formData.value.unitType.trim() &&
         formData.value.beneficiaryName.trim() &&
         formData.value.bankName.trim() &&
         formData.value.accountNumber.trim() &&
@@ -524,34 +528,61 @@ export const useSignupStore = defineStore('signup', () => {
       isLoading.value = true
       clearErrors()
 
-      const kycData = formData.value.businessType === 'pan' 
-        ? {
-            entityType: formData.value.entityType,
-            entityName: formData.value.entityName,
-            panNumber: formData.value.panNumber,
-            panPincode: formData.value.panPincode,
-            billingAddress: formData.value.billingAddress,
-            verified: panVerified.value
-          }
-        : {
-            gstNumber: formData.value.gstNumber,
-            branchName: formData.value.branchName,
-            gstAddress: formData.value.gstAddress,
-            gstPincode: formData.value.gstPincode,
-            verified: gstVerified.value
-          }
+      // Map form data to expected backend format
+      let kycData: any
 
-      await signupService.completeKyc({
-        businessType: formData.value.businessType,
-        businessData: kycData,
-        bankData: {
-          beneficiaryName: formData.value.beneficiaryName,
-          bankName: formData.value.bankName,
-          accountNumber: formData.value.accountNumber,
-          ifscCode: formData.value.ifscCode,
-          verified: bankVerified.value
+      if (formData.value.businessType === 'pan') {
+        // PAN business type format
+        kycData = {
+          gst_registered: false,
+          entity_name: formData.value.entityName,
+          entity_type: formData.value.entityType,
+          pan_number: formData.value.panNumber,
+          address: {
+            line1: formData.value.billingAddress,
+            line2: '', // Not collected in current form
+            pincode: parseInt(formData.value.panPincode) || 0,
+            city: pincodeData.value?.city || '',
+            state: pincodeData.value?.state || '',
+            country: 'India' // Default to India
+          },
+          bank_details: [
+            {
+              beneficiary_name: formData.value.beneficiaryName,
+              bank_name: formData.value.bankName,
+              account_number: formData.value.accountNumber,
+              ifsc_code: formData.value.ifscCode
+            }
+          ]
         }
-      })
+      } else {
+        // GST business type format
+        kycData = {
+          gst_registered: true,
+          entity_name: formData.value.brandName || formData.value.entityName, // Use brand name if available
+          entity_type: 'Business', // Default entity type for GST
+          pan_number: formData.value.gstPanNumber, // Use the new GST PAN number field
+          gst_details: [
+            {
+              gst_number: formData.value.gstNumber,
+              branch_name: formData.value.branchName,
+              address: formData.value.gstAddress,
+              pincode: parseInt(formData.value.gstPincode) || 0,
+              unit_type: formData.value.unitType // Use the new unit type field
+            }
+          ],
+          bank_details: [
+            {
+              beneficiary_name: formData.value.beneficiaryName,
+              bank_name: formData.value.bankName,
+              account_number: formData.value.accountNumber,
+              ifsc_code: formData.value.ifscCode
+            }
+          ]
+        }
+      }
+
+      await signupService.completeKyc(kycData)
 
       // Update user's onboarding status to indicate KYC is completed
       const authStore = useAuthStore()
@@ -596,9 +627,11 @@ export const useSignupStore = defineStore('signup', () => {
       panPincode: '',
       billingAddress: '',
       gstNumber: '',
+      gstPanNumber: '',
       branchName: '',
       gstAddress: '',
       gstPincode: '',
+      unitType: '',
       beneficiaryName: '',
       bankName: '',
       accountNumber: '',

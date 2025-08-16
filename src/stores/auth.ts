@@ -29,10 +29,19 @@ export const useAuthStore = defineStore('auth', () => {
 
       const userData = await authService.getCurrentUser()
       user.value = userData
-    } catch (err) {
+    } catch (err: any) {
       console.error('Auth check failed:', err)
       user.value = null
       removeCookie('auth_token')
+      
+      // Set a user-friendly error message
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        error.value = 'Your session has expired. Please log in again.'
+      } else if (err.message?.includes('Network error')) {
+        error.value = 'Unable to connect to the server. Please check your internet connection.'
+      } else {
+        error.value = err.message || 'Authentication failed. Please try again.'
+      }
     } finally {
       isLoading.value = false
     }

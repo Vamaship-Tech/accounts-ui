@@ -79,7 +79,69 @@ class AuthService {
   }
 
   async getCurrentUser(): Promise<User> {
-    return this.request<User>('/me')
+    const response = await this.request<any>('/me')
+    
+    // Transform backend response to match frontend User interface
+    return this.transformUserResponse(response.user)
+  }
+
+  private transformUserResponse(backendUser: any): User {
+    // Determine onboarding status based on available data
+    let onboardingStatus: 'mobile_verified' | 'details_completed' | 'kyc_completed' = 'mobile_verified'
+    
+    // If user has entity data, they've completed details
+    if (backendUser.entity && backendUser.entity.id) {
+      onboardingStatus = 'details_completed'
+      
+      // If KYC is verified, they've completed KYC
+      if (backendUser.entity.kyc_verified === 1) {
+        onboardingStatus = 'kyc_completed'
+      }
+    }
+    
+    // Determine KYC status
+    let kycStatus: 'pending' | 'completed' | 'skipped' = 'pending'
+    if (backendUser.entity) {
+      if (backendUser.entity.kyc_verified === 1) {
+        kycStatus = 'completed'
+      } else if (backendUser.entity.kyc_status === 0) {
+        kycStatus = 'pending'
+      }
+    }
+    
+    return {
+      id: backendUser.id.toString(),
+      email: backendUser.email,
+      firstName: backendUser.first_name || '',
+      lastName: backendUser.last_name || '',
+      mobile: backendUser.mobile_no || '',
+      brandName: backendUser.signup_brand || '',
+      role: backendUser.is_admin ? 'admin' : 'user',
+      isActive: backendUser.is_active === 1,
+      kycStatus,
+      onboardingStatus,
+      createdAt: backendUser.created_at || new Date().toISOString(),
+      updatedAt: backendUser.updated_at || new Date().toISOString(),
+      kycProgress: {
+        businessType: backendUser.entity?.gst_registered === 1 ? 'gst' : 'pan',
+        businessData: backendUser.entity ? {
+          entityType: backendUser.entity.entity_type || '',
+          entityName: backendUser.entity.entity_name || '',
+          panNumber: backendUser.entity.pan_card || '',
+          panPincode: '',
+          billingAddress: '',
+          verified: backendUser.entity.kyc_verified === 1
+        } : undefined,
+        bankData: backendUser.banks && backendUser.banks.length > 0 ? {
+          beneficiaryName: backendUser.banks[0].beneficiary_name || '',
+          bankName: backendUser.banks[0].bank_name || '',
+          accountNumber: backendUser.banks[0].account_number || '',
+          ifscCode: backendUser.banks[0].ifsc_code || '',
+          verified: true
+        } : undefined,
+        lastUpdated: new Date().toISOString()
+      }
+    }
   }
 
   async submitKYC(kycData: KYCData): Promise<User> {

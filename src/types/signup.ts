@@ -77,9 +77,11 @@ export interface SignupFormData {
   
   // GST fields
   gstNumber: string
+  gstPanNumber: string
   branchName: string
   gstAddress: string
   gstPincode: string
+  unitType: string
   
   // Bank fields
   beneficiaryName: string
@@ -104,9 +106,11 @@ export interface SignupErrors {
   panPincode?: string
   billingAddress?: string
   gstNumber?: string
+  gstPanNumber?: string
   branchName?: string
   gstAddress?: string
   gstPincode?: string
+  unitType?: string
   beneficiaryName?: string
   bankName?: string
   accountNumber?: string

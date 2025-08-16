@@ -408,6 +408,21 @@
                     </p>
                   </div>
                   <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">PAN Number <span class="text-red-500">*</span></label>
+                    <input
+                      v-model="signupStore.formData.gstPanNumber"
+                      @input="signupStore.clearError('gstPanNumber')"
+                      @keyup.enter="handleCompleteSignup"
+                      type="text"
+                      placeholder="ABCDE1234F"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      :class="{ 'border-red-500': signupStore.errors.gstPanNumber }"
+                    />
+                    <p v-if="signupStore.errors.gstPanNumber" class="mt-1 text-sm text-red-600">{{ signupStore.errors.gstPanNumber }}</p>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Branch Name</label>
                     <input
                       v-model="signupStore.formData.branchName"
@@ -419,6 +434,24 @@
                       :class="{ 'border-red-500': signupStore.errors.branchName }"
                     />
                     <p v-if="signupStore.errors.branchName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.branchName }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit Type</label>
+                    <select
+                      v-model="signupStore.formData.unitType"
+                      @change="signupStore.clearError('unitType')"
+                      @keyup.enter="handleCompleteSignup"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      :class="{ 'border-red-500': signupStore.errors.unitType }"
+                    >
+                      <option value="">Select Unit Type</option>
+                      <option value="Branch">Branch</option>
+                      <option value="Head Office">Head Office</option>
+                      <option value="Factory">Factory</option>
+                      <option value="Warehouse">Warehouse</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <p v-if="signupStore.errors.unitType" class="mt-1 text-sm text-red-600">{{ signupStore.errors.unitType }}</p>
                   </div>
                 </div>
                 <div>
@@ -909,17 +942,17 @@ const handleSkipKyc = async () => {
   // Animate through the steps with proper timing
   setTimeout(() => {
     currentStep.value = 2
-  }, 1500)
+  }, 500)
   
   setTimeout(() => {
     currentStep.value = 3
-  }, 3000)
+  }, 1000)
   
   // Wait for the full animation to complete before redirecting
   setTimeout(() => {
     // Redirect to main app after step 3 is shown
     UserRedirection.redirectToMainApp()
-  }, 4500) // Increased from 4000 to 4500 to give more time to see step 3
+  }, 2000) // Increased from 4000 to 2000 to give more time to see step 3
 }
 
 const handleCompleteSignup = async () => {
@@ -957,6 +990,12 @@ const handleCompleteSignup = async () => {
       hasErrors = true
     }
     
+    // Check GST PAN number for GST business type
+    if (!signupStore.formData.gstPanNumber.trim()) {
+      signupStore.setError('gstPanNumber', 'Please enter PAN number')
+      hasErrors = true
+    }
+    
     // Check GST address for GST business type
     if (!signupStore.formData.gstAddress.trim()) {
       signupStore.setError('gstAddress', 'Please enter registered address')
@@ -966,6 +1005,12 @@ const handleCompleteSignup = async () => {
     // Check GST pincode for GST business type
     if (!signupStore.formData.gstPincode.trim()) {
       signupStore.setError('gstPincode', 'Please enter pincode')
+      hasErrors = true
+    }
+    
+    // Check unit type for GST business type
+    if (!signupStore.formData.unitType.trim()) {
+      signupStore.setError('unitType', 'Please select unit type')
       hasErrors = true
     }
   }

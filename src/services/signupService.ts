@@ -83,7 +83,6 @@ class SignupService {
   }
 
   async createUser(userData: RegisterData): Promise<AuthResponse> {
-    console.log("createUser", userData)
     return this.request<AuthResponse>('/signup/create-user', {
       method: 'POST',
       body: JSON.stringify(userData),
