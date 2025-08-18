@@ -974,7 +974,7 @@ const handleSkipKyc = async () => {
   setTimeout(() => {
     // Redirect to main app after step 3 is shown
     UserRedirection.redirectToMainApp()
-  }, 20000) // Increased from 4000 to 2000 to give more time to see step 3
+  }, 2000) // Increased from 4000 to 2000 to give more time to see step 3
 }
 
 const handleCompleteSignup = async () => {
