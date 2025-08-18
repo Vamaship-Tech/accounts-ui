@@ -1,12 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
-    <Banner 
-      title="Vamaship is now Vamaship.com"
-      description="We've updated our website to vamaship.com. Please update your bookmarks and start using the new website."
-      actionText="Learn More"
-      actionUrl="/"
-      :dismissible="true"
-    />
     <BackgroundElements />
 
     <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12">

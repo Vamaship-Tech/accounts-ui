@@ -152,9 +152,8 @@ export const useSignupStore = defineStore('signup', () => {
   // Step 1: Mobile verification
   const checkMobileExists = async (mobile: string, countryCode: string) => {
     try {
-      // const response = await signupService.checkMobileExists({ phone: mobile, countryCode })
-      // return response.exists
-      return false;
+      const response = await signupService.checkMobileExists({ phone: mobile, countryCode })
+      return response.exists
     } catch (error: any) {
       setError('general', error.message || 'Failed to check mobile number')
       return false
@@ -172,11 +171,11 @@ export const useSignupStore = defineStore('signup', () => {
       clearErrors()
 
       // Check if mobile already exists
-      // const exists = await checkMobileExists(formData.value.phone, formData.value.countryCode)
-      // if (exists) {
-      //   setError('phone', 'Mobile number already registered')
-      //   return { success: false, exists: true }
-      // }
+      const exists = await checkMobileExists(formData.value.phone, formData.value.countryCode)
+      if (exists) {
+        setError('phone', 'Mobile number already registered')
+        return { success: false, exists: true }
+      }
 
       await signupService.sendMobileOtp({
         phone: formData.value.phone,
@@ -205,11 +204,11 @@ export const useSignupStore = defineStore('signup', () => {
       clearErrors()
 
       const otpString = formData.value.otp.join('')
-      // await signupService.verifyMobileOtp({
-      //   phone: formData.value.phone,
-      //   countryCode: formData.value.countryCode,
-      //   otp: otpString
-      // })
+      await signupService.verifyMobileOtp({
+        phone: formData.value.phone,
+        countryCode: formData.value.countryCode,
+        otp: otpString
+      })
 
       // Save mobile session
       SessionManager.saveMobileSession(formData.value.phone, formData.value.countryCode)
@@ -245,8 +244,8 @@ export const useSignupStore = defineStore('signup', () => {
   // Step 2: User details
   const checkEmailExists = async (email: string) => {
     try {
-      // const response = await signupService.checkEmailExists(email)
-      // return response.exists
+      const response = await signupService.checkEmailExists(email)
+      return response.exists
       return false;
     } catch (error: any) {
       setError('general', error.message || 'Failed to check email')

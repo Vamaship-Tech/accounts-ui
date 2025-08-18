@@ -48,20 +48,18 @@
                   <p class="text-xs text-gray-500 mt-1">We'll send a verification code to this number</p>
                 </div>
                 
-                <div v-if="isMobileAlreadyRegistered" class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
-                  <div class="text-center">
-                    <p class="text-blue-800 mb-2 text-sm">
-                      The mobile number <strong class="text-blue-900">{{ signupStore.formData.phone }}</strong> is already registered with Vamaship.
-                    </p>
+                <!-- <div v-if="isMobileAlreadyRegistered" class="mt-2 text-center">
+                  <p class="text-sm text-blue-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Mobile number <strong>{{ signupStore.formData.phone }}</strong> is already registered. 
                     <button
                       @click="goToLogin"
-                      class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      class="text-blue-700 hover:text-blue-800 underline font-medium ml-1"
                     >
-                      <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
-                      Login Here
+                      Login here
                     </button>
-                  </div>
-                </div>
+                  </p>
+                </div> -->
                 
                 <button 
                   v-if="!signupStore.otpSent"
@@ -261,7 +259,7 @@
                   <p class="text-xs text-gray-500 mt-1">We'll send a verification code to this number</p>
                 </div>
                 
-                <div v-if="isMobileAlreadyRegistered" class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
+                <!-- <div v-if="isMobileAlreadyRegistered" class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
                   <div class="text-center">
                     <p class="text-blue-800 mb-2 text-sm">
                       The mobile number <strong class="text-blue-900">{{ signupStore.formData.phone }}</strong> is already registered with Vamaship.
@@ -274,7 +272,7 @@
                       Login Here
                     </button>
                   </div>
-                </div>
+                </div> -->
                 
                 <button 
                   v-if="!signupStore.otpSent && !isMobileAlreadyRegistered"
