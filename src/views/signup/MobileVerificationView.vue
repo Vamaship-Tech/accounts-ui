@@ -5,6 +5,23 @@
       <div class="max-w-6xl mx-auto px-4 py-6 h-full flex items-center">
         <!-- Mobile Layout -->
         <div class="lg:hidden space-y-6">
+          <!-- Marketing Content - Moved to top -->
+          <div class="space-y-8">
+            <div class="space-y-2 text-center">
+              <!-- Vamaship Logo -->
+              <div class="flex justify-start mb-2">
+                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-20 w-auto" />
+              </div>
+              
+              <h1 class="text-4xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                Start Shipping Smarter
+              </h1>
+              <p class="text-xl text-gray-900 font-medium">
+                — in Just a Few Steps
+              </p>
+            </div>
+          </div>
+
           <div class="space-y-6">
             <!-- Main Form -->
             <div class="bg-white rounded-lg p-8 shadow-lg max-w-md mx-auto min-w-md min-h-[400px]">
@@ -173,13 +190,13 @@
               </div>
 
               <!-- Google Sign-in -->
-              <div class="flex items-center my-4 max-w-sm mx-auto">
+              <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
                 <div class="flex-1 h-px bg-gray-300"></div>
                 <span class="px-3 text-sm text-gray-500">or</span>
                 <div class="flex-1 h-px bg-gray-300"></div>
               </div>
 
-              <GoogleSignIn @google-sign-in="handleGoogleSignIn" />
+              <GoogleSignIn v-if="!signupStore.otpSent" @google-sign-in="handleGoogleSignIn" />
 
               <!-- Tracking Section -->
               <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
@@ -187,47 +204,8 @@
                 <!-- <span class="px-3 text-sm text-gray-500">Track your shipment</span> -->
                 <div class="flex-1 h-px bg-gray-300"></div>
               </div>
-              <div class="max-w-sm mx-auto">
+              <div v-if="!signupStore.otpSent" class="max-w-sm mx-auto">
                 <TrackingSection />
-              </div>
-            </div>
-          </div>
-
-          <!-- Marketing Content -->
-          <div class="space-y-8">
-            <div class="space-y-2 text-center">
-              <!-- Vamaship Logo -->
-              <div class="flex justify-start mb-2">
-                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-20 w-auto" />
-              </div>
-              
-              <h1 class="text-4xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                Start Shipping Smarter
-              </h1>
-              <p class="text-xl text-gray-900 font-medium">
-                — in Just a Few Steps
-              </p>
-            </div>
-
-            <div class="bg-transparent rounded-lg p-6 border border-purple-100">
-              <h3 class="font-semibold text-gray-900 mb-4">Why choose Vamaship?</h3>
-              <div class="space-y-3 text-sm text-gray-700">
-                <div class="flex items-center">
-                  <i class="fas fa-check text-green-500 mr-3"></i>
-                  <span>Multi-courier aggregation</span>
-                </div>
-                <div class="flex items-center">
-                  <i class="fas fa-check text-green-500 mr-3"></i>
-                  <span>Dedicated Customer Support</span>
-                </div>
-                <div class="flex items-center">
-                  <i class="fas fa-check text-green-500 mr-3"></i>
-                  <span>No technical setup required</span>
-                </div>
-                <div class="flex items-center">
-                  <i class="fas fa-check text-green-500 mr-3"></i>
-                  <span>Branded tracking pages</span>
-                </div>
               </div>
             </div>
           </div>

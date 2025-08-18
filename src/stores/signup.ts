@@ -74,6 +74,16 @@ export const useSignupStore = defineStore('signup', () => {
   const pincodeData = ref<PincodeData | null>(null)
   const isPincodeValid = ref(false)
   const isPincodeLoading = ref(false)
+  
+  // GST verification data
+  const gstVerificationData = ref<{
+    address: string
+    pincode: string
+    entity_type: string
+    legal_name: string
+    unit_type: string
+    pan: string
+  } | null>(null)
 
   // Computed
   const isOtpComplete = computed(() => 
@@ -114,7 +124,8 @@ export const useSignupStore = defineStore('signup', () => {
         formData.value.gstPanNumber.trim() &&
         formData.value.gstAddress.trim() &&
         formData.value.gstPincode.trim() &&
-        formData.value.unitType.trim() &&
+        formData.value.entityType.trim() &&
+        formData.value.entityName.trim() &&
         formData.value.beneficiaryName.trim() &&
         formData.value.bankName.trim() &&
         formData.value.accountNumber.trim() &&
@@ -449,9 +460,54 @@ export const useSignupStore = defineStore('signup', () => {
       isLoading.value = true
       clearError('gstNumber')
 
-      await signupService.verifyGst(formData.value.gstNumber)
-      gstVerified.value = true
-      return { success: true }
+      const response = await signupService.verifyGst(formData.value.gstNumber)
+      
+      // Debug: Log the actual response
+      console.log('GST verification response:', response)
+      console.log('Response type:', typeof response)
+      console.log('Response keys:', Object.keys(response || {}))
+      
+      // Check if response has result or data property
+      const gstData = response.result || (response as any).data || response
+      console.log('Extracted GST data:', gstData)
+      
+      // Check if we have GST data (either from result/data or directly)
+      if (gstData && (gstData.pan || gstData.address)) {
+        console.log('Found valid GST data, proceeding with auto-fill')
+        
+        // Store the GST verification data
+        gstVerificationData.value = gstData
+        
+        // Auto-fill the form fields with the verification data
+        formData.value.gstPanNumber = gstData.pan || ''
+        formData.value.gstAddress = gstData.address || ''
+        formData.value.gstPincode = gstData.pincode || ''
+        formData.value.unitType = gstData.unit_type || ''
+        
+        // Set entity type if available
+        if (gstData.entity_type) {
+          formData.value.entityType = gstData.entity_type
+        }
+        
+        // Set entity name if available
+        if (gstData.legal_name) {
+          formData.value.entityName = gstData.legal_name
+        }
+        
+        // Clear any previous errors for the auto-filled fields
+        clearError('gstPanNumber')
+        clearError('gstAddress')
+        clearError('gstPincode')
+        clearError('entityType')
+        clearError('entityName')
+        
+        gstVerified.value = true
+        return { success: true }
+      } else {
+        console.log('GST verification failed - no valid data found')
+        setError('gstNumber', 'GST verification failed')
+        return { success: false }
+      }
     } catch (error: any) {
       setError('gstNumber', error.message || 'Invalid GST number')
       return { success: false }
@@ -723,6 +779,7 @@ export const useSignupStore = defineStore('signup', () => {
     pincodeData,
     isPincodeValid,
     isPincodeLoading,
+    gstVerificationData,
     
     // Computed
     isOtpComplete,

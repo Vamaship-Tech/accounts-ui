@@ -111,10 +111,28 @@ class SignupService {
     })
   }
 
-  async verifyGst(gstNumber: string): Promise<{ success: boolean }> {
-    return this.request<{ success: boolean }>('/kyc/verify-gst', {
+  async verifyGst(gstNumber: string): Promise<{ 
+    result: {
+      address: string
+      pincode: string
+      entity_type: string
+      legal_name: string
+      unit_type: string
+      pan: string
+    }
+  }> {
+    return this.request<{ 
+      result: {
+        address: string
+        pincode: string
+        entity_type: string
+        legal_name: string
+        unit_type: string
+        pan: string
+      }
+    }>('/kyc/verify-gst', {
       method: 'POST',
-      body: JSON.stringify({ gstNumber }),
+      body: JSON.stringify({ 'gst' : gstNumber }),
     })
   }
 

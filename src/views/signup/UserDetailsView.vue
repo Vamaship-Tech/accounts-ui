@@ -6,147 +6,225 @@
         src="/img/customer-panel.png" 
         alt="Background" 
         class="w-full h-full object-cover"
-        style="filter: blur(3px);"
+        style="filter: blur(1px);"
       />
     </div>
     
-    <div class="w-4/5 lg:w-2/5 relative z-10">
-      <div class="bg-white rounded-lg shadow-2xl border border-gray-200 p-6 lg:p-8">
-        <ProgressIndicator :current-step="2" />
-
-        <div class="text-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Complete your profile</h2>
-          <p class="text-gray-600">Fill in your details to create your Vamaship account</p>
+    <div class="w-full lg:w-3/5 relative z-10">
+      <div class="mb-4 lg:hidden">
+          <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-16 mx-auto" />
         </div>
-
-        <div v-if="signupStore.errors.general" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-          <div class="flex items-start">
-            <i class="fas fa-exclamation-circle text-red-500 mr-3 mt-0.5"></i>
-            <div class="flex-1">
-              <span class="text-red-700 text-sm font-medium">{{ signupStore.errors.general }}</span>
+      <div class="flex shadow-2xl border border-gray-200 rounded-2xl overflow-hidden">
+        
+        <!-- Left panel - hidden on mobile, visible on lg and above -->
+        <div class="hidden lg:flex bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 lg:p-12 flex-[0.5] relative overflow-hidden">
+          <!-- Decorative background elements -->
+          <div class="absolute top-0 right-0 w-32 h-32 bg-blue-200 rounded-full opacity-20 -translate-y-16 translate-x-16"></div>
+          <div class="absolute bottom-0 left-0 w-24 h-24 bg-indigo-200 rounded-full opacity-20 translate-y-12 -translate-x-12"></div>
+          
+          <!-- Content container -->
+          <div class="relative z-10 h-full flex flex-col justify-center">
+            <!-- Icon -->
+            <div class="text-center mb-8">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg mb-4">
+                <i class="fas fa-user-plus text-2xl text-white"></i>
+              </div>
+            </div>
+            
+            <!-- Main heading -->
+            <div class="text-center mb-6">
+              <h2 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-4">
+                Welcome to Vamaship
+              </h2>
+              <p class="text-gray-700 text-lg leading-relaxed">
+                Let's create your personalized shipping experience. Tell us about yourself and we'll tailor everything just for you.
+              </p>
+            </div>
+            
+            <!-- Feature highlights -->
+            <div class="space-y-4 mt-8">
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-check text-green-600 text-sm"></i>
+                </div>
+                <span class="text-gray-700 font-medium">Quick & easy setup</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-shield-alt text-blue-600 text-sm"></i>
+                </div>
+                <span class="text-gray-700 font-medium">Secure & reliable</span>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-rocket text-purple-600 text-sm"></i>
+                </div>
+                <span class="text-gray-700 font-medium">Get started in minutes</span>
+              </div>
+            </div>
+            
+            <!-- Progress indicator -->
+            <div class="mt-auto pt-6">
+              <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-2">
+                  <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Step 1 of 2</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-if="showLoginOption" class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
-          <div class="text-center">
-            <p class="text-blue-800 mb-2 text-sm">
-              The email <strong class="text-blue-900">{{ signupStore.formData.email }}</strong> is already registered with Vamaship.
-            </p>
+        <!-- Form panel - full width on mobile, flex-1 on desktop -->
+        <div class="bg-white p-6 lg:p-8 w-full lg:flex-1">
+          <!-- Mobile-only header with icon and title -->
+          <div class="lg:hidden text-center mb-6">
+
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg mb-3">
+              <i class="fas fa-user-plus text-xl text-white"></i>
+            </div>
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-2">Profile Setup</h2>
+            <p class="text-sm text-gray-600">Step 1 of 2</p>
+          </div>
+
+          <!-- Desktop header -->
+          <div class="hidden lg:block text-center mb-8">
+            <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-3">Profile Setup</h2>
+            <!-- <p class="text-gray-600">Complete your account details</p> -->
+          </div>
+
+          <div v-if="signupStore.errors.general" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+            <div class="flex items-start">
+              <i class="fas fa-exclamation-circle text-red-500 mr-3 mt-0.5"></i>
+              <div class="flex-1">
+                <span class="text-red-700 text-sm font-medium">{{ signupStore.errors.general }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="showLoginOption" class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
+            <div class="text-center">
+              <p class="text-blue-800 mb-2 text-sm">
+                The email <strong class="text-blue-900">{{ signupStore.formData.email }}</strong> is already registered with Vamaship.
+              </p>
+              <button
+                @click="goToLogin"
+                class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
+                Login Here
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-3 lg:space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
+              <input
+                v-model="signupStore.formData.fullName"
+                @input="validateFullName"
+                @blur="validateFullName"
+                @keyup.enter="nextStep"
+                type="text"
+                placeholder="Enter your full name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-300 focus:border-blue-300"
+                :class="{ 'border-red-500': signupStore.errors.fullName }"
+              />
+              <p v-if="signupStore.errors.fullName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.fullName }}</p>
+              <p v-else class="mt-1 text-xs text-gray-500">Please enter your complete name including first and last name</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email Address <span class="text-red-500">*</span></label>
+              <input
+                v-model="signupStore.formData.email"
+                @input="handleEmailInput"
+                @keyup.enter="nextStep"
+                type="email"
+                placeholder="Enter your email address"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                :class="{ 'border-red-500': signupStore.errors.email }"
+              />
+              <p v-if="signupStore.errors.email" class="mt-1 text-sm text-red-600">{{ signupStore.errors.email }}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name <span class="text-red-500">*</span></label>
+              <input
+                v-model="signupStore.formData.brandName"
+                @keyup.enter="nextStep"
+                type="text"
+                placeholder="Enter your brand name"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                :class="{ 'border-red-500': signupStore.errors.brandName }"
+              />
+              <p v-if="signupStore.errors.brandName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.brandName }}</p>
+              <p class="mt-1 text-xs text-gray-500">Your company/brand name</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Password <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input
+                  v-model="signupStore.formData.password"
+                  @input="validatePassword"
+                  @keyup.enter="nextStep"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="Create a strong password"
+                  class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  :class="{ 'border-red-500': signupStore.errors.password }"
+                />
+                <button
+                  type="button"
+                  @click="togglePasswordVisibility('password')"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-400"></i>
+                </button>
+              </div>
+              <p v-if="signupStore.errors.password" class="mt-1 text-sm text-red-600">{{ signupStore.errors.password }}</p>
+              <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters long</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input
+                  v-model="signupStore.formData.confirmPassword"
+                  @input="validatePassword"
+                  @keyup.enter="nextStep"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  placeholder="Confirm your password"
+                  class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  :class="{ 'border-red-500': signupStore.errors.confirmPassword, 'border-green-500': signupStore.formData.password && signupStore.formData.confirmPassword && signupStore.formData.password === signupStore.formData.confirmPassword }"
+                />
+                <button
+                  type="button"
+                  @click="togglePasswordVisibility('confirmPassword')"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-400"></i>
+                </button>
+              </div>
+              <p v-if="signupStore.errors.confirmPassword" class="mt-1 text-sm text-red-600">{{ signupStore.errors.confirmPassword }}</p>
+              <p v-else-if="signupStore.formData.password && signupStore.formData.confirmPassword && signupStore.formData.password === signupStore.formData.confirmPassword" class="mt-1 text-sm text-green-600">
+                <i class="fas fa-check-circle mr-1"></i>Passwords match
+              </p>
+            </div>
+          </div>
+
+          <div class="flex space-x-3 mt-6 lg:mt-8">
             <button
-              @click="goToLogin"
-              class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              @click="nextStep"
+              :disabled="!signupStore.isStep2Valid"
+              class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed font-semibold bg-blue-600"
             >
-              <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
-              Login Here
+              Continue
             </button>
           </div>
-        </div>
-
-        <div class="space-y-3 lg:space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
-            <input
-              v-model="signupStore.formData.fullName"
-              @input="validateFullName"
-              @blur="validateFullName"
-              @keyup.enter="nextStep"
-              type="text"
-              placeholder="Enter your full name"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-300 focus:border-blue-300"
-              :class="{ 'border-red-500': signupStore.errors.fullName }"
-            />
-            <p v-if="signupStore.errors.fullName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.fullName }}</p>
-            <p v-else class="mt-1 text-xs text-gray-500">Please enter your complete name including first and last name</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address <span class="text-red-500">*</span></label>
-            <input
-              v-model="signupStore.formData.email"
-              @input="handleEmailInput"
-              @keyup.enter="nextStep"
-              type="email"
-              placeholder="Enter your email address"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :class="{ 'border-red-500': signupStore.errors.email }"
-            />
-            <p v-if="signupStore.errors.email" class="mt-1 text-sm text-red-600">{{ signupStore.errors.email }}</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name <span class="text-red-500">*</span></label>
-            <input
-              v-model="signupStore.formData.brandName"
-              @keyup.enter="nextStep"
-              type="text"
-              placeholder="Enter your brand name"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :class="{ 'border-red-500': signupStore.errors.brandName }"
-            />
-            <p v-if="signupStore.errors.brandName" class="mt-1 text-sm text-red-600">{{ signupStore.errors.brandName }}</p>
-            <p class="mt-1 text-xs text-gray-500">Your company/brand name</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Password <span class="text-red-500">*</span></label>
-            <div class="relative">
-              <input
-                v-model="signupStore.formData.password"
-                @input="validatePassword"
-                @keyup.enter="nextStep"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Create a strong password"
-                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                :class="{ 'border-red-500': signupStore.errors.password }"
-              />
-              <button
-                type="button"
-                @click="togglePasswordVisibility('password')"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-400"></i>
-              </button>
-            </div>
-            <p v-if="signupStore.errors.password" class="mt-1 text-sm text-red-600">{{ signupStore.errors.password }}</p>
-            <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters long</p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password <span class="text-red-500">*</span></label>
-            <div class="relative">
-              <input
-                v-model="signupStore.formData.confirmPassword"
-                @input="validatePassword"
-                @keyup.enter="nextStep"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                placeholder="Confirm your password"
-                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                :class="{ 'border-red-500': signupStore.errors.confirmPassword, 'border-green-500': signupStore.formData.password && signupStore.formData.confirmPassword && signupStore.formData.password === signupStore.formData.confirmPassword }"
-              />
-              <button
-                type="button"
-                @click="togglePasswordVisibility('confirmPassword')"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                <i :class="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-400"></i>
-              </button>
-            </div>
-            <p v-if="signupStore.errors.confirmPassword" class="mt-1 text-sm text-red-600">{{ signupStore.errors.confirmPassword }}</p>
-            <p v-else-if="signupStore.formData.password && signupStore.formData.confirmPassword && signupStore.formData.password === signupStore.formData.confirmPassword" class="mt-1 text-sm text-green-600">
-              <i class="fas fa-check-circle mr-1"></i>Passwords match
-            </p>
-          </div>
-        </div>
-
-        <div class="flex space-x-3 mt-6 lg:mt-8">
-          <button
-            @click="nextStep"
-            :disabled="!signupStore.isStep2Valid"
-            class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed font-semibold bg-blue-600"
-          >
-            Continue
-          </button>
         </div>
       </div>
     </div>    
