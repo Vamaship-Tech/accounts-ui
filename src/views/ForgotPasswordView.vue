@@ -1,8 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
-    <div class="absolute inset-0 opacity-5">
-      <div class="absolute inset-0 bg-pattern"></div>
-    </div>
+    <BackgroundElements />
 
     <nav class="relative z-10 p-4 sm:p-6">
       <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
