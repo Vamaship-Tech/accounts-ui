@@ -9,7 +9,11 @@ import type {
   ApiError 
 } from '@/types/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+// Normalize and default API base URL to ensure it hits the backend's `/api` prefix
+const RAW_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const API_BASE_URL = (RAW_API_BASE_URL.endsWith('/')) 
+  ? RAW_API_BASE_URL.slice(0, -1) 
+  : RAW_API_BASE_URL
 
 class AuthService {
   private async request<T>(
@@ -34,15 +38,25 @@ class AuthService {
 
     try {
       const response = await fetch(url, config)
-      
+      const raw = await response.text().catch(() => '')
+
       if (!response.ok) {
-        const errorData: ApiError = await response.json().catch(() => ({
-          message: `HTTP error! status: ${response.status}`
-        }))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        let message = `HTTP error! status: ${response.status}`
+        if (raw) {
+          try { message = (JSON.parse(raw) as any).message || message } catch {}
+        }
+        throw new Error(message)
       }
 
-      return await response.json()
+      if (!raw || response.status === 204 || response.status === 205) {
+        return undefined as unknown as T
+      }
+
+      try {
+        return JSON.parse(raw) as T
+      } catch {
+        return raw as unknown as T
+      }
     } catch (error) {
       if (error instanceof Error) {
         throw error
@@ -177,16 +191,22 @@ class AuthService {
   }
 
   async forgotPassword(data: ForgotPasswordData): Promise<void> {
-    return this.request<void>('/auth/forgot-password', {
+    return this.request<void>('/v2/forgot-password', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
-  async resetPassword(data: ResetPasswordData): Promise<void> {
-    return this.request<void>('/auth/reset-password', {
+  async resetPassword(data: ResetPasswordData): Promise<{ message: string }> {
+    // Backend expects: token, password, password_confirmation
+    const mapped = {
+      token: data.token,
+      password: data.newPassword,
+      password_confirmation: data.confirmPassword,
+    }
+    return this.request<{ message: string }>('/v2/reset-password', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(mapped),
     })
   }
 
