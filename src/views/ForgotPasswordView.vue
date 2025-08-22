@@ -62,29 +62,21 @@
                 'w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors text-sm sm:text-base',
                 errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
               ]"
-              :disabled="authStore.isLoading"
             />
             <p v-if="errors.email" class="mt-1 text-xs sm:text-sm text-red-600">{{ errors.email }}</p>
           </div>
 
           <button
             type="submit"
-            :disabled="authStore.isLoading || !form.email"
+            :disabled="!form.email"
             class="w-full py-2 sm:py-3 px-4 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
             :class="[
-              (authStore.isLoading || !form.email) 
+              (!form.email)
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-purple-600 hover:bg-purple-700'
             ]"
           >
-            <span v-if="authStore.isLoading">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Sending...
-            </span>
-            <span v-else>Send Reset Link</span>
+            <span>Send Reset Link</span>
           </button>
         </form>
 
@@ -118,7 +110,6 @@
             Don't see the email? Check your spam folder or 
             <button 
               @click="handleForgotPassword" 
-              :disabled="authStore.isLoading"
               class="text-purple-600 hover:text-purple-800 font-medium"
             >
               try again
@@ -180,8 +171,11 @@ const handleForgotPassword = async () => {
   }
   
   try {
-    await authStore.forgotPassword({ email: form.email })
-    isSuccess.value = true
+    authStore.clearError()
+    const result = await authStore.forgotPassword({ email: form.email })
+    if (result?.success) {
+      isSuccess.value = true
+    }
   } catch (err: any) {
     // Error is handled by the store
   }

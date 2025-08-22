@@ -144,32 +144,26 @@ export const useAuthStore = defineStore('auth', () => {
   // Forgot password
   const forgotPassword = async (data: { email: string }) => {
     try {
-      isLoading.value = true
+      // Do not toggle global loader for this lightweight action
       error.value = null
-      
       await authService.forgotPassword(data)
       return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Failed to send reset link'
       return { success: false, error: error.value }
-    } finally {
-      isLoading.value = false
     }
   }
 
   // Reset password
   const resetPassword = async (data: ResetPasswordData) => {
     try {
-      isLoading.value = true
+      // Do not toggle global loader for this lightweight action
       error.value = null
-
       await authService.resetPassword(data)
       return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Failed to reset password'
       return { success: false, error: error.value }
-    } finally {
-      isLoading.value = false
     }
   }
 
