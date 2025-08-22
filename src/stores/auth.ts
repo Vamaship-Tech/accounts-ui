@@ -144,7 +144,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Forgot password
   const forgotPassword = async (data: { email: string }) => {
     try {
-      // Do not toggle global loader for this lightweight action
       error.value = null
       await authService.forgotPassword(data)
       return { success: true }
@@ -157,7 +156,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Reset password
   const resetPassword = async (data: ResetPasswordData) => {
     try {
-      // Do not toggle global loader for this lightweight action
       error.value = null
       await authService.resetPassword(data)
       return { success: true }
