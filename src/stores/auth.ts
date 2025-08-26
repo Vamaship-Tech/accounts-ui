@@ -53,15 +53,15 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = true
       error.value = null
       
-      const { user: userData, token } = await authService.login(credentials)
+      const { token, result } = await authService.login(credentials)
       
       // Set JWT token in HTTP-only cookie (handled by backend)
       setCookie('auth_token', token, 7) // 7 days expiry
       
-      user.value = userData
+      await useAuthStore().checkAuth()
       
       // Check if user needs redirection based on onboarding status
-      UserRedirection.checkAndRedirectOnLogin(userData)
+      UserRedirection.checkAndRedirectOnLogin(String(result))
       
       return { success: true }
     } catch (err: any) {

@@ -753,7 +753,7 @@
                 <button
                   type="button"
                   @click="handleSkipKyc"
-                  class="flex-1 bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 font-semibold flex items-center justify-center"
+                  class="flex-1 text-white py-3 px-4 rounded-md font-semibold flex items-center justify-center bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800"
                 >
                   Skip KYC
                 </button>

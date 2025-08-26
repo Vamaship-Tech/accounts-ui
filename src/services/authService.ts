@@ -2,6 +2,7 @@ import type {
   User, 
   LoginCredentials, 
   RegisterData, 
+  LoginResponse,
   AuthResponse, 
   KYCData,
   ForgotPasswordData,
@@ -58,8 +59,8 @@ class AuthService {
     return null
   }
 
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/auth/login', {
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    return this.request<LoginResponse>('/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     })

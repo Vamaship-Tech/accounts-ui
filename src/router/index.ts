@@ -8,6 +8,8 @@ import MobileVerificationView from '@/views/signup/MobileVerificationView.vue'
 import UserDetailsView from '@/views/signup/UserDetailsView.vue'
 import SignupKYCView from '@/views/signup/SignupKYCView.vue'
 import BannerDemo from '@/views/BannerDemo.vue'
+import MaintenanceView from '@/views/MaintenanceView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +17,11 @@ const router = createRouter({
     {
       path: '/',
       redirect: '/login'
+    },
+    {
+      path: '/maintenance',
+      name: 'maintenance',
+      component: MaintenanceView
     },
     {
       path: '/login',
@@ -62,6 +69,12 @@ const router = createRouter({
       name: 'reset-password',
       component: ResetPasswordView,
       meta: { requiresGuest: true }
+    },
+    // 404 catch-all (must be last)
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView
     }
   ]
 })
@@ -70,6 +83,13 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   try {
+    // Global maintenance guard: if enabled, redirect to maintenance (except when already there)
+    const maintenanceEnabled = (import.meta.env.VITE_MAINTENANCE_MODE || '').toString().toLowerCase() === 'true'
+    if (maintenanceEnabled && to.path !== '/maintenance') {
+      next('/maintenance')
+      return
+    }
+    
     const authStore = useAuthStore()
     
     // Check if user is authenticated

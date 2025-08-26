@@ -44,12 +44,19 @@ export class UserRedirection {
     
     try {
       this.isRedirecting = true
-      const mainAppUrl = import.meta.env.VITE_MAIN_APP_URL || 'https://app.vamaship.com'
-      
-      // Add a small delay to prevent rapid redirects
-      setTimeout(() => {
-        window.location.href = mainAppUrl
-      }, 100)
+      const baseUrl = import.meta.env.VITE_MAIN_APP_URL
+      const token = this.getCookie('auth_token')
+
+      // Trim trailing slashes from base URL
+      const sanitizedBaseUrl = baseUrl.replace(/\/+$/, '')
+console.log(sanitizedBaseUrl)
+      // Append token as query param if available
+      const url = token
+        ? `${sanitizedBaseUrl}?token=${encodeURIComponent(token)}`
+        : sanitizedBaseUrl
+
+      // Replace current history entry when navigating to main app
+      window.location.replace(url)
     } catch (error) {
       console.error('Failed to redirect to main app:', error)
       this.isRedirecting = false
@@ -58,15 +65,22 @@ export class UserRedirection {
     }
   }
 
-  static checkAndRedirectOnLogin(user: User): boolean {
+  private static getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    return null
+  }
+
+  static checkAndRedirectOnLogin(result: string): boolean {
     if (this.isRedirecting) return false
     
-    if (user.onboardingStatus === 'kyc_completed' && user.kycStatus === 'completed') {
+    if (result === 'completed') {
       this.redirectToMainApp()
       return true
     }
     
-    if (user.onboardingStatus === 'details_completed') {
+    if (result === 'kyc_pending') {
       router.push('/signup/kyc')
       return true
     }

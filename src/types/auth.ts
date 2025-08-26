@@ -28,6 +28,11 @@ export interface RegisterData {
   brandName: string
 }
 
+export interface LoginResponse {
+  token: string
+  result: User
+}
+
 export interface AuthResponse {
   user: User
   token: string
