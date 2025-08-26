@@ -33,7 +33,7 @@
                 Business Verification
               </h2>
               <p class="text-gray-700 text-lg leading-relaxed">
-                Complete KYC to unlock advanced features and enable COD payments. You can skip this for now and complete it later.
+                Hi {{ authStore.user?.firstName || 'there' }}, Complete KYC to unlock advanced features and enable COD payments. You can skip this for now and complete it later.
               </p>
             </div>
             
