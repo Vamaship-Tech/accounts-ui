@@ -2,13 +2,13 @@
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <div class="text-center">
-        <h1 class="text-3xl font-bold text-gray-900">VamaShip</h1>
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+        <div class="flex justify-center mb-4 sm:mb-6">
+          <img src="/images/vamaship-logo.png" alt="Vamaship" style="width: 170px; height: 86px;" />
+        </div>
+        <!-- <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
           Reset your password
-        </h2>
-        <p class="mt-2 text-sm text-gray-600">
-          Enter your new password below
-        </p>
+        </h2> -->
+        
       </div>
     </div>
 
@@ -28,6 +28,7 @@
                 type="password"
                 autocomplete="new-password"
                 required
+                :disabled="isSubmitting || isSuccess"
                 :class="[
                   'input-field',
                   errors.newPassword ? 'border-red-500 focus:ring-red-500' : ''
@@ -56,6 +57,7 @@
                 type="password"
                 autocomplete="new-password"
                 required
+                :disabled="isSubmitting || isSuccess"
                 :class="[
                   'input-field',
                   errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''
@@ -104,10 +106,10 @@
           <div>
             <button
               type="submit"
-              :disabled="authStore.isLoading || isSuccess"
+              :disabled="isSubmitting || isSuccess"
               class="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span v-if="authStore.isLoading" class="flex items-center justify-center">
+              <span v-if="isSubmitting && !isSuccess" class="inline-flex items-center justify-center">
                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -145,6 +147,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const isSuccess = ref(false)
+const isSubmitting = ref(false)
 
 const form = reactive<ResetPasswordData>({
   token: '',
@@ -203,15 +206,23 @@ const handleResetPassword = async () => {
   if (!validateForm()) return
   
   try {
-    await authService.resetPassword(form)
+    authStore.clearError()
+    isSubmitting.value = true
+    await authService.resetPassword({
+      token: form.token,
+      newPassword: form.newPassword,
+      confirmPassword: form.confirmPassword
+    })
+    isSubmitting.value = false
     isSuccess.value = true
-    
-    // Redirect to login after 3 seconds
+    form.newPassword = ''
+    form.confirmPassword = ''
     setTimeout(() => {
       router.push('/login')
     }, 3000)
   } catch (err: any) {
-    // Error is handled by the store
+    isSubmitting.value = false
+    authStore.error = err?.message || 'Failed to reset password'
   }
 }
 </script> 

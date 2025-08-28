@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService'
 import { UserRedirection } from '@/utils/redirection'
-import type { User, LoginCredentials, RegisterData, KYCData } from '@/types/auth'
+import type { User, LoginCredentials, RegisterData, KYCData, ResetPasswordData } from '@/types/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -144,16 +144,24 @@ export const useAuthStore = defineStore('auth', () => {
   // Forgot password
   const forgotPassword = async (data: { email: string }) => {
     try {
-      isLoading.value = true
       error.value = null
-      
       await authService.forgotPassword(data)
       return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Failed to send reset link'
       return { success: false, error: error.value }
-    } finally {
-      isLoading.value = false
+    }
+  }
+
+  // Reset password
+  const resetPassword = async (data: ResetPasswordData) => {
+    try {
+      error.value = null
+      await authService.resetPassword(data)
+      return { success: true }
+    } catch (err: any) {
+      error.value = err.message || 'Failed to reset password'
+      return { success: false, error: error.value }
     }
   }
 
@@ -189,6 +197,7 @@ export const useAuthStore = defineStore('auth', () => {
     submitKYC,
     skipKYC,
     forgotPassword,
+    resetPassword,
     redirectToMainApp,
     clearError,
     updateOnboardingStatus
