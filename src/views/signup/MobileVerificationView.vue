@@ -106,19 +106,26 @@
               <div v-if="signupStore.otpSent" class="mt-4 pt-4">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
-                  <div class="flex space-x-2 justify-center items-center">
+                  <div class="flex space-x-2 justify-center items-center" ref="otpContainerRef">
                     <input 
                       v-for="(digit, index) in signupStore.formData.otp.slice(0, 3)" 
                       :key="index"
                       :ref="(el) => setOtpInputRef(el, index)"
                       v-model="signupStore.formData.otp[index]"
                       @input="handleOtpInput(index, $event)"
+                      @keyup="handleOtpKeyup(index, $event)"
                       @keydown="handleOtpKeydown(index, $event)"
                       @click="handleOtpClick"
                       @paste="handleOtpPaste"
-                      type="text" 
+                      type="tel" 
                       class="w-10 h-10 sm:w-12 sm:h-12 lg:w-12 lg:h-12 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base bg-white text-gray-900" 
                       maxlength="1"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]*"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      @focus="handleOtpFocus"
                       :data-otp-index="index"
                     />
                     <span class="text-2xl text-gray-400 font-bold mx-2">-</span>
@@ -128,12 +135,19 @@
                       :ref="(el) => setOtpInputRef(el, index + 3)"
                       v-model="signupStore.formData.otp[index + 3]"
                       @input="handleOtpInput(index + 3, $event)"
+                      @keyup="handleOtpKeyup(index + 3, $event)"
                       @keydown="handleOtpKeydown(index + 3, $event)"
                       @click="handleOtpClick"
                       @paste="handleOtpPaste"
-                      type="text" 
+                      type="tel" 
                       class="w-10 h-10 sm:w-12 sm:h-12 lg:w-12 lg:h-12 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base bg-white text-gray-900" 
                       maxlength="1"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]*"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      @focus="handleOtpFocus"
                       :data-otp-index="index + 3"
                     />
                   </div>                      
@@ -324,19 +338,26 @@
               <div v-if="signupStore.otpSent" class="mt-4 flex-1">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
-                  <div class="flex space-x-2 justify-center items-center">
+                  <div class="flex space-x-2 justify-center items-center" ref="otpContainerRef">
                     <input 
                       v-for="(digit, index) in signupStore.formData.otp.slice(0, 3)" 
                       :key="index"
                       :ref="(el) => setOtpInputRef(el, index)"
                       v-model="signupStore.formData.otp[index]"
                       @input="handleOtpInput(index, $event)"
+                      @keyup="handleOtpKeyup(index, $event)"
                       @keydown="handleOtpKeydown(index, $event)"
                       @click="handleOtpClick"
                       @paste="handleOtpPaste"
-                      type="text" 
+                      type="tel" 
                       class="w-15 h-15 sm:w-12 sm:h-12 lg:w-15 lg:h-15 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base bg-white text-gray-900" 
                       maxlength="1"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]*"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      @focus="handleOtpFocus"
                       :data-otp-index="index"
                     />
                     <span class="text-2xl text-gray-400 font-bold mx-2">-</span>
@@ -346,12 +367,19 @@
                       :ref="(el) => setOtpInputRef(el, index + 3)"
                       v-model="signupStore.formData.otp[index + 3]"
                       @input="handleOtpInput(index + 3, $event)"
+                      @keyup="handleOtpKeyup(index + 3, $event)"
                       @keydown="handleOtpKeydown(index + 3, $event)"
                       @click="handleOtpClick"
                       @paste="handleOtpPaste"
-                      type="text" 
+                      type="tel" 
                       class="w-15 h-15 sm:w-12 sm:h-12 lg:w-15 lg:h-15 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm lg:text-base bg-white text-gray-900" 
                       maxlength="1"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]*"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      @focus="handleOtpFocus"
                       :data-otp-index="index + 3"
                     />
                   </div>                      
@@ -436,7 +464,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '../../stores/signup'
 import { useAuthStore } from '../../stores/auth'
@@ -453,6 +481,7 @@ const authStore = useAuthStore()
 
 const isMobileAlreadyRegistered = ref(false)
 const otpInputRefs = ref<HTMLInputElement[]>([])
+const otpContainerRef = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   // Initialize from session if available
@@ -465,6 +494,34 @@ const setOtpInputRef = (el: any, index: number) => {
   } else if (el) {
     otpInputRefs.value[index] = el
   }
+}
+
+const findVisibleOtpInput = (index: number): HTMLInputElement | null => {
+  const candidates = document.querySelectorAll<HTMLInputElement>(`input[data-otp-index='${index}']`)
+  for (const el of Array.from(candidates)) {
+    if (el && el.offsetParent !== null) {
+      return el
+    }
+  }
+  return otpInputRefs.value[index] ?? null
+}
+
+const focusOtpInput = (index: number) => {
+  if (index < 0 || index > 5) return
+  const attemptFocus = () => {
+    const input: HTMLInputElement | null = findVisibleOtpInput(index)
+    if (input) {
+      try {
+        input.focus()
+        input.select()
+      } catch (_) {}
+    }
+  }
+  // Attempt immediately, then again on next tick and rAF to handle mobile quirks
+  attemptFocus()
+  nextTick(() => {
+    requestAnimationFrame(() => attemptFocus())
+  })
 }
 
 const handlePhoneInput = (event: Event) => {
@@ -492,14 +549,9 @@ const handleOtpInput = (index: number, event: Event) => {
   
   // Auto-focus to next input if value is entered and not at last input
   if (value && index < 5) {
-    // Use setTimeout to ensure DOM is updated and focus works
     setTimeout(() => {
-      const nextInput = otpInputRefs.value[index + 1]
-      if (nextInput) {
-        nextInput.focus()
-        nextInput.select() // Select the text for easy replacement
-      }
-    }, 10) // Small delay to ensure DOM update
+      focusOtpInput(index + 1)
+    }, 0)
   }
   
   // Clear error when user starts typing
@@ -528,11 +580,7 @@ const handleOtpPaste = (event: ClipboardEvent) => {
     const nextEmptyIndex = Math.min(numbers.length, 6)
     if (nextEmptyIndex < 6) {
       setTimeout(() => {
-        const nextInput = otpInputRefs.value[nextEmptyIndex]
-        if (nextInput) {
-          nextInput.focus()
-          nextInput.select()
-        }
+        focusOtpInput(nextEmptyIndex)
       }, 10)
     }
   }
@@ -545,33 +593,46 @@ const handleOtpKeydown = (index: number, event: KeyboardEvent) => {
     // If current input is empty and backspace is pressed, go to previous input
     if (!signupStore.formData.otp[index] && index > 0) {
       event.preventDefault()
-      const prevInput = otpInputRefs.value[index - 1]
-      if (prevInput) {
-        prevInput.focus()
-        prevInput.select() // Select the text for easy replacement
-      }
+      focusOtpInput(index - 1)
     }
   }
   
   // Handle arrow keys for navigation
   if (event.key === 'ArrowRight' && index < 5) {
     event.preventDefault()
-    const nextInput = otpInputRefs.value[index + 1]
-    if (nextInput) {
-      nextInput.focus()
-      nextInput.select()
-    }
+    focusOtpInput(index + 1)
   }
   
   if (event.key === 'ArrowLeft' && index > 0) {
     event.preventDefault()
-    const prevInput = otpInputRefs.value[index - 1]
-    if (prevInput) {
-      prevInput.focus()
-      prevInput.select()
-    }
+    focusOtpInput(index - 1)
   }
 }
+
+const handleOtpKeyup = (index: number, event: KeyboardEvent) => {
+  const target = event.target as HTMLInputElement
+  const value = target.value.replace(/[^0-9]/g, '')
+
+  // Fallback for some mobile keyboards where input event timing differs
+  if (value && index < 5) {
+    setTimeout(() => {
+      focusOtpInput(index + 1)
+    }, 0)
+  }
+}
+
+const handleOtpFocus = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  target.select()
+}
+
+watch(() => signupStore.otpSent, (isSent) => {
+  if (isSent) {
+    nextTick(() => {
+      focusOtpInput(0)
+    })
+  }
+})
 
 const verifyOtp = async () => {
   const result = await signupStore.verifyMobileOtp()
