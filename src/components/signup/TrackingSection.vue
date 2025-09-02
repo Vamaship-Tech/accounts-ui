@@ -31,15 +31,6 @@
           >
             Shipment
           </button>
-          <button 
-            @click="switchTrackType('order')"
-            :class="[
-              'track-type-btn flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200',
-              trackType === 'order' ? 'active' : ''
-            ]"
-          >
-            Order ID
-          </button>
         </div>
       </div>
       
@@ -94,8 +85,6 @@ const trackingPlaceholder = computed(() => {
       return 'Enter your AWB number'
     case 'shipment':
       return 'Enter your shipment number'
-    case 'order':
-      return 'Enter your order ID'
     default:
       return 'Enter tracking number'
   }
@@ -126,9 +115,6 @@ const trackOrder = async () => {
         break
       case 'shipment':
         trackingIdType = 'shipment_numbers'
-        break
-      case 'order':
-        trackingIdType = 'reference_numbers'
         break
     }
 
