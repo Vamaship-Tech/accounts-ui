@@ -226,10 +226,12 @@
 
           <!-- Main Form Content -->
           <div v-else>
-            <!-- <div class="text-center mb-8"> -->
-              <!-- <h2 class="text-3xl font-bold text-gray-900 mb-3">KYC Setup</h2> -->
-              <!-- <p class="text-gray-600">Complete your business verification</p> -->
-            <!-- </div> -->
+            <div class="block md:hidden mb-6">
+              <div class="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border border-emerald-100 rounded-xl p-4">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Business Verification</h2>
+                <p class="text-gray-700 mt-1">Complete KYC to unlock advanced features. You can skip for now.</p>
+              </div>
+            </div>
 
             <div v-if="signupStore.errors.general" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
               <div class="flex items-center">
