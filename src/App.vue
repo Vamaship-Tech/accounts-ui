@@ -13,8 +13,8 @@
       </div>
     </div>
     
-    <!-- Error state if authentication fails -->
-    <div v-else-if="authStore.error" class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <!-- Error state if authentication fails during global auth check -->
+    <div v-else-if="authStore.authCheckError" class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div class="max-w-md w-full text-center">
         <div class="bg-white shadow-sm border border-gray-200 rounded-xl p-8">
           <div class="mx-auto mb-4 w-full flex justify-center text-red-600">
@@ -26,7 +26,7 @@
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-gray-900 mb-2">Authentication error</h2>
-          <p class="text-gray-600 mb-6">{{ authStore.error }}</p>
+          <p class="text-gray-600 mb-6">{{ authStore.authCheckError }}</p>
           <div class="flex flex-col gap-2">
             <button @click="retryAuth" class="btn-primary">Retry</button>
             <button @click="goToLogin" class="btn-secondary">Go to Login</button>
@@ -59,7 +59,7 @@ const retryAuth = async () => {
 }
 
 const goToLogin = () => {
-  authStore.clearError()
+  authStore.clearAuthCheckError()
   router.push('/login')
 }
 

@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const authCheckError = ref<string | null>(null)
 
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
@@ -19,6 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       isLoading.value = true
       error.value = null
+      authCheckError.value = null
       
       const token = getCookie('auth_token')
       
@@ -36,11 +38,11 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Set a user-friendly error message
       if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
-        error.value = 'Your session has expired. Please log in again.'
+        authCheckError.value = 'Your session has expired. Please log in again.'
       } else if (err.message?.includes('Network error')) {
-        error.value = 'Unable to connect to the server. Please check your internet connection.'
+        authCheckError.value = 'Unable to connect to the server. Please check your internet connection.'
       } else {
-        error.value = err.message || 'Authentication failed. Please try again.'
+        authCheckError.value = err.message || 'Authentication failed. Please try again.'
       }
     } finally {
       isLoading.value = false
@@ -144,17 +146,16 @@ export const useAuthStore = defineStore('auth', () => {
   // Forgot password
   const forgotPassword = async (data: { email: string }) => {
     try {
-      isLoading.value = true
       error.value = null
       
       await authService.forgotPassword(data)
       return { success: true }
     } catch (err: any) {
-      error.value = err.message || 'Failed to send reset link'
+      // Normalize error to a readable string from Error or backend response
+      const message = err?.message || (typeof err === 'string' ? err : null) || 'Failed to send reset link'
+      error.value = message
       return { success: false, error: error.value }
-    } finally {
-      isLoading.value = false
-    }
+    } 
   }
 
   // Redirect to main app
@@ -165,6 +166,11 @@ export const useAuthStore = defineStore('auth', () => {
   // Clear error
   const clearError = () => {
     error.value = null
+  }
+
+  // Clear auth check error (global overlay)
+  const clearAuthCheckError = () => {
+    authCheckError.value = null
   }
 
   // Update user onboarding status
@@ -178,6 +184,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isLoading,
     error,
+    authCheckError,
     isAuthenticated,
     isAdmin,
     kycCompleted,
@@ -191,6 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
     forgotPassword,
     redirectToMainApp,
     clearError,
+    clearAuthCheckError,
     updateOnboardingStatus
   }
 })

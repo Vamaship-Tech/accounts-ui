@@ -37,13 +37,41 @@ class AuthService {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        const errorData: ApiError = await response.json().catch(() => ({
-          message: `HTTP error! status: ${response.status}`
-        }))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        // Try to parse error body for backend-provided message
+        let message = `HTTP error! status: ${response.status}`
+        try {
+          const data = await response.json()
+          // Common API error shapes
+          if (data?.message) {
+            message = data.message
+          } else if (data?.errors && typeof data.errors === 'object') {
+            const firstKey = Object.keys(data.errors)[0]
+            const firstMsg = Array.isArray(data.errors[firstKey]) ? data.errors[firstKey][0] : data.errors[firstKey]
+            message = firstMsg || message
+          }
+        } catch {
+          // Fallback to text if not JSON
+          try {
+            const text = await response.text()
+            if (text) message = text
+          } catch {}
+        }
+        throw new Error(message)
       }
 
-      return await response.json()
+      // Handle no-content responses
+      if (response.status === 204) {
+        return undefined as unknown as T
+      }
+
+      // If no body or not JSON, try safe parse
+      const contentType = response.headers.get('content-type') || ''
+      if (contentType.includes('application/json')) {
+        return await response.json()
+      }
+      // Non-JSON successful response
+      const text = await response.text()
+      return (text as unknown) as T
     } catch (error) {
       if (error instanceof Error) {
         throw error
@@ -178,21 +206,21 @@ class AuthService {
   }
 
   async forgotPassword(data: ForgotPasswordData): Promise<void> {
-    return this.request<void>('/auth/forgot-password', {
+    return this.request<void>('/forgot-password', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async resetPassword(data: ResetPasswordData): Promise<void> {
-    return this.request<void>('/auth/reset-password', {
+    return this.request<void>('/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
   async refreshToken(): Promise<{ token: string }> {
-    return this.request<{ token: string }>('/auth/refresh', {
+    return this.request<{ token: string }>('/refresh', {
       method: 'POST',
     })
   }
