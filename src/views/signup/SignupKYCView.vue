@@ -9,11 +9,11 @@
       />
     </div>
     
-    <div class="w-4/5 lg:w-3/5 relative z-10">
-      <div class="flex shadow-2xl border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="w-full sm:w-4/5 lg:w-3/5 relative z-10">
+      <div class="flex flex-col md:flex-row shadow-2xl border border-gray-200 rounded-2xl overflow-hidden">
         
         <!-- Left Panel - Welcome & Context -->
-        <div class="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 lg:p-12 flex-[0.4] relative overflow-hidden">
+        <div class="hidden md:block bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 lg:p-12 flex-[0.4] relative overflow-hidden">
           <!-- Decorative background elements -->
           <div class="absolute top-0 right-0 w-32 h-32 bg-green-200 rounded-full opacity-20 -translate-y-16 translate-x-16"></div>
           <div class="absolute bottom-0 left-0 w-24 h-24 bg-emerald-200 rounded-full opacity-20 translate-y-12 -translate-x-12"></div>
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Right Panel - Form Content -->
-        <div class="bg-white p-6 lg:p-8 flex-1">
+        <div class="bg-white p-4 sm:p-6 lg:p-8 flex-1">
           <!-- Loading State for Skip KYC -->
           <div v-if="isSkippingKyc" class="text-center py-16 px-8">
             <!-- Enhanced Loading Animation -->
@@ -749,7 +749,7 @@
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex space-x-4">
+              <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0">
                 <button
                   type="button"
                   @click="handleSkipKyc"
