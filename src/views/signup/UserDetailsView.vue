@@ -120,7 +120,73 @@
             </div>
           </div>
 
-          <div class="space-y-3 lg:space-y-4">
+          <div v-if="isSocialFlow" class="space-y-3 lg:space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Number <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <input 
+                  v-model="signupStore.formData.phone"
+                  type="tel" 
+                  placeholder="Enter Phone Number" 
+                  class="w-full pl-16 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all bg-white text-gray-900"
+                  maxlength="10"
+                />
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                  <span class="text-gray-600 font-medium">+91</span>
+                  <span class="text-gray-400 mx-3">|</span>
+                </div>
+              </div>
+              <p v-if="signupStore.errors.phone" class="mt-1 text-sm text-red-600">{{ signupStore.errors.phone }}</p>
+            </div>
+
+            <div v-if="!signupStore.otpSent">
+              <button 
+                @click="sendOtp"
+                :disabled="signupStore.formData.phone.length !== 10 || signupStore.isLoading"
+                class="w-full text-white py-3 rounded-lg font-medium transition-all flex items-center justify-center"
+                :class="{
+                  'opacity-50 cursor-not-allowed': signupStore.formData.phone.length !== 10 || signupStore.isLoading,
+                  'hover:bg-opacity-90': signupStore.formData.phone.length === 10 && !signupStore.isLoading
+                }"
+                style="background-color: #6A5ACD;"
+              >
+                {{ signupStore.isLoading ? 'Sending...' : 'Send OTP' }}
+              </button>
+            </div>
+
+            <div v-else>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
+              <div class="flex space-x-2 justify-start items-center">
+                <input 
+                  v-for="(digit, index) in signupStore.formData.otp" 
+                  :key="index"
+                  v-model="signupStore.formData.otp[index]"
+                  type="text" 
+                  class="w-10 h-10 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm bg-white text-gray-900" 
+                  maxlength="1"
+                />
+              </div>
+              <div class="mt-3">
+                <button 
+                  @click="verifyOtp"
+                  :disabled="!signupStore.isOtpComplete"
+                  class="w-full text-white py-3 rounded-lg font-medium transition-all"
+                  :class="{
+                    'opacity-50 cursor-not-allowed': !signupStore.isOtpComplete,
+                    'hover:bg-opacity-90': signupStore.isOtpComplete
+                  }"
+                  style="background-color: #6A5ACD;"
+                >
+                  Verify OTP
+                </button>
+              </div>
+            </div>
+
+            
+          </div>
+
+          <div v-else class="space-y-3 lg:space-y-4">
+            <!-- original non-social form -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
               <input
@@ -214,16 +280,16 @@
                 <i class="fas fa-check-circle mr-1"></i>Passwords match
               </p>
             </div>
-          </div>
 
-          <div class="flex space-x-3 mt-6 lg:mt-8">
-            <button
-              @click="nextStep"
-              :disabled="!signupStore.isStep2Valid"
-              class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed font-semibold bg-blue-600"
-            >
-              Continue
-            </button>
+            <div class="flex space-x-3 mt-6 lg:mt-8">
+              <button
+                @click="nextStep"
+                :disabled="!signupStore.isStep2Valid"
+                class="flex-1 text-white py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed font-semibold bg-blue-600"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -233,11 +299,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
 import ProgressIndicator from '@/components/signup/ProgressIndicator.vue'
 
 const router = useRouter()
+const route = useRoute()
 const signupStore = useSignupStore()
 
 const showPassword = ref(false)
@@ -250,6 +317,24 @@ onMounted(() => {
     router.push('/signup/mobile')
   }
 })
+
+const isSocialFlow = computed(() => route.query.social === '1')
+
+const sendOtp = async () => {
+  await signupStore.sendMobileOtp()
+}
+
+const verifyOtp = async () => {
+  const result = await signupStore.verifyMobileOtp()
+  if (!result.success) return
+  // After OTP success in social flow, complete social details to get auth, then go to KYC
+  const res = await signupStore.completeSocialDetails()
+  if (res.success) {
+    router.push('/signup/kyc')
+  }
+}
+
+// Removed submitSocialDetails: OTP verification directly navigates to KYC in social flow
 
 const validateFullName = () => {
   if (!signupStore.formData.fullName.trim()) {

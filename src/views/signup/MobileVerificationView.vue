@@ -194,7 +194,12 @@
                 <div class="flex-1 h-px bg-gray-300"></div>
               </div>
 
-              <GoogleSignIn v-if="!signupStore.otpSent" @google-sign-in="handleGoogleSignIn" />
+              <GoogleSignIn 
+                v-if="!signupStore.otpSent" 
+                :is-loading="authStore.isLoading"
+                @googleSignIn="handleGoogleSignIn"
+                @googleError="handleGoogleError"
+              />
 
               <!-- Tracking Section -->
               <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
@@ -407,7 +412,12 @@
                 <div class="flex-1 h-px bg-gray-300"></div>
               </div>
 
-              <GoogleSignIn v-if="!signupStore.otpSent" @google-sign-in="handleGoogleSignIn" />
+              <GoogleSignIn 
+                v-if="!signupStore.otpSent" 
+                :is-loading="authStore.isLoading"
+                @googleSignIn="handleGoogleSignIn"
+                @googleError="handleGoogleError"
+              />
 
               <!-- Tracking Section -->
               <div v-if="!signupStore.otpSent" class="my-4 mx-auto">
@@ -427,8 +437,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '../../stores/signup'
+import { useAuthStore } from '../../stores/auth'
 import TrackingSection from '../../components/signup/TrackingSection.vue'
 import GoogleSignIn from '../../components/common/GoogleSignIn.vue'
 import SpinnerLoader from '../../components/common/SpinnerLoader.vue'
@@ -436,7 +447,9 @@ import LogoCloud from '../../components/common/LogoCloud.vue'
 import BackgroundElements from '../../components/common/BackgroundElements.vue'
 
 const router = useRouter()
+const route = useRoute()
 const signupStore = useSignupStore()
+const authStore = useAuthStore()
 
 const isMobileAlreadyRegistered = ref(false)
 const otpInputRefs = ref<HTMLInputElement[]>([])
@@ -581,9 +594,21 @@ const formatOtpTime = (seconds: number): string => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-const handleGoogleSignIn = async () => {
-  // TODO: Implement Google OAuth
-  console.log('Google sign-in clicked')
+const handleGoogleSignIn = async (credential: string) => {
+  const res = await authStore.socialLoginWithGoogle({
+    credential,
+    reference: route.query.reference?.toString() ?? null,
+    utm_medium: route.query.utm_medium?.toString() ?? null,
+    utm_campaign: route.query.utm_campaign?.toString() ?? null,
+    utm_source: route.query.utm_source?.toString() ?? null,
+  })
+  if (!res.success) {
+    console.error(res.error)
+  }
+}
+
+const handleGoogleError = (message: string) => {
+  console.error('Google Sign-In error:', message)
 }
 
 const changeNumber = () => {

@@ -91,7 +91,8 @@
           <div class="grid grid-cols-1 gap-3">
             <GoogleSignIn 
               :is-loading="authStore.isLoading"
-              @google-sign-in="handleGoogleSignIn"
+              @googleSignIn="handleGoogleSignIn"
+              @googleError="handleGoogleError"
             />
             
           </div>
@@ -183,9 +184,22 @@ const handleLogin = async () => {
   }
 }
 
-const handleGoogleSignIn = () => {
-  // TODO: Implement Google OAuth
-  console.log('Google sign-in clicked')
+const handleGoogleSignIn = async (credential: string) => {
+  const res = await authStore.socialLoginWithGoogle({
+    credential,
+    reference: route.query.reference?.toString() ?? null,
+    utm_medium: route.query.utm_medium?.toString() ?? null,
+    utm_campaign: route.query.utm_campaign?.toString() ?? null,
+    utm_source: route.query.utm_source?.toString() ?? null,
+  })
+  if (!res.success) {
+    // Optionally show a toast/banner; authStore.error already set
+    console.error(res.error)
+  }
+}
+
+const handleGoogleError = (message: string) => {
+  console.error('Google Sign-In error:', message)
 }
 
 </script> 

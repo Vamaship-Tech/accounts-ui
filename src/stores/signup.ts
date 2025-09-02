@@ -99,8 +99,8 @@ export const useSignupStore = defineStore('signup', () => {
       formData.value.fullName.trim() &&
       formData.value.email.trim() &&
       formData.value.brandName.trim() &&
-      formData.value.password.length >= 8 &&
-      formData.value.password === formData.value.confirmPassword &&
+      (!formData.value.password || formData.value.password.length >= 8) &&
+      (!formData.value.password || formData.value.password === formData.value.confirmPassword) &&
       !Object.keys(errors.value).some(key => errors.value[key as keyof SignupErrors])
     )
   })
@@ -289,22 +289,19 @@ export const useSignupStore = defineStore('signup', () => {
       isValid = false
     }
 
-    // Password validation
-    if (!formData.value.password) {
-      setError('password', 'Password is required')
-      isValid = false
-    } else if (formData.value.password.length < 8) {
-      setError('password', 'Password must be at least 8 characters')
-      isValid = false
-    }
-
-    // Confirm password validation
-    if (!formData.value.confirmPassword) {
-      setError('confirmPassword', 'Please confirm your password')
-      isValid = false
-    } else if (formData.value.password !== formData.value.confirmPassword) {
-      setError('confirmPassword', 'Passwords do not match')
-      isValid = false
+    // Password validation (optional for social flow)
+    if (formData.value.password) {
+      if (formData.value.password.length < 8) {
+        setError('password', 'Password must be at least 8 characters')
+        isValid = false
+      }
+      if (!formData.value.confirmPassword) {
+        setError('confirmPassword', 'Please confirm your password')
+        isValid = false
+      } else if (formData.value.password !== formData.value.confirmPassword) {
+        setError('confirmPassword', 'Passwords do not match')
+        isValid = false
+      }
     }
 
     return isValid
@@ -324,7 +321,7 @@ export const useSignupStore = defineStore('signup', () => {
 
       const userData = {
         email: formData.value.email,
-        password: formData.value.password,
+        password: formData.value.password || undefined,
         firstName,
         lastName,
         mobile: formData.value.phone,
@@ -356,6 +353,46 @@ export const useSignupStore = defineStore('signup', () => {
       return { success: true, user: response.user, token: response.token }
     } catch (error: any) {
       setError('general', error.message || 'Failed to create account')
+      return { success: false }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const completeSocialDetails = async () => {
+    // For social flow, ensure mobile and brandName are present and OTP verified (mobileSession)
+    clearErrors()
+    if (!formData.value.phone || formData.value.phone.length !== 10) {
+      setError('phone', 'Please enter a valid 10-digit mobile number')
+      return { success: false }
+    }
+
+    try {
+      isLoading.value = true
+      const response = await signupService.updateSocialDetails({
+        mobile: formData.value.phone,
+        brandName: formData.value.brandName,
+      })
+
+      // const expires = new Date()
+      // expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000))
+      // document.cookie = `auth_token=${response.token};expires=${expires.toUTCString()};path=/`
+
+      const authStore = useAuthStore()
+      if (response.user) {
+        authStore.user = response.user as any
+        authStore.updateOnboardingStatus('details_completed')
+      } else {
+        await authStore.checkAuth()
+        authStore.updateOnboardingStatus('details_completed')
+      }
+
+      SessionManager.clearMobileSession()
+      mobileSession.value = null
+      currentStep.value = 3
+      return { success: true }
+    } catch (error: any) {
+      setError('general', error.message || 'Failed to save details')
       return { success: false }
     } finally {
       isLoading.value = false
@@ -805,6 +842,7 @@ export const useSignupStore = defineStore('signup', () => {
     saveKycProgress,
     skipKyc,
     completeKyc,
+    completeSocialDetails,
     initializeFromSession,
     resetForm,
     fetchEntityTypes,

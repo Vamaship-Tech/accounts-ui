@@ -92,6 +92,13 @@ class SignupService {
     })
   }
 
+  async updateSocialDetails(data: { mobile: string; brandName: string }): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/update-social-details', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
   // Step 3: KYC
   async sendAadhaarOtp(aadhaarNumber: string): Promise<{ success: boolean }> {
     return this.request<{ success: boolean }>('/kyc/send-aadhaar-otp', {

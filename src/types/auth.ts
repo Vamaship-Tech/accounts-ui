@@ -21,7 +21,7 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   email: string
-  password: string
+  password?: string
   firstName: string
   lastName: string
   mobile: string
@@ -36,6 +36,25 @@ export interface LoginResponse {
 export interface AuthResponse {
   user: User
   token: string
+}
+
+// Response returned by social auth endpoint which only returns token
+export interface SocialAuthResponse {
+  token: string
+}
+
+export interface SocialAuthRequest {
+  first_name: string | null
+  last_name: string | null
+  email: string
+  password: string | null
+  mobile_no: string | null
+  reference?: string | null
+  utm_medium?: string | null
+  utm_campaign?: string | null
+  utm_source?: string | null
+  logged_in_using: 'google'
+  calling_code: string | null
 }
 
 // Updated KYC interfaces for new flow

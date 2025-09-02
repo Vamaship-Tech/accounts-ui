@@ -50,7 +50,7 @@ const router = createRouter({
       path: '/signup/details',
       name: 'signup-details',
       component: UserDetailsView,
-      meta: { requiresGuest: true, requiresMobileSession: true }
+      meta: { requiresMobileSession: true }
     },
     {
       path: '/signup/kyc',
@@ -116,7 +116,7 @@ router.beforeEach(async (to, from, next) => {
         return
       } else {
         // Redirect to details step
-        next('/signup/details')
+        next({ path: '/signup/details', query: { social: '1' } })
         return
       }
     }
@@ -130,7 +130,7 @@ router.beforeEach(async (to, from, next) => {
         return
       } else if (authStore.user?.onboardingStatus === 'mobile_verified') {
         // User has only completed mobile verification, redirect to details step
-        next('/signup/details')
+        next({ path: '/signup/details', query: { social: '1' } })
         return
       }
       // If user has 'details_completed' status, allow access to KYC page

@@ -107,6 +107,53 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Social login via Google using ID token credential and route params
+  const socialLoginWithGoogle = async (payload: {
+    credential: string
+    reference?: string | null
+    utm_medium?: string | null
+    utm_campaign?: string | null
+    utm_source?: string | null
+  }) => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // Parse JWT to extract profile
+      const profile = parseJwt(payload.credential)
+      const request = {
+        first_name: profile?.name || null,
+        last_name: profile?.name || null,
+        email: profile?.email,
+        password: null,
+        mobile_no: null,
+        reference: payload.reference ?? null,
+        utm_medium: payload.utm_medium ?? null,
+        utm_campaign: payload.utm_campaign ?? null,
+        utm_source: payload.utm_source ?? null,
+        logged_in_using: 'google' as const,
+        calling_code: '91',
+      }
+
+      const { token } = await authService.socialAuth(request)
+      setCookie('auth_token', token, 7)
+
+      await checkAuth()
+
+      // After fetching user, redirect based on onboarding
+      if (user.value) {
+        UserRedirection.redirectBasedOnStatus(user.value)
+      }
+
+      return { success: true }
+    } catch (err: any) {
+      error.value = err?.message || 'Google sign-in failed'
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Submit KYC
   const submitKYC = async (kycData: KYCData) => {
     try {
@@ -193,6 +240,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    socialLoginWithGoogle,
     submitKYC,
     skipKYC,
     forgotPassword,
@@ -224,3 +272,17 @@ function getCookie(name: string): string | null {
 function removeCookie(name: string) {
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`
 } 
+
+// JWT parse helper for social login
+function parseJwt(token: string): any {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    }).join(''))
+    return JSON.parse(jsonPayload)
+  } catch {
+    return {}
+  }
+}

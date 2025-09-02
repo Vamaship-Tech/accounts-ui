@@ -7,7 +7,9 @@ import type {
   KYCData,
   ForgotPasswordData,
   ResetPasswordData,
-  ApiError 
+  ApiError,
+  SocialAuthResponse,
+  SocialAuthRequest 
 } from '@/types/auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -216,6 +218,14 @@ class AuthService {
     return this.request<void>('/reset-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    })
+  }
+
+  // Send Google profile payload to backend social auth
+  async socialAuth(payload: SocialAuthRequest): Promise<SocialAuthResponse> {
+    return this.request<SocialAuthResponse>('/social-auth', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     })
   }
 

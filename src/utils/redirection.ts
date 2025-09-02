@@ -14,7 +14,9 @@ export class UserRedirection {
       case 'mobile_verified':
         // Mobile verified but user not created - shouldn't happen in normal flow
         // Redirect to details step
-        router.push('/signup/details')
+        if (router.currentRoute.value.path !== '/signup/details') {
+          router.push({ path: '/signup/details', query: { social: '1' } })
+        }
         break
 
       case 'details_completed':
@@ -24,7 +26,9 @@ export class UserRedirection {
           this.redirectToMainApp()
         } else {
           // KYC pending, redirect to KYC step
-          router.push('/signup/kyc')
+          if (router.currentRoute.value.path !== '/signup/kyc') {
+            router.push('/signup/kyc')
+          }
         }
         break
 
