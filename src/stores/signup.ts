@@ -98,7 +98,6 @@ export const useSignupStore = defineStore('signup', () => {
     return !!(
       formData.value.fullName.trim() &&
       formData.value.email.trim() &&
-      formData.value.brandName.trim() &&
       (!formData.value.password || formData.value.password.length >= 8) &&
       (!formData.value.password || formData.value.password === formData.value.confirmPassword) &&
       !Object.keys(errors.value).some(key => errors.value[key as keyof SignupErrors])
@@ -283,11 +282,7 @@ export const useSignupStore = defineStore('signup', () => {
       }
     }
 
-    // Brand name validation
-    if (!formData.value.brandName.trim()) {
-      setError('brandName', 'Brand name is required')
-      isValid = false
-    }
+    // Brand name is optional; ensure no error is set
 
     // Password validation (optional for social flow)
     if (formData.value.password) {
@@ -325,7 +320,7 @@ export const useSignupStore = defineStore('signup', () => {
         firstName,
         lastName,
         mobile: formData.value.phone,
-        brandName: formData.value.brandName
+        brandName: formData.value.brandName?.trim() || ''
       }
 
       const response = await signupService.createUser(userData)
@@ -371,7 +366,7 @@ export const useSignupStore = defineStore('signup', () => {
       isLoading.value = true
       const response = await signupService.updateSocialDetails({
         mobile: formData.value.phone,
-        brandName: formData.value.brandName,
+        brandName: formData.value.brandName?.trim() || '',
       })
 
       // const expires = new Date()

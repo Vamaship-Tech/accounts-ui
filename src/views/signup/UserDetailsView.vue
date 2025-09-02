@@ -81,13 +81,21 @@
         <!-- Form panel - full width on mobile, flex-1 on desktop -->
         <div class="bg-white p-6 lg:p-8 w-full lg:flex-1">
           <!-- Mobile-only header with icon and title -->
-          <div class="lg:hidden text-center mb-6">
-
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg mb-3">
-              <i class="fas fa-user-plus text-xl text-white"></i>
+          <div class="lg:hidden mb-6">
+            <div class="relative rounded-xl p-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100">
+              <div class="flex items-center">
+                <div class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-md mr-3">
+                  <i class="fas fa-user-plus text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <h2 class="text-lg font-semibold text-gray-900">Profile Setup</h2>
+                  <p class="text-xs text-gray-600">Tell us a few details to continue</p>
+                </div>
+                <div class="ml-3">
+                  <span class="text-xs font-medium text-indigo-700 bg-white/70 px-2 py-1 rounded-md border border-indigo-200">Step 1 of 2</span>
+                </div>
+              </div>
             </div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-2">Profile Setup</h2>
-            <p class="text-sm text-gray-600">Step 1 of 2</p>
           </div>
 
           <!-- Desktop header -->
@@ -218,7 +226,7 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Brand Name <span class="text-gray-400 font-normal">(optional)</span></label>
               <input
                 v-model="signupStore.formData.brandName"
                 @keyup.enter="nextStep"

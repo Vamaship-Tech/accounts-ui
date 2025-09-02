@@ -228,7 +228,10 @@
           <div v-else>
             <div class="block md:hidden mb-6">
               <div class="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border border-emerald-100 rounded-xl p-4">
-                <h2 class="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">Business Verification</h2>
+                <div class="flex items-center justify-between gap-2">
+                  <h2 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent truncate">Business Verification</h2>
+                  <span class="shrink-0 whitespace-nowrap text-xs font-medium text-emerald-700 bg-white/70 px-2 py-1 rounded-md border border-emerald-200">Step 2 of 2</span>
+                </div>
                 <p class="text-gray-700 mt-1">Complete KYC to unlock advanced features. You can skip for now.</p>
               </div>
             </div>
