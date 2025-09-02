@@ -19,6 +19,10 @@ const router = createRouter({
       redirect: '/login'
     },
     {
+      path: '/sign-up',
+      redirect: (to) => ({ path: '/signup/mobile', query: to.query })
+    },
+    {
       path: '/maintenance',
       name: 'maintenance',
       component: MaintenanceView
@@ -38,7 +42,7 @@ const router = createRouter({
     // New signup flow routes
     {
       path: '/signup',
-      redirect: '/signup/mobile'
+      redirect: (to) => ({ path: '/signup/mobile', query: to.query })
     },
     {
       path: '/signup/mobile',

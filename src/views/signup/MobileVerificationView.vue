@@ -637,7 +637,7 @@ watch(() => signupStore.otpSent, (isSent) => {
 const verifyOtp = async () => {
   const result = await signupStore.verifyMobileOtp()
   if (result.success) {
-    router.push('/signup/details')
+    router.push({ path: '/signup/details', query: route.query })
   }
 }
 

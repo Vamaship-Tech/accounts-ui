@@ -88,10 +88,10 @@
                   <i class="fas fa-user-plus text-white"></i>
                 </div>
                 <div class="flex-1">
-                  <h2 class="text-lg font-semibold text-gray-900">Profile Setup</h2>
-                  <p class="text-xs text-gray-600">Tell us a few details to continue</p>
+                  <h2 class="text-lg font-semibold text-gray-900">{{ isSocialFlow ? 'Verify Mobile Number' : 'Profile Setup' }}</h2>
+                  <p class="text-xs text-gray-600">{{ isSocialFlow ? 'Add your mobile to continue' : 'Tell us a few details to continue' }}</p>
                 </div>
-                <div class="ml-3">
+                <div class="ml-3" v-if="!isSocialFlow">
                   <span class="text-xs font-medium text-indigo-700 bg-white/70 px-2 py-1 rounded-md border border-indigo-200">Step 1 of 2</span>
                 </div>
               </div>
@@ -100,8 +100,8 @@
 
           <!-- Desktop header -->
           <div class="hidden lg:block text-center mb-8">
-            <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-3">Profile Setup</h2>
-            <!-- <p class="text-gray-600">Complete your account details</p> -->
+            <h2 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-1">{{ isSocialFlow ? 'Verify Mobile Number' : 'Profile Setup' }}</h2>
+            <p class="text-gray-600">{{ isSocialFlow ? 'Add your mobile to continue' : 'Complete your account details' }}</p>
           </div>
 
           <div v-if="signupStore.errors.general" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -309,11 +309,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
+import { useAuthStore } from '@/stores/auth'
+import { UserRedirection } from '@/utils/redirection'
 import ProgressIndicator from '@/components/signup/ProgressIndicator.vue'
 
 const router = useRouter()
 const route = useRoute()
 const signupStore = useSignupStore()
+const authStore = useAuthStore()
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -323,6 +326,11 @@ onMounted(() => {
   // Check if we have a valid mobile session
   if (!signupStore.mobileSession) {
     router.push('/signup/mobile')
+  }
+  // Capture invite reference from query for normal flow
+  if (!isSocialFlow.value) {
+    const reference = route.query.reference?.toString() || null
+    signupStore.inviteReference = reference
   }
 })
 
@@ -412,7 +420,12 @@ const nextStep = async () => {
   
   const result = await signupStore.createUser()
   if (result.success) {
-    router.push('/signup/kyc')
+    await authStore.checkAuth()
+    if (authStore.user) {
+      UserRedirection.redirectBasedOnStatus(authStore.user as any)
+    } else {
+      router.push('/signup/kyc')
+    }
   }
 }
 

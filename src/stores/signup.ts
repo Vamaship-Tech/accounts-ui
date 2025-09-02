@@ -45,6 +45,9 @@ export const useSignupStore = defineStore('signup', () => {
     ifscCode: ''
   })
 
+  // Referral/invite reference captured from query and forwarded to backend on user creation
+  const inviteReference = ref<string | null>(null)
+
   const errors = ref<SignupErrors>({})
   const isLoading = ref(false)
   const currentStep = ref<1 | 2 | 3>(1)
@@ -323,7 +326,7 @@ export const useSignupStore = defineStore('signup', () => {
         brandName: formData.value.brandName?.trim() || ''
       }
 
-      const response = await signupService.createUser(userData)
+      const response = await signupService.createUser({ ...userData, reference: inviteReference.value })
       
       const expires = new Date()
       expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000))
@@ -811,6 +814,7 @@ export const useSignupStore = defineStore('signup', () => {
     isPincodeValid,
     isPincodeLoading,
     gstVerificationData,
+    inviteReference,
     
     // Computed
     isOtpComplete,

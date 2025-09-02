@@ -85,8 +85,12 @@ class SignupService {
     })
   }
 
-  async createUser(userData: RegisterData): Promise<AuthResponse> {
-    return this.request<AuthResponse>('/signup/create-user', {
+  async createUser(userData: RegisterData & { reference?: string | null }): Promise<AuthResponse> {
+    const url = new URL(`${API_BASE}/signup/create-user`)
+    if (userData.reference) {
+      url.searchParams.set('reference', userData.reference)
+    }
+    return this.request<AuthResponse>(url.toString().replace(API_BASE, ''), {
       method: 'POST',
       body: JSON.stringify(userData),
     })
