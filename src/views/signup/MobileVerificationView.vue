@@ -245,9 +245,9 @@
                 — in Just a Few Steps
               </p>
             </div>
-            <div class="bg-transparent opacity-60">
-              <video src="/images/worldwide.mp4" alt="Vamaship" class="h-100 w-auto mix-blend-multiply edge-blur" autoplay loop muted playsinline />
-              <!-- <img src="/images/worldwide-unscreen.gif" alt="Vamaship" class="h-100 w-auto" /> -->
+            <div class="bg-transparent">
+              <!-- <video src="/images/worldwide.mp4" alt="Vamaship" class="h-100 w-auto mix-blend-multiply edge-blur" autoplay loop muted playsinline /> -->
+              <img src="/images/smartshipping.png" alt="Vamaship" class="h-200 w-auto" />
             </div>
           </div>
 
