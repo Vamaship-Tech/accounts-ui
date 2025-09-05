@@ -247,7 +247,7 @@
             </div>
             <div class="bg-transparent">
               <!-- <video src="/images/worldwide.mp4" alt="Vamaship" class="h-100 w-auto mix-blend-multiply edge-blur" autoplay loop muted playsinline /> -->
-              <img src="/images/smartshipping.png" alt="Vamaship" class="h-200 w-auto" />
+              <img src="/images/smartshipping1.png" alt="Vamaship" class="h-200 w-auto" />
             </div>
           </div>
 

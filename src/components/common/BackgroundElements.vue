@@ -21,7 +21,7 @@
       :style="{
         backgroundImage: 'linear-gradient(to right, #4B6921 0.8px, transparent 0.8px), linear-gradient(to bottom, #4B6921 0.8px, transparent 0.8px)',
         backgroundSize: '40px 40px',
-        opacity: 0.2,
+        opacity: 0.1,
         maskImage: 'radial-gradient(ellipse at center, white, transparent 85%)',
         WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent 85%)'
       }"
@@ -57,8 +57,8 @@
       :style="{
         left: '33.47610290301976%', 
         top: '70.69586720480747%',
-        width: '500px',
-        height: '500px',
+        width: '600px',
+        height: '600px',
         backgroundColor: '#2d81da',
         opacity: 0.4,
         filter: 'blur(100px)'
