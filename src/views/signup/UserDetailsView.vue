@@ -116,10 +116,10 @@
           <div v-if="showLoginOption" class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
             <div class="text-center">
               <p class="text-blue-800 mb-0 text-sm">
-                The email <strong class="text-blue-900">{{ signupStore.formData.email }}</strong> is already registered with Vamaship.
+                Looks like this invite link is already registered with Vamaship.
                 <button @click="goToLogin" class="ml-1 text-blue-700 hover:text-blue-900 underline text-xs">
                   Login here
-                </button>
+                </button> to get started.
               </p>
             </div>
           </div>
