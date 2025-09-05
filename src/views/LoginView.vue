@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 relative overflow-hidden">
     <BackgroundElements />
 
-    <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12">
+    <div class="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 sm:px-6 lg:px-8 sm:-mt-12">
       <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
         <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
           <div class="flex justify-center mb-4 sm:mb-6">

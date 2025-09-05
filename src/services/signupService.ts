@@ -31,10 +31,13 @@ class SignupService {
       let message = `Request failed: ${response.status}`
       if (raw) {
         try {
-          message = JSON.parse(raw).message || message } catch { message = raw }
+          message = JSON.parse(raw).message || message
+        } catch {
+          message = raw
+        }
       }
       console.log(message)
-      throw new Error('Request failed')
+      throw new Error(message)
     }
 
     if (!raw || response.status === 204 || response.status === 205) {

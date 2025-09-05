@@ -350,7 +350,13 @@ export const useSignupStore = defineStore('signup', () => {
       currentStep.value = 3
       return { success: true, user: response.user, token: response.token }
     } catch (error: any) {
-      setError('general', error.message || 'Failed to create account')
+      const message = (error && error.message) ? String(error.message) : 'Failed to create account'
+      // Map already-registered error to email field for better UX
+      if (/already\s*registered/i.test(message) || /already\s*exists/i.test(message)) {
+        setError('email', message)
+      } else {
+        setError('general', message)
+      }
       return { success: false }
     } finally {
       isLoading.value = false

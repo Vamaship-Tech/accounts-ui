@@ -115,16 +115,12 @@
 
           <div v-if="showLoginOption" class="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-300 rounded-lg">
             <div class="text-center">
-              <p class="text-blue-800 mb-2 text-sm">
+              <p class="text-blue-800 mb-0 text-sm">
                 The email <strong class="text-blue-900">{{ signupStore.formData.email }}</strong> is already registered with Vamaship.
+                <button @click="goToLogin" class="ml-1 text-blue-700 hover:text-blue-900 underline text-xs">
+                  Login here
+                </button>
               </p>
-              <button
-                @click="goToLogin"
-                class="inline-flex items-center px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <i class="fas fa-sign-in-alt mr-1.5 text-xs"></i>
-                Login Here
-              </button>
             </div>
           </div>
 
@@ -164,12 +160,23 @@
 
             <div v-else>
               <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
-              <div class="flex space-x-2 justify-start items-center">
+              <div class="flex space-x-2 justify-start items-center" ref="otpContainerRef">
                 <input 
                   v-for="(digit, index) in signupStore.formData.otp" 
                   :key="index"
+                  :ref="(el) => setOtpInputRef(el, index)"
                   v-model="signupStore.formData.otp[index]"
-                  type="text" 
+                  @input="handleOtpInput(index, $event)"
+                  @keyup="handleOtpKeyup(index, $event)"
+                  @keydown="handleOtpKeydown(index, $event)"
+                  @click="handleOtpClick"
+                  @paste="handleOtpPaste"
+                  @focus="handleOtpFocus"
+                  :data-otp-index="index"
+                  type="tel" 
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  pattern="[0-9]*"
                   class="w-10 h-10 text-center border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-sm bg-white text-gray-900" 
                   maxlength="1"
                 />
@@ -306,7 +313,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '@/stores/signup'
 import { useAuthStore } from '@/stores/auth'
@@ -385,6 +392,13 @@ const handleEmailInput = async (event: Event) => {
   }
 }
 
+// Also surface login CTA if backend returns an already-registered email error
+watch(() => signupStore.errors.email, (val) => {
+  if (val && /already\s*(registered|exists)/i.test(val)) {
+    showLoginOption.value = true
+  }
+})
+
 const validatePassword = () => {
   if (!signupStore.formData.password) {
     signupStore.setError('password', 'Password is required')
@@ -432,4 +446,120 @@ const nextStep = async () => {
 const goToLogin = () => {
   router.push('/login')
 }
+
+// OTP input focus management (mirrors MobileVerificationView)
+const otpInputRefs = ref<HTMLInputElement[]>([])
+const otpContainerRef = ref<HTMLElement | null>(null)
+
+const setOtpInputRef = (el: any, index: number) => {
+  if (el && el.$el) {
+    otpInputRefs.value[index] = el.$el as HTMLInputElement
+  } else if (el) {
+    otpInputRefs.value[index] = el as HTMLInputElement
+  }
+}
+
+const findVisibleOtpInput = (index: number): HTMLInputElement | null => {
+  const candidates = document.querySelectorAll<HTMLInputElement>(`input[data-otp-index='${index}']`)
+  for (const el of Array.from(candidates)) {
+    if (el && el.offsetParent !== null) {
+      return el
+    }
+  }
+  return otpInputRefs.value[index] ?? null
+}
+
+const focusOtpInput = (index: number) => {
+  if (index < 0 || index > 5) return
+  const attemptFocus = () => {
+    const input: HTMLInputElement | null = findVisibleOtpInput(index)
+    if (input) {
+      try {
+        input.focus()
+        input.select()
+      } catch (_) {}
+    }
+  }
+  attemptFocus()
+  nextTick(() => {
+    requestAnimationFrame(() => attemptFocus())
+  })
+}
+
+const handleOtpInput = (index: number, event: Event) => {
+  const target = event.target as HTMLInputElement
+  const value = target.value.replace(/[^0-9]/g, '')
+  signupStore.formData.otp[index] = value
+  if (value && index < 5) {
+    setTimeout(() => {
+      focusOtpInput(index + 1)
+    }, 0)
+  }
+  if (value) {
+    signupStore.clearError('otp')
+  }
+}
+
+const handleOtpClick = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  target.select()
+}
+
+const handleOtpPaste = (event: ClipboardEvent) => {
+  event.preventDefault()
+  const pastedData = event.clipboardData?.getData('text/plain') || ''
+  const numbers = pastedData.replace(/[^0-9]/g, '').slice(0, 6)
+  if (numbers.length > 0) {
+    for (let i = 0; i < Math.min(numbers.length, 6); i++) {
+      signupStore.formData.otp[i] = numbers[i]
+    }
+    const nextEmptyIndex = Math.min(numbers.length, 6)
+    if (nextEmptyIndex < 6) {
+      setTimeout(() => {
+        focusOtpInput(nextEmptyIndex)
+      }, 10)
+    }
+  }
+  signupStore.clearError('otp')
+}
+
+const handleOtpKeydown = (index: number, event: KeyboardEvent) => {
+  if (event.key === 'Backspace') {
+    if (!signupStore.formData.otp[index] && index > 0) {
+      event.preventDefault()
+      focusOtpInput(index - 1)
+    }
+  }
+  if (event.key === 'ArrowRight' && index < 5) {
+    event.preventDefault()
+    focusOtpInput(index + 1)
+  }
+  if (event.key === 'ArrowLeft' && index > 0) {
+    event.preventDefault()
+    focusOtpInput(index - 1)
+  }
+}
+
+const handleOtpKeyup = (index: number, event: KeyboardEvent) => {
+  const target = event.target as HTMLInputElement
+  const value = target.value.replace(/[^0-9]/g, '')
+  if (value && index < 5) {
+    setTimeout(() => {
+      focusOtpInput(index + 1)
+    }, 0)
+  }
+}
+
+const handleOtpFocus = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  target.select()
+}
+
+watch(() => signupStore.otpSent, (isSent) => {
+  if (isSent) {
+    nextTick(() => {
+      focusOtpInput(0)
+    })
+  }
+})
 </script> 
