@@ -9,6 +9,13 @@
             <img src="/images/vamaship-logo.png" alt="Vamaship Logo" style="width: 140px; height: 70px;" />
           </div>
 
+          <div class="text-center mb-4 sm:mb-6">
+            <h1 class="text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              {{ greeting }}
+            </h1>
+            <p class="mt-1 text-xs sm:text-sm text-gray-500">Welcome to Vamaship — sign in to continue.</p>
+          </div>
+
           <div v-if="authStore.error" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
             <div class="flex">
               <div class="flex-shrink-0">
@@ -112,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import GoogleSignIn from '@/components/common/GoogleSignIn.vue'
@@ -133,6 +140,13 @@ const form = reactive<LoginCredentials>({
 const errors = reactive({
   email: '',
   password: ''
+})
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning \uD83D\uDC4B'
+  if (hour < 18) return 'Good afternoon \u2600\uFE0F'
+  return 'Good evening \uD83C\uDF19'
 })
 
 onMounted(() => {
