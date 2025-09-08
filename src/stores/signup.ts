@@ -502,18 +502,11 @@ export const useSignupStore = defineStore('signup', () => {
 
       const response = await signupService.verifyGst(formData.value.gstNumber)
       
-      // Debug: Log the actual response
-      console.log('GST verification response:', response)
-      console.log('Response type:', typeof response)
-      console.log('Response keys:', Object.keys(response || {}))
-      
       // Check if response has result or data property
       const gstData = response.result || (response as any).data || response
-      console.log('Extracted GST data:', gstData)
       
       // Check if we have GST data (either from result/data or directly)
       if (gstData && (gstData.pan || gstData.address)) {
-        console.log('Found valid GST data, proceeding with auto-fill')
         
         // Store the GST verification data
         gstVerificationData.value = gstData
@@ -544,7 +537,6 @@ export const useSignupStore = defineStore('signup', () => {
         gstVerified.value = true
         return { success: true }
       } else {
-        console.log('GST verification failed - no valid data found')
         setError('gstNumber', 'GST verification failed')
         return { success: false }
       }

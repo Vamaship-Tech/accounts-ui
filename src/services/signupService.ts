@@ -8,8 +8,8 @@ import type { RegisterData, AuthResponse } from '@/types/auth'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL
 
-console.log("ENV API BASE URL:", import.meta.env.VITE_API_BASE_URL);
-console.log("All envs:", import.meta.env);
+// console.log("ENV API BASE URL:", import.meta.env.VITE_API_BASE_URL);
+// console.log("All envs:", import.meta.env);
 
 class SignupService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

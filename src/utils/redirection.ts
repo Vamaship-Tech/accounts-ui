@@ -53,7 +53,6 @@ export class UserRedirection {
 
       // Trim trailing slashes from base URL
       const sanitizedBaseUrl = baseUrl.replace(/\/+$/, '')
-console.log(sanitizedBaseUrl)
       // Append token as query param if available
       const url = token
         ? `${sanitizedBaseUrl}?token=${encodeURIComponent(token)}`
