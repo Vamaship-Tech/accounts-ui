@@ -30,7 +30,7 @@ export interface RegisterData {
 
 export interface LoginResponse {
   token: string
-  result: 'completed' | 'kyc_pending' | 'details_pending' | 'mobile_pending'
+  result: User
 }
 
 export interface AuthResponse {
