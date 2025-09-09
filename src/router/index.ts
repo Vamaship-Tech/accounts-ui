@@ -31,7 +31,8 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true },
+      alias: '/sign-in'
     },
     // Banner demo route
     {
