@@ -29,13 +29,13 @@
             </div>
           </div>
 
-          <form @submit.prevent="handleLogin" class="space-y-4 sm:space-y-6">
+          <form @submit.prevent.stop="handleLogin" class="space-y-4 sm:space-y-6">
             <div class="relative">
               <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input 
                 type="email" 
                 v-model="form.email"
-                @keypress="handleKeyPress"
+                @keydown.enter.prevent.stop="handleLogin"
                 :class="[
                   'w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors text-sm sm:text-base',
                   errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
@@ -51,7 +51,7 @@
               <input 
                 type="password" 
                 v-model="form.password"
-                @keypress="handleKeyPress"
+                @keydown.enter.prevent.stop="handleLogin"
                 :class="[
                   'w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors text-sm sm:text-base',
                   errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, computed } from 'vue'
+import { reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import GoogleSignIn from '@/components/common/GoogleSignIn.vue'
@@ -149,15 +149,9 @@ const greeting = computed(() => {
   return 'Good evening \uD83C\uDF19'
 })
 
-onMounted(() => {
-  authStore.clearError()
-})
+// Do not clear error on mount; preserve any error through route refreshes
 
-const handleKeyPress = (event: KeyboardEvent) => {
-  if (event.key === 'Enter') {
-    handleLogin()
-  }
-}
+// Removed unused keypress handler; Enter handling is now inline on inputs
 
 const validateForm = (): boolean => {
   let isValid = true
@@ -188,6 +182,7 @@ const validateForm = (): boolean => {
 }
 
 const handleLogin = async () => {
+  authStore.clearError()
   if (!validateForm()) return
   
   const result = await authStore.login(form)

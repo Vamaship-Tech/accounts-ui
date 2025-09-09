@@ -7,6 +7,7 @@ import type { User, LoginCredentials, RegisterData, KYCData } from '@/types/auth
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const isLoading = ref(false)
+  const isCheckingAuth = ref(false)
   const error = ref<string | null>(null)
   const authCheckError = ref<string | null>(null)
 
@@ -18,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Check authentication status on app start
   const checkAuth = async () => {
     try {
+      isCheckingAuth.value = true
       isLoading.value = true
       error.value = null
       authCheckError.value = null
@@ -45,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
         authCheckError.value = err.message || 'Authentication failed. Please try again.'
       }
     } finally {
+      isCheckingAuth.value = false
       isLoading.value = false
     }
   }
@@ -230,6 +233,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     isLoading,
+    isCheckingAuth,
     error,
     authCheckError,
     isAuthenticated,

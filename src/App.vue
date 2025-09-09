@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- Loading state while checking authentication -->
-    <div v-if="authStore.isLoading" class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div v-if="authStore.isCheckingAuth" class="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <Ripple :size="154" color="#3950cf" speed="1.2s" />
     </div>
 
