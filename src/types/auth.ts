@@ -30,7 +30,19 @@ export interface RegisterData {
 
 export interface LoginResponse {
   token: string
-  result: User
+  result: string
+}
+
+export interface EntitySummary {
+  id: string | number
+  entity_name: string
+  logo?: string | null
+}
+
+export interface MultiEntityLoginResponse {
+  token: string
+  entities: EntitySummary[]
+  result: string
 }
 
 export interface AuthResponse {

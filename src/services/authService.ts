@@ -9,7 +9,8 @@ import type {
   ResetPasswordData,
   ApiError,
   SocialAuthResponse,
-  SocialAuthRequest 
+  SocialAuthRequest,
+  MultiEntityLoginResponse 
 } from '@/types/auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -39,26 +40,28 @@ class AuthService {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        // Try to parse error body for backend-provided message
+        // Try to parse error body for backend-provided message and attach it
         let message = `HTTP error! status: ${response.status}`
+        let parsed: any = null
         try {
-          const data = await response.json()
-          // Common API error shapes
-          if (data?.message) {
-            message = data.message
-          } else if (data?.errors && typeof data.errors === 'object') {
-            const firstKey = Object.keys(data.errors)[0]
-            const firstMsg = Array.isArray(data.errors[firstKey]) ? data.errors[firstKey][0] : data.errors[firstKey]
+          parsed = await response.json()
+          if (parsed?.message) {
+            message = parsed.message
+          } else if (parsed?.errors && typeof parsed.errors === 'object') {
+            const firstKey = Object.keys(parsed.errors)[0]
+            const firstMsg = Array.isArray(parsed.errors[firstKey]) ? parsed.errors[firstKey][0] : parsed.errors[firstKey]
             message = firstMsg || message
           }
         } catch {
-          // Fallback to text if not JSON
           try {
             const text = await response.text()
             if (text) message = text
           } catch {}
         }
-        throw new Error(message)
+        const error = new Error(message) as Error & { status?: number; data?: any }
+        error.status = response.status
+        error.data = parsed
+        throw error
       }
 
       // Handle no-content responses
@@ -89,11 +92,20 @@ class AuthService {
     return null
   }
 
-  async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    })
+  async login(credentials: LoginCredentials): Promise<LoginResponse | MultiEntityLoginResponse> {
+    try {
+      return await this.request<LoginResponse>('/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      })
+    } catch (err: any) {
+      // If backend signals multi-entity with 301/302 (or 4xx) and returns JSON body
+      const data = err?.data
+      if (data && data.token && data.entities) {
+        return data as MultiEntityLoginResponse
+      }
+      throw err
+    }
   }
 
   async register(userData: RegisterData): Promise<AuthResponse> {
@@ -232,6 +244,13 @@ class AuthService {
   async refreshToken(): Promise<{ token: string }> {
     return this.request<{ token: string }>('/refresh', {
       method: 'POST',
+    })
+  }
+
+  async loginToEntity(payload: { token: string; entity_id: string | number }): Promise<{ token: string }> {
+    return this.request<{ token: string }>('/login-to-entity', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     })
   }
 }

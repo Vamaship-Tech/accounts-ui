@@ -10,15 +10,15 @@
             <div class="space-y-2 text-center">
               <!-- Vamaship Logo -->
               <div class="flex justify-start mb-2">
-                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-20 w-auto" />
+                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-16 w-auto" />
               </div>
               
-              <h1 class="text-4xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <h1 class="text-3xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 Start Shipping Smarter
               </h1>
-              <p class="text-xl text-gray-900 font-medium">
+              <!-- <p class="text-xl text-gray-900 font-medium">
                 — in Just a Few Steps
-              </p>
+              </p> -->
             </div>
           </div>
 

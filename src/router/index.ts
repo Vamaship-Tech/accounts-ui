@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { UserRedirection } from '@/utils/redirection'
 import LoginView from '@/views/LoginView.vue'
+import ChooseEntityView from '@/views/ChooseEntityView.vue'
 import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
 import ResetPasswordView from '@/views/ResetPasswordView.vue'
 import MobileVerificationView from '@/views/signup/MobileVerificationView.vue'
@@ -33,6 +34,12 @@ const router = createRouter({
       component: LoginView,
       meta: { requiresGuest: true },
       alias: '/sign-in'
+    },
+    {
+      path: '/choose-entity',
+      name: 'choose-entity',
+      component: ChooseEntityView,
+      meta: { requiresGuest: true }
     },
     // Banner demo route
     {

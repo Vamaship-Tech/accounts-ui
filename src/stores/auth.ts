@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService'
 import { UserRedirection } from '@/utils/redirection'
-import type { User, LoginCredentials, RegisterData, KYCData } from '@/types/auth'
+import type { User, LoginCredentials, RegisterData, KYCData, EntitySummary, MultiEntityLoginResponse, LoginResponse } from '@/types/auth'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -10,6 +11,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isCheckingAuth = ref(false)
   const error = ref<string | null>(null)
   const authCheckError = ref<string | null>(null)
+
+  // Multi-entity temp state
+  const tempEntityToken = ref<string | null>(null)
+  const availableEntities = ref<EntitySummary[] | null>(null)
 
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
@@ -58,19 +63,48 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = true
       error.value = null
       
-      const { token, result } = await authService.login(credentials)
-      
-      // Set JWT token in HTTP-only cookie (handled by backend)
-      setCookie('auth_token', token, 7) // 7 days expiry
-      
+      const res = await authService.login(credentials)
+
+      // Multi-entity branch: backend returns temp token + entities
+      if ((res as MultiEntityLoginResponse).entities) {
+        const multi = res as MultiEntityLoginResponse
+        tempEntityToken.value = multi.token
+        availableEntities.value = multi.entities
+        // Navigate to choose-entity view
+        router.push({ name: 'choose-entity' })
+        return { success: false, error: null }
+      }
+
+      const { token, result } = res as LoginResponse
+      setCookie('auth_token', token, 7)
       await useAuthStore().checkAuth()
-      
-      // Check if user needs redirection based on onboarding status
       UserRedirection.checkAndRedirectOnLogin(String(result))
-      
       return { success: true }
     } catch (err: any) {
       error.value = err.message || 'Login failed'
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Select entity after multi-entity login
+  const selectEntity = async (entityId: string | number) => {
+    try {
+      if (!tempEntityToken.value) throw new Error('Invalid selection token')
+      isLoading.value = true
+      error.value = null
+      const { token } = await authService.loginToEntity({ token: tempEntityToken.value, entity_id: entityId })
+      setCookie('auth_token', token, 7)
+      tempEntityToken.value = null
+      availableEntities.value = null
+      await checkAuth()
+      if (user.value) {
+        UserRedirection.redirectBasedOnStatus(user.value)
+      }
+      return { success: true }
+    } catch (err: any) {
+      error.value = err?.message || 'Failed to select entity'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -236,12 +270,15 @@ export const useAuthStore = defineStore('auth', () => {
     isCheckingAuth,
     error,
     authCheckError,
+    tempEntityToken,
+    availableEntities,
     isAuthenticated,
     isAdmin,
     kycCompleted,
     kycSkipped,
     checkAuth,
     login,
+    selectEntity,
     register,
     logout,
     socialLoginWithGoogle,
