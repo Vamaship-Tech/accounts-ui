@@ -229,7 +229,11 @@ class AuthService {
   async resetPassword(data: ResetPasswordData): Promise<void> {
     return this.request<void>('/reset-password', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        token: data.token,
+        password: data.newPassword,
+        password_confirmation: data.confirmPassword,
+      }),
     })
   }
 
