@@ -77,6 +77,11 @@ export const useSignupStore = defineStore('signup', () => {
   const pincodeData = ref<PincodeData | null>(null)
   const isPincodeValid = ref(false)
   const isPincodeLoading = ref(false)
+
+  // Marketing attribution (captured from route query and forwarded on create-user)
+  const utmSource = ref<string | null>(null)
+  const utmMedium = ref<string | null>(null)
+  const utmCampaign = ref<string | null>(null)
   
   // GST verification data
   const gstVerificationData = ref<{
@@ -326,7 +331,13 @@ export const useSignupStore = defineStore('signup', () => {
         brandName: formData.value.brandName?.trim() || ''
       }
 
-      const response = await signupService.createUser({ ...userData, reference: inviteReference.value })
+      const response = await signupService.createUser({
+        ...userData,
+        reference: inviteReference.value,
+        utm_medium: utmMedium.value ?? undefined,
+        utm_campaign: utmCampaign.value ?? undefined,
+        utm_source: utmSource.value ?? undefined,
+      })
       
       const expires = new Date()
       expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000))
@@ -813,6 +824,9 @@ export const useSignupStore = defineStore('signup', () => {
     isPincodeLoading,
     gstVerificationData,
     inviteReference,
+    utmSource,
+    utmMedium,
+    utmCampaign,
     
     // Computed
     isOtpComplete,

@@ -88,7 +88,12 @@ class SignupService {
     })
   }
 
-  async createUser(userData: RegisterData & { reference?: string | null }): Promise<AuthResponse> {
+  async createUser(userData: RegisterData & {
+    reference?: string | null
+    utm_medium?: string | null
+    utm_campaign?: string | null
+    utm_source?: string | null
+  }): Promise<AuthResponse> {
     const url = new URL(`${API_BASE}/signup/create-user`)
     if (userData.reference) {
       url.searchParams.set('reference', userData.reference)
