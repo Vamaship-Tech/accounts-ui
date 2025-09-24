@@ -218,7 +218,10 @@ export const useSignupStore = defineStore('signup', () => {
       })
       console.log(result, 'result')
       console.log(result.result, 'result.result != 0')
-      if (result.result == 0) return { success: false }
+      if (result.result == 0){
+        setError('otp', 'Invalid OTP. Try again.')
+        return { success: false }
+      } 
 
       // Save mobile session
       SessionManager.saveMobileSession(formData.value.phone, formData.value.countryCode)
