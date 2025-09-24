@@ -216,8 +216,7 @@ export const useSignupStore = defineStore('signup', () => {
         countryCode: formData.value.countryCode,
         otp: otpString
       })
-      console.log(result, 'result')
-      if (!result) return { success: false }
+      if (result.result !== 0) return { success: false }
 
       // Save mobile session
       SessionManager.saveMobileSession(formData.value.phone, formData.value.countryCode)

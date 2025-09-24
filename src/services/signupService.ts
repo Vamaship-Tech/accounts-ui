@@ -73,8 +73,8 @@ class SignupService {
     })
   }
 
-  async verifyMobileOtp(data: OTPVerificationRequest): Promise<{ success: boolean }> {
-    return this.request<{ success: boolean }>('/signup/verify-mobile-otp', {
+  async verifyMobileOtp(data: OTPVerificationRequest): Promise<{ result: number }> {
+    return this.request<{ result: number }>('/signup/verify-mobile-otp', {
       method: 'POST',
       body: JSON.stringify(data),
     })
