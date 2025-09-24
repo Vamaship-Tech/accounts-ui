@@ -211,11 +211,13 @@ export const useSignupStore = defineStore('signup', () => {
       clearErrors()
 
       const otpString = formData.value.otp.join('')
-      await signupService.verifyMobileOtp({
+      const result = await signupService.verifyMobileOtp({
         phone: formData.value.phone,
         countryCode: formData.value.countryCode,
         otp: otpString
       })
+      
+      if (!result) return { success: false }
 
       // Save mobile session
       SessionManager.saveMobileSession(formData.value.phone, formData.value.countryCode)
