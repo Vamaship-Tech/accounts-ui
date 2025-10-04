@@ -16,9 +16,9 @@
               <h1 class="text-3xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 Start Shipping Smarter
               </h1>
-              <!-- <p class="text-xl text-gray-900 font-medium">
+              <p class="text-xl text-gray-900 font-medium">
                 — in Just a Few Steps
-              </p> -->
+              </p>
             </div>
           </div>
 
@@ -458,6 +458,282 @@
         </div>
         <!-- End of Desktop Layout -->
       </div>
+      
+      <!-- Improve Cash Flow Section -->
+      <div class="w-full improve-cash-flow-section hidden sm:block py-16 px-10 bg-whitesmoke relative z-10">
+        <div class="max-w-7xl mx-auto">
+          <!-- Section Header -->
+          <div class="text-center mb-16">
+            <h4 class="text-4xl font-bold text-gray-900 mb-4">Improve Cash Flow & Provide a Premium Buyer Experience</h4>
+            <div class="w-24 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto rounded-full"></div>
+          </div>
+          
+          <!-- Instant COD Remittance Row -->
+          <div class="flex flex-col lg:flex-row items-center justify-center gap-12 mb-20">
+            <div class="lg:w-1/2 text-center">
+              <div class="bg-gradient-to-r from-blue-100 to-indigo-100 p-8 rounded-2xl shadow-lg border border-blue-200">
+                <div class="flex items-center justify-center mb-4">
+                  <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-white text-2xl"></i>
+                  </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 mb-3">Instant COD Remittance</p>
+                <p class="text-sm text-blue-900 leading-relaxed">Get COD payments on same day of delivery.</p>
+              </div>
+            </div>
+            <div class="lg:w-1/2 flex justify-center">
+              <div class="relative">
+                <img src="/images/shopify_page_creatives.png" alt="logo" class="h-40 object-contain" />
+                <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <i class="fas fa-check text-white text-xs"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- WhatsApp NDR Services Row -->
+          <div class="flex flex-col lg:flex-row items-center justify-center gap-12 mb-20">
+            <div class="lg:w-1/2 flex items-end justify-center order-2 lg:order-1">
+              <div class="flex items-end space-x-4">
+                <img src="/images/messaging-mobile.png" alt="alt_img.png" class="h-96 object-contain" />
+                <div class="space-y-2">
+                  <img src="/images/whatsapp_ndr.png" alt="alt_img.png" class="h-24 object-contain" />
+                  <img src="/images/whatsapp_box.png" alt="alt_img.png" class="h-36 object-contain" />
+                </div>
+              </div>
+            </div>
+            <div class="lg:w-1/2 text-center order-1 lg:order-2">
+              <div class="bg-gradient-to-r from-green-100 to-emerald-100 p-8 rounded-2xl shadow-lg border border-green-200">
+                <div class="flex items-center justify-center mb-4">
+                  <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                    <i class="fab fa-whatsapp text-white text-2xl"></i>
+                  </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 mb-3">Whatsapp NDR Services</p>
+                <p class="text-sm text-blue-900 leading-relaxed">Increase your delivery rate to 90% with Whatsapp Integration</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Customized Tracking Page Row -->
+          <div class="flex flex-col lg:flex-row items-center justify-center gap-12">
+            <div class="lg:w-1/2 text-center">
+              <div class="bg-gradient-to-r from-purple-100 to-indigo-100 p-8 rounded-2xl shadow-lg border border-purple-200">
+                <div class="flex items-center justify-center mb-4">
+                  <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-search text-white text-2xl"></i>
+                  </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 mb-3">Customized Tracking Page</p>
+                <p class="text-sm text-blue-900 leading-relaxed">Offer Branded Tracking with Cross-Selling Features</p>
+              </div>
+            </div>
+            <div class="lg:w-1/2 flex justify-center">
+              <div class="relative">
+                <img src="/images/group_26.png" alt="logo" class="h-96 object-contain" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Courier Partners Section -->
+      <div class="w-full courier-partners-section hidden sm:block py-16 px-10 relative z-10" style="background-color: #e8f7fa;">
+        <div class="max-w-7xl mx-auto">
+          <div class="text-center mb-12">
+            <h4 class="text-4xl font-bold text-gray-900 mb-4">Access our wide network of Courier Partners</h4>
+            <div class="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
+          </div>
+          
+          <div class="flex justify-center">
+            <img src="/images/courier_partner_circle.png" alt="Courier Partners Network" class="h-[500px] object-contain" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Why Choose Vamaship Section -->
+      <div class="w-full features-section hidden sm:block py-16 px-10 bg-gray-50 relative z-10">
+        <div class="max-w-7xl mx-auto">
+          <div class="text-center mb-16">
+            <h4 class="text-4xl font-bold text-gray-900 mb-4">Why Choose Vamaship?</h4>
+            <div class="w-24 h-1 bg-gradient-to-r from-green-600 to-blue-600 mx-auto rounded-full"></div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon1.png" alt="Air & Surface B2C" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Air & Surface B2C</h3>
+                <p class="text-gray-600 leading-relaxed">Comprehensive shipping solutions for direct-to-consumer businesses.</p>
+              </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon2.png" alt="Air & Surface B2B" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Air & Surface B2B</h3>
+                <p class="text-gray-600 leading-relaxed">Reliable shipping services tailored for business-to-business needs.</p>
+              </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon3.png" alt="Valuable Shipping" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Valuable Shipping</h3>
+                <p class="text-gray-600 leading-relaxed">Secure and track high-value shipments with confidence.</p>
+              </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon4.png" alt="Instant COD Remittance" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Instant COD Remittance</h3>
+                <p class="text-gray-600 leading-relaxed">Get your cash-on-delivery payments instantly, improving cash flow.</p>
+              </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon5.png" alt="Same Day & Next Day Delivery" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Same Day & Next Day Delivery</h3>
+                <p class="text-gray-600 leading-relaxed">Speed up your delivery process with our expedited shipping options.</p>
+              </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon6.png" alt="Automated NDR Services" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Automated NDR Services</h3>
+                <p class="text-gray-600 leading-relaxed">Reduce manual effort with automated non-delivery reporting services.</p>
+              </div>
+            </div>
+
+            <!-- Feature 7 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon7.png" alt="RTO (Return-to-Origin) Reduction" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">RTO (Return-to-Origin) Reduction</h3>
+                <p class="text-gray-600 leading-relaxed">Reduce RTO rates with WhatsApp Order Confirmation & NDR Messaging.</p>
+              </div>
+            </div>
+
+            <!-- Feature 8 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon8.png" alt="Easy API Integrations" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Easy API Integrations</h3>
+                <p class="text-gray-600 leading-relaxed">Effortlessly integrate with your existing systems for smooth operations.</p>
+              </div>
+            </div>
+
+            <!-- Feature 9 -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+              <div class="text-center">
+                <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                  <img src="/images/features/features_icon9.png" alt="Customized Tracking Page" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Customized Tracking Page</h3>
+                <p class="text-gray-600 leading-relaxed">Provide your customers with a branded and seamless tracking experience.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Store Integration Section -->
+      <div class="w-full store-integration-section hidden sm:block py-16 px-10 bg-white relative z-10">
+        <div class="max-w-7xl mx-auto">
+          <div class="text-center mb-16">
+            <h4 class="text-4xl font-bold text-gray-900 mb-4">Integrate Your Web Store with Just One Click</h4>
+            <div class="w-24 h-1 bg-gradient-to-r from-purple-600 to-pink-600 mx-auto rounded-full"></div>
+          </div>
+          
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+            <!-- Shopify -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/Shopify.png" alt="Shopify" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Shopify</h3>
+              </div>
+            </div>
+
+            <!-- WooCommerce -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/Woocommerce.png" alt="WooCommerce" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">WooCommerce</h3>
+              </div>
+            </div>
+
+            <!-- Amazon -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/Amazon.png" alt="Amazon" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Amazon</h3>
+              </div>
+            </div>
+
+            <!-- Instamojo -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/Instamojo.png" alt="Instamojo" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Instamojo</h3>
+              </div>
+            </div>
+
+            <!-- Unicommerce -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/Unicommerce.png" alt="Unicommerce" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Unicommerce</h3>
+              </div>
+            </div>
+
+            <!-- ZohoCommerce -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 hover:scale-105">
+              <div class="text-center">
+                <div class="w-32 h-32 mx-auto flex items-center justify-center">
+                  <img src="/images/ZohoCommerce.png" alt="ZohoCommerce" class="w-full h-full object-contain" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">ZohoCommerce</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <LogoCloud />
     </div>
   </div>
@@ -695,5 +971,8 @@ const changeNumber = () => {
   mask-repeat: no-repeat;
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
+}
+.bg-whitesmoke {
+  background-color: #f5f5f5;
 }
 </style>
