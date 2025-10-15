@@ -1046,7 +1046,7 @@
             </div>
           </div>
 
-          <!-- Testimonials Section -->
+          <!-- Testimonials Carousel Section -->
           <div class="testimonials-section mt-20">
             <div class="text-center mb-12">
               <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-full text-sm font-medium text-orange-800 mb-6 shadow-lg">
@@ -1061,98 +1061,90 @@
               </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <!-- Testimonial 1 -->
-              <div class="testimonial-card group">
-                <div class="testimonial-content">
-                  <div class="testimonial-quote">
-                    <i class="fas fa-quote-left text-blue-500 text-2xl mb-4"></i>
-                    <p class="text-gray-700 leading-relaxed mb-6">
-                      "Vamaship has revolutionized our shipping process. The instant COD remittance feature has improved our cash flow significantly."
-                    </p>
-                  </div>
-                  <div class="testimonial-author">
-                    <div class="author-avatar">
-                      <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
-                        R
+            <!-- Carousel Container -->
+            <div class="relative max-w-6xl mx-auto">
+              <!-- Navigation Arrows -->
+              <button 
+                @click="prevTestimonial"
+                @mouseenter="stopCarouselAutoPlay"
+                @mouseleave="startCarouselAutoPlay"
+                class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-14 h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-110"
+              >
+                <i class="fas fa-chevron-left text-gray-600 group-hover:text-blue-600 transition-colors duration-300"></i>
+              </button>
+              
+              <button 
+                @click="nextTestimonial"
+                @mouseenter="stopCarouselAutoPlay"
+                @mouseleave="startCarouselAutoPlay"
+                class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-14 h-14 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group hover:scale-110"
+              >
+                <i class="fas fa-chevron-right text-gray-600 group-hover:text-blue-600 transition-colors duration-300"></i>
+              </button>
+
+              <!-- Carousel Content -->
+              <div 
+                ref="carouselContainer"
+                class="overflow-hidden rounded-2xl"
+              >
+                <div 
+                  class="flex transition-transform duration-500 ease-in-out"
+                  :style="{ transform: `translateX(-${currentTestimonialIndex * 100}%)` }"
+                >
+                  <!-- Testimonial Cards -->
+                  <div 
+                    v-for="(testimonial, index) in testimonials" 
+                    :key="testimonial.id"
+                    class="w-full flex-shrink-0 px-4"
+                  >
+                    <div class="testimonial-card group max-w-4xl mx-auto">
+                      <div class="testimonial-content">
+                        <div class="testimonial-quote">
+                          <i :class="`fas fa-quote-left ${testimonial.quoteColor} text-2xl mb-4`"></i>
+                          <p class="text-gray-700 leading-relaxed mb-6 text-lg">
+                            "{{ testimonial.quote }}"
+                          </p>
+                        </div>
+                        <div class="testimonial-author">
+                          <div class="author-avatar">
+                            <div :class="`w-16 h-16 bg-gradient-to-r ${testimonial.color} rounded-full flex items-center justify-center text-white font-bold text-xl`">
+                              {{ testimonial.avatar }}
+                            </div>
+                          </div>
+                          <div class="author-info">
+                            <h4 class="font-semibold text-gray-900 text-lg">{{ testimonial.author }}</h4>
+                            <p class="text-sm text-gray-600">{{ testimonial.position }}</p>
+                            <div class="flex text-yellow-400 mt-2">
+                              <i class="fas fa-star"></i>
+                              <i class="fas fa-star"></i>
+                              <i class="fas fa-star"></i>
+                              <i class="fas fa-star"></i>
+                              <i class="fas fa-star"></i>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div class="author-info">
-                      <h4 class="font-semibold text-gray-900">Aman Singh</h4>
-                      <p class="text-sm text-gray-600">CEO, N-Tech</p>
-                      <div class="flex text-yellow-400 mt-1">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                      </div>
+                      <div class="testimonial-glow"></div>
                     </div>
                   </div>
                 </div>
-                <div class="testimonial-glow"></div>
               </div>
 
-              <!-- Testimonial 2 -->
-              <div class="testimonial-card group">
-                <div class="testimonial-content">
-                  <div class="testimonial-quote">
-                    <i class="fas fa-quote-left text-green-500 text-2xl mb-4"></i>
-                    <p class="text-gray-700 leading-relaxed mb-6">
-                      "The WhatsApp NDR services increased our delivery success rate to 95%. Our customers love the real-time updates."
-                    </p>
-                  </div>
-                  <div class="testimonial-author">
-                    <div class="author-avatar">
-                      <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                        S
-                      </div>
-                    </div>
-                    <div class="author-info">
-                      <h4 class="font-semibold text-gray-900">Aman Singh</h4>
-                      <p class="text-sm text-gray-600">Founder, StyleHub</p>
-                      <div class="flex text-yellow-400 mt-1">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="testimonial-glow"></div>
-              </div>
-
-              <!-- Testimonial 3 -->
-              <div class="testimonial-card group">
-                <div class="testimonial-content">
-                  <div class="testimonial-quote">
-                    <i class="fas fa-quote-left text-purple-500 text-2xl mb-4"></i>
-                    <p class="text-gray-700 leading-relaxed mb-6">
-                      "Integration was seamless. We connected our Shopify store in minutes and started shipping immediately."
-                    </p>
-                  </div>
-                  <div class="testimonial-author">
-                    <div class="author-avatar">
-                      <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
-                        A
-                      </div>
-                    </div>
-                    <div class="author-info">
-                      <h4 class="font-semibold text-gray-900">Aman Patel</h4>
-                      <p class="text-sm text-gray-600">Owner, GadgetZone</p>
-                      <div class="flex text-yellow-400 mt-1">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="testimonial-glow"></div>
+              <!-- Dots Indicator -->
+              <div class="flex justify-center mt-8 space-x-2">
+                <button
+                  v-for="(testimonial, index) in testimonials"
+                  :key="`dot-${testimonial.id}`"
+                  @click="goToTestimonial(index)"
+                  @mouseenter="stopCarouselAutoPlay"
+                  @mouseleave="startCarouselAutoPlay"
+                  :class="[
+                    'w-3 h-3 rounded-full transition-all duration-300',
+                    currentTestimonialIndex === index 
+                      ? 'bg-blue-600 scale-125' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  ]"
+                ></button>
               </div>
             </div>
           </div>
@@ -1189,6 +1181,69 @@ const otpContainerRef = ref<HTMLElement | null>(null)
 // Connection line ref
 const connectionLine = ref<HTMLDivElement | null>(null)
 
+// Carousel state
+const currentTestimonialIndex = ref(0)
+const carouselContainer = ref<HTMLElement | null>(null)
+const autoPlayInterval = ref<number | null>(null)
+
+// Testimonials data
+const testimonials = ref([
+  {
+    id: 1,
+    quote: "Vamaship has revolutionized our shipping process. The instant COD remittance feature has improved our cash flow significantly.",
+    author: "Aman Singh",
+    position: "CEO, N-Tech",
+    avatar: "R",
+    color: "from-blue-500 to-cyan-500",
+    quoteColor: "text-blue-500"
+  },
+  {
+    id: 2,
+    quote: "The WhatsApp NDR services increased our delivery success rate to 95%. Our customers love the real-time updates.",
+    author: "Priya Sharma",
+    position: "Founder, StyleHub",
+    avatar: "P",
+    color: "from-green-500 to-emerald-500",
+    quoteColor: "text-green-500"
+  },
+  {
+    id: 3,
+    quote: "Integration was seamless. We connected our Shopify store in minutes and started shipping immediately.",
+    author: "Aman Patel",
+    position: "Owner, GadgetZone",
+    avatar: "A",
+    color: "from-purple-500 to-indigo-500",
+    quoteColor: "text-purple-500"
+  },
+  {
+    id: 4,
+    quote: "The analytics dashboard gives us insights we never had before. Our shipping costs have reduced by 30%.",
+    author: "Rajesh Kumar",
+    position: "Operations Head, TechMart",
+    avatar: "R",
+    color: "from-orange-500 to-red-500",
+    quoteColor: "text-orange-500"
+  },
+  {
+    id: 5,
+    quote: "Customer support is outstanding. They helped us optimize our shipping strategy within the first week.",
+    author: "Sneha Gupta",
+    position: "Founder, FashionForward",
+    avatar: "S",
+    color: "from-pink-500 to-rose-500",
+    quoteColor: "text-pink-500"
+  },
+  {
+    id: 6,
+    quote: "The multi-carrier approach ensures our packages always reach on time. Reliability is unmatched.",
+    author: "Vikram Singh",
+    position: "CEO, ElectronicsHub",
+    avatar: "V",
+    color: "from-teal-500 to-cyan-500",
+    quoteColor: "text-teal-500"
+  }
+])
+
 onMounted(() => {
   // Initialize from session if available
   signupStore.initializeFromSession()
@@ -1204,7 +1259,47 @@ onMounted(() => {
   
   // Setup counter animations
   setupCounterAnimations()
+  
+  // Setup carousel auto-play
+  startCarouselAutoPlay()
 })
+
+onUnmounted(() => {
+  if (autoPlayInterval.value) {
+    clearInterval(autoPlayInterval.value)
+  }
+})
+
+// Carousel functions
+const nextTestimonial = () => {
+  currentTestimonialIndex.value = (currentTestimonialIndex.value + 1) % testimonials.value.length
+}
+
+const prevTestimonial = () => {
+  currentTestimonialIndex.value = currentTestimonialIndex.value === 0 
+    ? testimonials.value.length - 1 
+    : currentTestimonialIndex.value - 1
+}
+
+const goToTestimonial = (index: number) => {
+  currentTestimonialIndex.value = index
+}
+
+const startCarouselAutoPlay = () => {
+  if (autoPlayInterval.value) {
+    clearInterval(autoPlayInterval.value)
+  }
+  autoPlayInterval.value = setInterval(() => {
+    nextTestimonial()
+  }, 5000) // Change testimonial every 5 seconds
+}
+
+const stopCarouselAutoPlay = () => {
+  if (autoPlayInterval.value) {
+    clearInterval(autoPlayInterval.value)
+    autoPlayInterval.value = null
+  }
+}
 
 // Connection line animation
 const setupScrollAnimation = () => {
@@ -3032,6 +3127,150 @@ const changeNumber = () => {
 
 .testimonial-card:hover .author-info .flex {
   transform: scale(1.05);
+}
+
+/* Carousel Styles */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+/* Navigation Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.carousel-arrow:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-arrow.prev {
+  left: -1rem;
+}
+
+.carousel-arrow.next {
+  right: -1rem;
+}
+
+.carousel-arrow i {
+  font-size: 1.25rem;
+  color: #6b7280;
+  transition: color 0.3s ease;
+}
+
+.carousel-arrow:hover i {
+  color: #2563eb;
+}
+
+/* Dots Indicator */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.carousel-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #d1d5db;
+}
+
+.carousel-dot:hover {
+  background: #9ca3af;
+  transform: scale(1.2);
+}
+
+.carousel-dot.active {
+  background: #2563eb;
+  transform: scale(1.25);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .carousel-arrow {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .carousel-arrow.prev {
+    left: -0.5rem;
+  }
+  
+  .carousel-arrow.next {
+    right: -0.5rem;
+  }
+  
+  .carousel-arrow i {
+    font-size: 1rem;
+  }
+  
+  .testimonial-card {
+    padding: 1.5rem;
+  }
+  
+  .testimonial-quote p {
+    font-size: 1rem;
+  }
+  
+  .author-avatar div {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-arrow {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  .carousel-arrow.prev {
+    left: -0.25rem;
+  }
+  
+  .carousel-arrow.next {
+    right: -0.25rem;
+  }
+  
+  .testimonial-card {
+    padding: 1.25rem;
+  }
 }
 
 /* Responsive Design */
