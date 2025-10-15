@@ -489,9 +489,9 @@
             </div>
             <h4 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
               Improve Cash Flow & Provide a 
-              <span class="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mt-3">
                 Premium Buyer Experience
-              </span>
+              </div>
             </h4>
             <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
               Transform your shipping operations with our cutting-edge solutions designed to boost your business growth
@@ -503,19 +503,19 @@
           <div class="flex flex-col lg:flex-row items-center justify-center gap-8 sm:gap-16 mb-16 sm:mb-24 content-section">
             <div class="lg:w-1/2 text-center lg:text-left">
               <div class="group relative">
-                <div class="absolute -inset-1 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                <div class="absolute -inset-1 bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                 <div class="relative bg-white/80 backdrop-blur-sm p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500">
                   <div class="flex items-center justify-center lg:justify-start mb-6">
-                    <div class="w-20 h-20 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div class="w-20 h-20 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
                       <i class="fas fa-money-bill-wave text-white text-3xl"></i>
                     </div>
                     <div class="ml-4">
-                      <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
                     </div>
                   </div>
                   <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Instant COD Remittance</h3>
                   <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6">Get COD payments on the same day of delivery. No more waiting for weeks to receive your money.</p>
-                  <div class="flex items-center text-green-600 font-semibold">
+                  <div class="flex items-center text-purple-600 font-semibold">
                     <i class="fas fa-clock mr-2"></i>
                     <span>Same Day Processing</span>
                   </div>
@@ -524,10 +524,10 @@
             </div>
             <div class="lg:w-1/2 flex justify-center">
               <div class="relative group">
-                <div class="absolute -inset-4 bg-gradient-to-r from-green-300 to-emerald-300 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
+                <div class="absolute -inset-4 bg-gradient-to-r from-purple-300 to-indigo-300 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
                 <div class="relative">
                   <img src="/images/shopify_page_creatives.png" alt="COD Remittance" class="h-48 object-contain transform group-hover:scale-105 transition duration-500" />
-                  <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div class="absolute -top-3 -right-3 w-8 h-8 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
                     <i class="fas fa-check text-white text-sm"></i>
                   </div>
                 </div>
@@ -729,56 +729,43 @@
                       <!-- Bluedart -->
                       <div class="supplier-item absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-blue-500"></div>
-                          <span class="supplier-name">Bluedart</span>
+                          <img src="/Logistics_Partners_Logos/Bluedart.png" alt="Bluedart" class="supplier-logo" />
                         </div>
                       </div>
                       
                       <!-- Delhivery -->
                       <div class="supplier-item absolute top-1/4 right-0 transform translate-x-1/2 -translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-green-500"></div>
-                          <span class="supplier-name">Delhivery</span>
+                          <img src="/Logistics_Partners_Logos/Delhivery.png" alt="Delhivery" class="supplier-logo" />
                         </div>
                       </div>
                       
                       <!-- Ekart -->
-                      <div class="supplier-item absolute bottom-1/4 right-0 transform translate-x-1/2 translate-y-1/2">
+                      <div class="supplier-item absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-orange-500"></div>
-                          <span class="supplier-name">Ekart</span>
+                          <img src="/Logistics_Partners_Logos/ekart.png" alt="Ekart" class="supplier-logo" />
                         </div>
                       </div>
                       
-                      <!-- Smartr -->
-                      <div class="supplier-item absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-                        <div class="supplier-badge">
-                          <div class="supplier-dot bg-purple-500"></div>
-                          <span class="supplier-name">Smartr</span>
-                        </div>
-                      </div>
                       
                       <!-- Amazon Shipping -->
                       <div class="supplier-item absolute bottom-1/4 left-0 transform -translate-x-1/2 translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-yellow-500"></div>
-                          <span class="supplier-name">Amazon</span>
+                          <img src="/Logistics_Partners_Logos/AmazonShipping.png" alt="Amazon Shipping" class="supplier-logo" />
                         </div>
                       </div>
                       
                       <!-- Xpressbees -->
                       <div class="supplier-item absolute top-1/4 left-0 transform -translate-x-1/2 -translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-red-500"></div>
-                          <span class="supplier-name">Xpressbees</span>
+                          <img src="/Logistics_Partners_Logos/xpressbees.png" alt="Xpressbees" class="supplier-logo" />
                         </div>
                       </div>
                       
                       <!-- Ecom Express -->
-                      <div class="supplier-item absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2">
+                      <div class="supplier-item absolute bottom-1/4 right-0 transform translate-x-1/2 translate-y-1/2">
                         <div class="supplier-badge">
-                          <div class="supplier-dot bg-indigo-500"></div>
-                          <span class="supplier-name">Ecom Express</span>
+                          <img src="/Logistics_Partners_Logos/EcomExpress.png" alt="Ecom Express" class="supplier-logo" />
                         </div>
                       </div>
                     </div>
@@ -943,44 +930,8 @@
           
           <!-- Award-Winning Features Grid -->
           <div class="features-grid-container">
-            <!-- Hero Feature Card -->
-            <div class="hero-feature-card">
-              <div class="hero-card-content">
-                <div class="hero-badge">
-                  <i class="fas fa-crown text-yellow-500 mr-2"></i>
-                  <span>Most Popular</span>
-                </div>
-                <div class="hero-icon-container">
-                  <div class="hero-icon">
-                    <i class="fas fa-money-bill-wave text-4xl text-white"></i>
-                  </div>
-                  <div class="hero-icon-glow"></div>
-                </div>
-                <h3 class="hero-title">Instant COD Remittance</h3>
-                <p class="hero-description">Get your COD payments instantly on the same day of delivery. No more waiting weeks for your money - improve your cash flow and grow your business faster.</p>
-                <div class="hero-stats">
-                  <div class="stat-item">
-                    <span class="stat-number">Same Day</span>
-                    <span class="stat-label">Payment</span>
-                  </div>
-                  <div class="stat-divider"></div>
-                  <div class="stat-item">
-                    <span class="stat-number">90%</span>
-                    <span class="stat-label">Faster</span>
-                  </div>
-                </div>
-                <div class="hero-cta">
-                  <button class="hero-button">
-                    <span>Learn More</span>
-                    <i class="fas fa-arrow-right"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="hero-card-bg"></div>
-            </div>
-
-            <!-- Features Grid -->
-            <div class="features-grid">
+            <!-- 6-Card Grid Layout -->
+            <div class="features-6-grid">
               <!-- Feature 1 -->
               <div class="feature-card feature-card-1">
                 <div class="feature-card-content">
@@ -999,8 +950,30 @@
                 <div class="feature-card-glow"></div>
               </div>
 
-              <!-- Feature 2 -->
-              <div class="feature-card feature-card-2">
+              <!-- Feature 2 - Hero Card -->
+              <div class="feature-card feature-card-2 hero-card-special">
+                <div class="feature-card-content">
+                  <div class="hero-badge">
+                    <i class="fas fa-crown text-yellow-500 mr-2"></i>
+                    <span>Most Popular</span>
+                  </div>
+                  <div class="feature-icon-wrapper">
+                    <div class="feature-icon">
+                      <i class="fas fa-money-bill-wave text-2xl"></i>
+                    </div>
+                    <div class="feature-icon-bg"></div>
+                  </div>
+                  <h4 class="feature-title">Instant COD Remittance</h4>
+                  <p class="feature-description">Get your COD payments instantly on the same day of delivery. No more waiting weeks for your money.</p>
+                  <div class="feature-tag">
+                    <span>Same Day Payment</span>
+                  </div>
+                </div>
+                <div class="feature-card-glow"></div>
+              </div>
+
+              <!-- Feature 3 -->
+              <div class="feature-card feature-card-3">
                 <div class="feature-card-content">
                   <div class="feature-icon-wrapper">
                     <div class="feature-icon">
@@ -1017,8 +990,8 @@
                 <div class="feature-card-glow"></div>
               </div>
 
-              <!-- Feature 3 -->
-              <div class="feature-card feature-card-3">
+              <!-- Feature 4 -->
+              <div class="feature-card feature-card-4">
                 <div class="feature-card-content">
                   <div class="feature-icon-wrapper">
                     <div class="feature-icon">
@@ -1035,8 +1008,8 @@
                 <div class="feature-card-glow"></div>
               </div>
 
-              <!-- Feature 4 -->
-              <div class="feature-card feature-card-4">
+              <!-- Feature 5 -->
+              <div class="feature-card feature-card-5">
                 <div class="feature-card-content">
                   <div class="feature-icon-wrapper">
                     <div class="feature-icon">
@@ -1053,8 +1026,8 @@
                 <div class="feature-card-glow"></div>
               </div>
 
-              <!-- Feature 5 -->
-              <div class="feature-card feature-card-5">
+              <!-- Feature 6 -->
+              <div class="feature-card feature-card-6">
                 <div class="feature-card-content">
                   <div class="feature-icon-wrapper">
                     <div class="feature-icon">
@@ -1066,24 +1039,6 @@
                   <p class="feature-description">Track your shipments in real-time with detailed analytics and performance insights.</p>
                   <div class="feature-tag">
                     <span>Analytics</span>
-                  </div>
-                </div>
-                <div class="feature-card-glow"></div>
-              </div>
-
-              <!-- Feature 6 -->
-              <div class="feature-card feature-card-6">
-                <div class="feature-card-content">
-                  <div class="feature-icon-wrapper">
-                    <div class="feature-icon">
-                      <i class="fas fa-plug text-2xl"></i>
-                    </div>
-                    <div class="feature-icon-bg"></div>
-                  </div>
-                  <h4 class="feature-title">Easy Integration</h4>
-                  <p class="feature-description">Connect your store in under 2 minutes with our one-click integrations.</p>
-                  <div class="feature-tag">
-                    <span>2-Min Setup</span>
                   </div>
                 </div>
                 <div class="feature-card-glow"></div>
@@ -1776,7 +1731,7 @@ const changeNumber = () => {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 0px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 12px;
@@ -1806,6 +1761,14 @@ const changeNumber = () => {
   line-height: 1.2;
   white-space: nowrap;
 }
+
+.supplier-logo {
+  width: 100px;
+  height: 68px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
 
 .inner-orbit {
   animation-timing-function: linear;
@@ -1849,7 +1812,7 @@ const changeNumber = () => {
   }
   
   .supplier-badge {
-    padding: 6px 10px;
+    padding: 14px 18px;
     gap: 3px;
   }
   
@@ -1861,6 +1824,12 @@ const changeNumber = () => {
   .supplier-name {
     font-size: 10px;
   }
+  
+  .supplier-logo {
+    width: 88px;
+    height: 58px;
+  }
+  
   
   .svg-item div {
     width: 10px;
@@ -1879,7 +1848,7 @@ const changeNumber = () => {
   }
   
   .supplier-badge {
-    padding: 4px 8px;
+    padding: 12px 16px;
     gap: 2px;
   }
   
@@ -1891,6 +1860,12 @@ const changeNumber = () => {
   .supplier-name {
     font-size: 9px;
   }
+  
+  .supplier-logo {
+    width: 76px;
+    height: 52px;
+  }
+  
   
   .svg-item div {
     width: 8px;
@@ -2555,6 +2530,66 @@ const changeNumber = () => {
   transform: translateX(4px);
 }
 
+/* 6-Card Grid Layout */
+.features-6-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Hero Card Special Styling */
+.feature-card.hero-card-special {
+  background: rgb(9, 70, 54) !important;
+  transform: scale(1.05);
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.hero-card-special .feature-title {
+  color: white !important;
+  font-size: 1.4rem !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-card-special .feature-description {
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.hero-card-special .feature-icon {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero-card-special .feature-tag span {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
 /* Features Grid */
 .features-grid {
   display: grid;
@@ -2579,22 +2614,7 @@ const changeNumber = () => {
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.9) 0%, 
-    rgba(248, 250, 252, 0.8) 50%,
-    rgba(241, 245, 249, 0.7) 100%
-  );
-  border-radius: inherit;
-  transition: all 0.5s ease;
-  z-index: 1;
-}
+
 
 .feature-card:hover {
   transform: translateY(-12px) scale(1.03);
@@ -2604,13 +2624,7 @@ const changeNumber = () => {
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-.feature-card:hover::before {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 1) 0%, 
-    rgba(248, 250, 252, 0.95) 50%,
-    rgba(241, 245, 249, 0.9) 100%
-  );
-}
+
 
 .feature-card-glow {
   position: absolute;
@@ -3022,6 +3036,12 @@ const changeNumber = () => {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+  .features-6-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  
   .features-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
@@ -3043,6 +3063,12 @@ const changeNumber = () => {
 @media (max-width: 768px) {
   .features-grid-container {
     padding: 0 0.5rem;
+  }
+  
+  .features-6-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 1rem;
   }
   
   .features-grid {
