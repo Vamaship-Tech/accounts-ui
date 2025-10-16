@@ -17,9 +17,6 @@
                 Tired of Overpaying for Shipping?
                 <span class="block text-lg text-gray-600 mt-2" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
               </h1>
-              <p class="text-lg text-gray-900 font-medium text-left">
-                Get instant COD payments + 90% delivery success rate
-              </p>
             </div>
           </div>
 
@@ -216,11 +213,24 @@
                 @googleError="handleGoogleError"
               />
 
-              <!-- Tracking Section -->
-              <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
-                <div class="flex-1 h-px bg-gray-300"></div>
-                <!-- <span class="px-3 text-sm text-gray-500">Track your shipment</span> -->
-                <div class="flex-1 h-px bg-gray-300"></div>
+              <!-- Enhanced Section Divider -->
+              <div v-if="!signupStore.otpSent" class="my-5 max-w-sm mx-auto">
+                <!-- Decorative divider with gradient -->
+                <div class="relative mb-8">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                  </div>
+                  <div class="relative flex justify-center">
+                    <div class="bg-white px-6 py-2 rounded-full border border-gray-200 shadow-sm">
+                      <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-semibold text-gray-700 tracking-wide">OR</span>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
               </div>
               <div v-if="!signupStore.otpSent" class="max-w-sm mx-auto">
                 <TrackingSection />
@@ -243,9 +253,6 @@
                 Tired of Overpaying for Shipping?
                 <span class="block text-2xl text-gray-600 mt-3" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
               </h1>
-              <p class="text-2xl text-gray-900 font-medium text-left">
-                Get instant COD payments + 90% delivery success rate
-              </p>
             </div>
             <div class="bg-transparent">
               <!-- <video src="/images/worldwide.mp4" alt="Vamaship" class="h-100 w-auto mix-blend-multiply edge-blur" autoplay loop muted playsinline /> -->
@@ -449,6 +456,41 @@
                 @googleError="handleGoogleError"
               />
 
+              <!-- Enhanced Section Divider -->
+              <div v-if="!signupStore.otpSent" class="my-8 max-w-sm mx-auto">
+                <!-- Decorative divider with gradient -->
+                <div class="relative">
+                  <div class="absolute inset-0 flex items-center">
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                  </div>
+                  <div class="relative flex justify-center">
+                    <div class="bg-white px-6 py-2 rounded-full border border-gray-200 shadow-sm">
+                      <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-semibold text-gray-700 tracking-wide">OR</span>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Section header with icon and styling -->
+                <!-- <div class="text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
+                  <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Track Your Shipment
+                  </h3>
+                  <p class="text-sm text-gray-600 leading-relaxed">
+                    Already have a tracking number?<br>
+                    <span class="font-medium text-blue-600">Enter it below to get real-time updates</span>
+                  </p>
+                </div> -->
+              </div>
+              
               <!-- Tracking Section -->
               <div v-if="!signupStore.otpSent" class="my-4 mx-auto">
                     <TrackingSection />
@@ -981,7 +1023,7 @@
                     </div>
                     <div class="feature-icon-bg"></div>
                   </div>
-                  <h4 class="feature-title">Secure Shipping</h4>
+                  <h4 class="feature-title">Valuable Shipping</h4>
                   <p class="feature-description">Protect your valuable shipments with insurance and secure handling protocols.</p>
                   <div class="feature-tag">
                     <span>Protected</span>
@@ -1035,10 +1077,10 @@
                     </div>
                     <div class="feature-icon-bg"></div>
                   </div>
-                  <h4 class="feature-title">Real-time Analytics</h4>
-                  <p class="feature-description">Track your shipments in real-time with detailed analytics and performance insights.</p>
+                  <h4 class="feature-title">RTO (Return-to-Origin) Reduction</h4>
+                  <p class="feature-description">Reduce RTO rates with WhatsApp Order Confirmation & NDR Messaging.</p>
                   <div class="feature-tag">
-                    <span>Analytics</span>
+                    <span>RTO Reduction</span>
                   </div>
                 </div>
                 <div class="feature-card-glow"></div>
@@ -1780,29 +1822,11 @@ const changeNumber = () => {
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .connection-line-container {
-    width: 3px;
-  }
-  
-  .connection-start-dot,
-  .connection-middle-dot,
-  .connection-end-dot {
-    width: 10px;
-    height: 10px;
+    display: none; /* Hide connection line on mobile layout */
   }
 }
 
-@media (max-width: 768px) {
-  .connection-line-container {
-    width: 2px;
-  }
-  
-  .connection-start-dot,
-  .connection-middle-dot,
-  .connection-end-dot {
-    width: 8px;
-    height: 8px;
-  }
-}
+/* Connection line is hidden on mobile (max-width: 1024px) so no additional mobile styles needed */
 
 /* Wide Network Animation Styles */
 .supplier-orbit {
@@ -1827,11 +1851,11 @@ const changeNumber = () => {
   align-items: center;
   gap: 4px;
   padding: 0px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* background: rgba(255, 255, 255, 0.95); */
+  /* backdrop-filter: blur(10px); */
+  /* border-radius: 12px; */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
   transition: all 0.3s ease;
 }
 

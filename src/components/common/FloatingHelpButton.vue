@@ -42,7 +42,7 @@
           
           <!-- CTA Buttons -->
           <div class="space-y-2">
-            <button 
+            <!-- <button 
               @click="openWhatsApp"
               class="w-full flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200 group"
             >
@@ -54,7 +54,7 @@
                 <div class="text-xs text-gray-500">Get instant help</div>
               </div>
               <i class="fas fa-arrow-right text-gray-400 group-hover:text-green-500 ml-auto"></i>
-            </button>
+            </button> -->
             
             <button 
               @click="openEmail"
@@ -65,7 +65,7 @@
               </div>
               <div class="text-left">
                 <div class="font-medium text-gray-900 text-sm">Email Support</div>
-                <div class="text-xs text-gray-500">support@vamaship.com</div>
+                <div class="text-xs text-gray-500">sales@vamaship.com</div>
               </div>
               <i class="fas fa-arrow-right text-gray-400 group-hover:text-blue-500 ml-auto"></i>
             </button>
@@ -79,20 +79,20 @@
               </div>
               <div class="text-left">
                 <div class="font-medium text-gray-900 text-sm">Call Us</div>
-                <div class="text-xs text-gray-500">+91 98765 43210</div>
+                <div class="text-xs text-gray-500">+91-22-48972667</div>
               </div>
               <i class="fas fa-arrow-right text-gray-400 group-hover:text-purple-500 ml-auto"></i>
             </button>
           </div>
           
           <!-- Quick Links -->
-          <div class="pt-2 border-t border-gray-100">
+          <!-- <div class="pt-2 border-t border-gray-100">
             <div class="flex space-x-4 text-xs">
               <button @click="openFAQ" class="text-blue-600 hover:text-blue-700 font-medium">FAQ</button>
               <button @click="openDocs" class="text-blue-600 hover:text-blue-700 font-medium">Documentation</button>
               <button @click="openStatus" class="text-blue-600 hover:text-blue-700 font-medium">Status</button>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
