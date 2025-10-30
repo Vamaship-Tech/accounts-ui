@@ -26,6 +26,7 @@ export interface RegisterData {
   lastName: string
   mobile: string
   brandName: string
+  shipment_volume_per_weight?: string
 }
 
 export interface LoginResponse {

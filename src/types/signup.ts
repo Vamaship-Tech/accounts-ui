@@ -60,6 +60,7 @@ export interface SignupFormData {
   fullName: string
   email: string
   brandName: string
+  shipmentVolumePerMonth?: string
   password: string
   confirmPassword: string
   
@@ -96,6 +97,7 @@ export interface SignupErrors {
   fullName?: string
   email?: string
   brandName?: string
+  shipmentVolumePerMonth?: string
   password?: string
   confirmPassword?: string
   aadhaarNumber?: string
