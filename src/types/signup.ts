@@ -61,6 +61,7 @@ export interface SignupFormData {
   email: string
   brandName: string
   password: string
+  shipmentVolumePerMonth?: string
   confirmPassword: string
   
   // Step 3 - KYC
@@ -96,6 +97,7 @@ export interface SignupErrors {
   fullName?: string
   email?: string
   brandName?: string
+  shipmentVolumePerMonth?: string
   password?: string
   confirmPassword?: string
   aadhaarNumber?: string
