@@ -247,6 +247,52 @@
             </div>
 
             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Shipment Volume Per Month <span class="text-gray-400 font-normal">(optional)</span></label>
+              <div class="relative" ref="shipmentDropdownRef">
+                <button
+                  type="button"
+                  @click="isShipmentDropdownOpen = !isShipmentDropdownOpen"
+                  @keydown.escape.stop.prevent="isShipmentDropdownOpen = false"
+                  :class="[
+                    'w-full h-10 px-3 pr-10 border rounded-md text-left bg-white shadow-sm transition-colors duration-150 ease-in-out',
+                    'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400',
+                    'border-gray-300'
+                  ]"
+                >
+                  <span :class="signupStore.formData.shipmentVolumePerMonth ? 'text-gray-900' : 'text-gray-400'">
+                    {{ signupStore.formData.shipmentVolumePerMonth || 'Select shipment volume' }}
+                  </span>
+                </button>
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg :class="['h-4 w-4', isShipmentDropdownOpen ? 'text-blue-500' : 'text-gray-400']" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" />
+                  </svg>
+                </span>
+                <div
+                  v-if="isShipmentDropdownOpen"
+                  class="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden"
+                >
+                  <ul class="max-h-60 overflow-auto py-1">
+                    <li
+                      v-for="opt in shipmentVolumeOptions"
+                      :key="opt"
+                      @click="selectShipmentVolume(opt)"
+                      :class="[
+                        'px-3 py-2 cursor-pointer flex items-center justify-between',
+                        isShipmentSelected(opt) ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                      ]"
+                    >
+                      <span>{{ opt }}</span>
+                      <svg v-if="isShipmentSelected(opt)" class="h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.414 0L3.296 9.47a1 1 0 011.414-1.414l3.045 3.046 6.543-6.543a1 1 0 011.406-.269z" clip-rule="evenodd" />
+                      </svg>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Password <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input
@@ -402,6 +448,33 @@ watch(() => signupStore.errors.email, (val) => {
     showLoginOption.value = true
   }
 })
+
+const isShipmentDropdownOpen = ref(false)
+const shipmentVolumeOptions = [
+  'Less than 500',
+  'Between 500-1500',
+  'More than 1500'
+]
+const shipmentDropdownRef = ref<HTMLElement | null>(null)
+const onDocumentClick = (event: MouseEvent) => {
+  const target = event.target as Node
+  if (shipmentDropdownRef.value && !shipmentDropdownRef.value.contains(target)) {
+    isShipmentDropdownOpen.value = false
+  }
+}
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+})
+onUnmounted(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
+const selectShipmentVolume = (opt: string) => {
+  signupStore.formData.shipmentVolumePerMonth = opt
+  isShipmentDropdownOpen.value = false
+}
+const isShipmentSelected = (opt: string) => {
+  return signupStore.formData.shipmentVolumePerMonth === opt
+}
 
 const validatePassword = () => {
   if (!signupStore.formData.password) {

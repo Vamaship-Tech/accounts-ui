@@ -23,6 +23,7 @@ export const useSignupStore = defineStore('signup', () => {
     fullName: '',
     email: '',
     brandName: '',
+    shipmentVolumePerMonth: '',
     password: '',
     confirmPassword: '',
     aadhaarNumber: '',
@@ -142,6 +143,19 @@ export const useSignupStore = defineStore('signup', () => {
       )
     }
   })
+  const mapShipmentVolume = (label: string | undefined): string | undefined => {
+    if (!label) return undefined
+    switch (label) {
+      case 'Less than 500':
+        return '1-500'
+      case 'Between 500-1500':
+        return '500-1500'
+      case 'More than 1500':
+        return '1500 above'
+      default:
+        return label
+    }
+  }
 
   // Actions
   const clearErrors = () => {
@@ -334,7 +348,8 @@ export const useSignupStore = defineStore('signup', () => {
         firstName,
         lastName,
         mobile: formData.value.phone,
-        brandName: formData.value.brandName?.trim() || ''
+        brandName: formData.value.brandName?.trim() || '',
+        shipment_volume_per_weight: mapShipmentVolume(formData.value.shipmentVolumePerMonth)
       }
 
       const response = await signupService.createUser({
