@@ -1210,6 +1210,7 @@ import SpinnerLoader from '../../components/common/SpinnerLoader.vue'
 import LogoCloud from '../../components/common/LogoCloud.vue'
 import BackgroundElements from '../../components/common/BackgroundElements.vue'
 import FloatingHelpButton from '../../components/common/FloatingHelpButton.vue'
+import { pushGTMEvent, GTMEvents } from '@/utils/gtm'
 
 const router = useRouter()
 const route = useRoute()
@@ -1691,7 +1692,10 @@ const handleGoogleSignIn = async (credential: string) => {
     utm_campaign: route.query.utm_campaign?.toString() ?? null,
     utm_source: route.query.utm_source?.toString() ?? null,
   })
-  if (!res.success) {
+  if (res.success) {
+    // GTM Event: Google plugin signup (only in signup flow)
+    pushGTMEvent(GTMEvents.GOOGLE_PLUGIN_SIGNUP)
+  } else {
     console.error(res.error)
   }
 }

@@ -4,6 +4,7 @@ import { authService } from '@/services/authService'
 import { UserRedirection } from '@/utils/redirection'
 import type { User, LoginCredentials, RegisterData, KYCData, EntitySummary, MultiEntityLoginResponse, LoginResponse } from '@/types/auth'
 import router from '@/router'
+import { pushGTMEvent, GTMEvents } from '@/utils/gtm'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -78,6 +79,10 @@ export const useAuthStore = defineStore('auth', () => {
       const { token, result } = res as LoginResponse
       setCookie('auth_token', token, 7)
       await useAuthStore().checkAuth()
+      
+      // GTM Event: User signin with details (email/password)
+      pushGTMEvent(GTMEvents.USER_SIGNIN_DETAILS)
+      
       UserRedirection.checkAndRedirectOnLogin(String(result))
       return { success: true }
     } catch (err: any) {
@@ -180,6 +185,13 @@ export const useAuthStore = defineStore('auth', () => {
       // After fetching user, redirect based on onboarding
       if (user.value) {
         UserRedirection.redirectBasedOnStatus(user.value)
+      }
+
+      // GTM Event: User signin with Google plugin (only for login flow, not signup)
+      // Signup flow handles its own event in MobileVerificationView
+      const isSignupFlow = router.currentRoute.value.path.includes('/signup')
+      if (!isSignupFlow) {
+        pushGTMEvent(GTMEvents.USER_SIGNIN_GOOGLE_PLUGIN)
       }
 
       return { success: true }

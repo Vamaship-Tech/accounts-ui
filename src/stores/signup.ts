@@ -4,6 +4,7 @@ import { signupService } from '@/services/signupService'
 import { utilityService } from '@/services/utilityService'
 import { SessionManager } from '@/utils/redirection'
 import { useAuthStore } from '@/stores/auth'
+import { pushGTMEvent, GTMEvents } from '@/utils/gtm'
 import type { 
   SignupFormData, 
   SignupErrors, 
@@ -191,6 +192,10 @@ export const useSignupStore = defineStore('signup', () => {
 
       otpSent.value = true
       startOtpCooldown()
+      
+      // GTM Event: Mobile OTP sent
+      pushGTMEvent(GTMEvents.MOBILE_SEND_OTP)
+      
       return { success: true }
     } catch (error: any) {
       setError('general', error.message || 'Failed to send OTP')
@@ -226,6 +231,9 @@ export const useSignupStore = defineStore('signup', () => {
       // Save mobile session
       SessionManager.saveMobileSession(formData.value.phone, formData.value.countryCode)
       mobileSession.value = SessionManager.getMobileSession()
+      
+      // GTM Event: Mobile OTP verified
+      pushGTMEvent(GTMEvents.MOBILE_VERIFY_OTP)
       
       currentStep.value = 2
       return { success: true }
@@ -363,6 +371,9 @@ export const useSignupStore = defineStore('signup', () => {
       // Clear mobile session as user is now authenticated
       SessionManager.clearMobileSession()
       mobileSession.value = null
+      
+      // GTM Event: Lead form basic (user details submitted)
+      pushGTMEvent(GTMEvents.LEAD_FORM_BASIC)
       
       currentStep.value = 3
       return { success: true, user: response.user, token: response.token }
@@ -619,6 +630,9 @@ export const useSignupStore = defineStore('signup', () => {
       const authStore = useAuthStore()
       authStore.updateOnboardingStatus('kyc_completed')
       
+      // GTM Event: Skip KYC
+      pushGTMEvent(GTMEvents.SKIP_KYC)
+      
       return { success: true }
     } catch (error: any) {
       setError('general', error.message || 'Failed to skip KYC')
@@ -692,6 +706,10 @@ export const useSignupStore = defineStore('signup', () => {
       // Update user's onboarding status to indicate KYC is completed
       const authStore = useAuthStore()
       authStore.updateOnboardingStatus('kyc_completed')
+
+      // GTM Events: Company details and entity registration
+      pushGTMEvent(GTMEvents.COMPANY_DETAILS)
+      pushGTMEvent(GTMEvents.ENTITY_REGISTRATION)
 
       return { success: true }
     } catch (error: any) {
