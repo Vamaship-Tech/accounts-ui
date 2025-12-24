@@ -1295,6 +1295,8 @@ onMounted(() => {
   signupStore.utmSource = route.query.utm_source?.toString() || null
   signupStore.utmMedium = route.query.utm_medium?.toString() || null
   signupStore.utmCampaign = route.query.utm_campaign?.toString() || null
+  signupStore.loggedInUsing = route.query.logged_in_using?.toString() || null
+  signupStore.googleAds = route.query.google_ads?.toString() || route.query.gclid?.toString() || null
   
   // Setup SVG scroll animation
   setupScrollAnimation()
