@@ -187,7 +187,10 @@ export const useSignupStore = defineStore('signup', () => {
 
       await signupService.sendMobileOtp({
         phone: formData.value.phone,
-        countryCode: formData.value.countryCode
+        countryCode: formData.value.countryCode,
+        utm_medium: utmMedium.value ?? undefined,
+        utm_source: utmSource.value ?? undefined,
+        utm_campaign: utmCampaign.value ?? undefined,
       })
 
       otpSent.value = true

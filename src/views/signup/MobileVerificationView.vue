@@ -1291,6 +1291,11 @@ onMounted(() => {
   // Initialize from session if available
   signupStore.initializeFromSession()
   
+  // Capture UTM parameters and tracking data from route query for attribution
+  signupStore.utmSource = route.query.utm_source?.toString() || null
+  signupStore.utmMedium = route.query.utm_medium?.toString() || null
+  signupStore.utmCampaign = route.query.utm_campaign?.toString() || null
+  
   // Setup SVG scroll animation
   setupScrollAnimation()
   
