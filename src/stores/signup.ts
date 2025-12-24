@@ -83,6 +83,8 @@ export const useSignupStore = defineStore('signup', () => {
   const utmSource = ref<string | null>(null)
   const utmMedium = ref<string | null>(null)
   const utmCampaign = ref<string | null>(null)
+  const loggedInUsing = ref<string | null>(null)
+  const googleAds = ref<string | null>(null)
   
   // GST verification data
   const gstVerificationData = ref<{
@@ -187,7 +189,10 @@ export const useSignupStore = defineStore('signup', () => {
 
       await signupService.sendMobileOtp({
         phone: formData.value.phone,
-        countryCode: formData.value.countryCode
+        countryCode: formData.value.countryCode,
+        utm_medium: utmMedium.value ?? undefined,
+        utm_source: utmSource.value ?? undefined,
+        utm_campaign: utmCampaign.value ?? undefined,
       })
 
       otpSent.value = true
@@ -351,6 +356,8 @@ export const useSignupStore = defineStore('signup', () => {
         utm_medium: utmMedium.value ?? undefined,
         utm_campaign: utmCampaign.value ?? undefined,
         utm_source: utmSource.value ?? undefined,
+        logged_in_using: loggedInUsing.value ?? "form",
+        google_ads: googleAds.value ?? undefined,
       })
       
       const expires = new Date()
@@ -851,6 +858,8 @@ export const useSignupStore = defineStore('signup', () => {
     utmSource,
     utmMedium,
     utmCampaign,
+    loggedInUsing,
+    googleAds,
     
     // Computed
     isOtpComplete,

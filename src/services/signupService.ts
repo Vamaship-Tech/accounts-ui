@@ -93,6 +93,8 @@ class SignupService {
     utm_medium?: string | null
     utm_campaign?: string | null
     utm_source?: string | null
+    logged_in_using?: string | null
+    google_ads?: string | null
   }): Promise<AuthResponse> {
     const url = new URL(`${API_BASE}/signup/create-user`)
     if (userData.reference) {
