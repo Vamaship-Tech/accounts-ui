@@ -23,8 +23,37 @@
           <div class="space-y-6">
             <!-- Main Form -->
             <div class="bg-white rounded-lg p-8 shadow-lg max-w-md mx-auto min-w-md min-h-[400px]">
-              <h2 class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <!-- Tab Navigation -->
+              <div v-if="!signupStore.otpSent" class="flex mb-6 border-b border-gray-200">
+                <button
+                  @click="activeTab = 'seller'"
+                  :class="[
+                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2',
+                    activeTab === 'seller'
+                      ? 'text-purple-600 border-purple-600'
+                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ]"
+                >
+                  Start Seller Account
+                </button>
+                <button
+                  @click="activeTab = 'track'"
+                  :class="[
+                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2',
+                    activeTab === 'track'
+                      ? 'text-purple-600 border-purple-600'
+                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ]"
+                >
+                  Track Order
+                </button>
+              </div>
               
+              <h2 v-if="activeTab === 'seller' && !signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <h2 v-else-if="signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              
+              <!-- Seller Account Tab Content -->
+              <div v-if="activeTab === 'seller'">
               <div class="space-y-3 max-w-sm mx-auto" v-if="!signupStore.otpSent">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
@@ -100,8 +129,8 @@
                 </div>
               </div>
 
-              <!-- OTP Section -->
-              <div v-if="signupStore.otpSent" class="mt-4 pt-4">
+                <!-- OTP Section -->
+                <div v-if="signupStore.otpSent" class="mt-4 pt-4">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
                   <div class="flex space-x-2 justify-center items-center" ref="otpContainerRef">
@@ -199,40 +228,23 @@
                 </div>
               </div>
 
-              <!-- Google Sign-in -->
-              <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
-                <div class="flex-1 h-px bg-gray-300"></div>
-                <span class="px-3 text-sm text-gray-500">or</span>
-                <div class="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              <GoogleSignIn 
-                v-if="!signupStore.otpSent" 
-                :is-loading="authStore.isLoading"
-                @googleSignIn="handleGoogleSignIn"
-                @googleError="handleGoogleError"
-              />
-
-              <!-- Enhanced Section Divider -->
-              <div v-if="!signupStore.otpSent" class="my-5 max-w-sm mx-auto">
-                <!-- Decorative divider with gradient -->
-                <div class="relative mb-8">
-                  <div class="absolute inset-0 flex items-center">
-                    <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                  </div>
-                  <div class="relative flex justify-center">
-                    <div class="bg-white px-6 py-2 rounded-full border border-gray-200 shadow-sm">
-                      <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm font-semibold text-gray-700 tracking-wide">OR</span>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
+                <!-- Google Sign-in -->
+                <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
+                  <div class="flex-1 h-px bg-gray-300"></div>
+                  <span class="px-3 text-sm text-gray-500">or</span>
+                  <div class="flex-1 h-px bg-gray-300"></div>
                 </div>
-                
+
+                <GoogleSignIn 
+                  v-if="!signupStore.otpSent" 
+                  :is-loading="authStore.isLoading"
+                  @googleSignIn="handleGoogleSignIn"
+                  @googleError="handleGoogleError"
+                />
               </div>
-              <div v-if="!signupStore.otpSent" class="max-w-sm mx-auto">
+              
+              <!-- Track Order Tab Content -->
+              <div v-if="activeTab === 'track' && !signupStore.otpSent" class="max-w-sm mx-auto">
                 <TrackingSection />
               </div>
             </div>
@@ -264,8 +276,37 @@
           <div class="lg:pl-8 my-16">
             <!-- Same form as mobile but with desktop styling -->
             <div class="bg-white rounded-lg p-8 shadow-lg max-w-lg mx-auto lg:ml-auto min-w-lg min-h-[400px]">
-              <h2 class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <!-- Tab Navigation -->
+              <div v-if="!signupStore.otpSent" class="flex mb-6 border-b border-gray-200">
+                <button
+                  @click="activeTab = 'seller'"
+                  :class="[
+                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2',
+                    activeTab === 'seller'
+                      ? 'text-purple-600 border-purple-600'
+                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ]"
+                >
+                  Start Seller Account
+                </button>
+                <button
+                  @click="activeTab = 'track'"
+                  :class="[
+                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2',
+                    activeTab === 'track'
+                      ? 'text-purple-600 border-purple-600'
+                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ]"
+                >
+                  Track Order
+                </button>
+              </div>
               
+              <h2 v-if="activeTab === 'seller' && !signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <h2 v-else-if="signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              
+              <!-- Seller Account Tab Content -->
+              <div v-if="activeTab === 'seller'">
               <div class="space-y-3 max-w-m mx-auto" v-if="!signupStore.otpSent">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
@@ -343,8 +384,8 @@
                 </div>
               </div>
 
-              <!-- OTP Section -->
-              <div v-if="signupStore.otpSent" class="mt-4 flex-1">
+                <!-- OTP Section -->
+                <div v-if="signupStore.otpSent" class="mt-4 flex-1">
                 <div class="mb-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
                   <div class="flex space-x-2 justify-center items-center" ref="otpContainerRef">
@@ -442,58 +483,24 @@
                 </div>
               </div>
 
-              <!-- Google Sign-in -->
-              <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
-                <div class="flex-1 h-px bg-gray-300"></div>
-                <span class="px-3 text-sm text-gray-500">or</span>
-                <div class="flex-1 h-px bg-gray-300"></div>
-              </div>
-
-              <GoogleSignIn 
-                v-if="!signupStore.otpSent" 
-                :is-loading="authStore.isLoading"
-                @googleSignIn="handleGoogleSignIn"
-                @googleError="handleGoogleError"
-              />
-
-              <!-- Enhanced Section Divider -->
-              <div v-if="!signupStore.otpSent" class="my-8 max-w-sm mx-auto">
-                <!-- Decorative divider with gradient -->
-                <div class="relative">
-                  <div class="absolute inset-0 flex items-center">
-                    <div class="w-full h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                  </div>
-                  <div class="relative flex justify-center">
-                    <div class="bg-white px-6 py-2 rounded-full border border-gray-200 shadow-sm">
-                      <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm font-semibold text-gray-700 tracking-wide">OR</span>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
+                <!-- Google Sign-in -->
+                <div v-if="!signupStore.otpSent" class="flex items-center my-4 max-w-sm mx-auto">
+                  <div class="flex-1 h-px bg-gray-300"></div>
+                  <span class="px-3 text-sm text-gray-500">or</span>
+                  <div class="flex-1 h-px bg-gray-300"></div>
                 </div>
-                
-                <!-- Section header with icon and styling -->
-                <!-- <div class="text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
-                  <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  </div>
-                  <h3 class="text-xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Track Your Shipment
-                  </h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Already have a tracking number?<br>
-                    <span class="font-medium text-blue-600">Enter it below to get real-time updates</span>
-                  </p>
-                </div> -->
+
+                <GoogleSignIn 
+                  v-if="!signupStore.otpSent" 
+                  :is-loading="authStore.isLoading"
+                  @googleSignIn="handleGoogleSignIn"
+                  @googleError="handleGoogleError"
+                />
               </div>
               
-              <!-- Tracking Section -->
-              <div v-if="!signupStore.otpSent" class="my-4 mx-auto">
-                    <TrackingSection />
+              <!-- Track Order Tab Content -->
+              <div v-if="activeTab === 'track' && !signupStore.otpSent" class="my-4 mx-auto">
+                <TrackingSection />
               </div>
             </div>
           </div>
@@ -1220,6 +1227,9 @@ const authStore = useAuthStore()
 const isMobileAlreadyRegistered = ref(false)
 const otpInputRefs = ref<HTMLInputElement[]>([])
 const otpContainerRef = ref<HTMLElement | null>(null)
+
+// Tab state
+const activeTab = ref<'seller' | 'track'>('seller')
 
 // Connection line ref
 const connectionLine = ref<HTMLDivElement | null>(null)
