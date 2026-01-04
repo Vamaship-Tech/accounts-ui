@@ -28,7 +28,7 @@
                 <button
                   @click="activeTab = 'seller'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'seller'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -40,7 +40,7 @@
                 <button
                   @click="activeTab = 'track'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'track'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -283,7 +283,7 @@
                 <button
                   @click="activeTab = 'seller'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'seller'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -295,7 +295,7 @@
                 <button
                   @click="activeTab = 'track'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'track'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
