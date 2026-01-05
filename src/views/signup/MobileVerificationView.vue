@@ -13,10 +13,6 @@
                 <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-16 w-auto" />
               </div>
               
-              <h1 class="text-3xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                Tired of Overpaying for Shipping?
-                <span class="block text-lg text-gray-600 mt-2" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
-              </h1>
             </div>
           </div>
 
@@ -28,7 +24,7 @@
                 <button
                   @click="activeTab = 'seller'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'seller'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -40,7 +36,7 @@
                 <button
                   @click="activeTab = 'track'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'track'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -250,6 +246,11 @@
                 <TrackingSection />
               </div>
             </div>
+
+            <h1 class="text-3xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              Tired of Overpaying for Shipping?
+              <span class="block text-lg text-gray-600 mt-2" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
+            </h1>
           </div>
         </div>
 
@@ -283,7 +284,7 @@
                 <button
                   @click="activeTab = 'seller'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'seller'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
@@ -295,7 +296,7 @@
                 <button
                   @click="activeTab = 'track'"
                   :class="[
-                    'flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
+                    'flex-1 py-3 px-4 text-lg font-semibold transition-all duration-200 border-b-2 flex items-center justify-center gap-2',
                     activeTab === 'track'
                       ? 'text-purple-600 border-purple-600'
                       : 'text-gray-500 border-transparent hover:text-gray-700'
