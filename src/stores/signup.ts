@@ -60,6 +60,10 @@ export const useSignupStore = defineStore('signup', () => {
   const aadhaarOtpSent = ref(false)
   const aadhaarOtpCooldown = ref(0)
 
+  // Email verification states
+  const emailMagicLinkSent = ref(false)
+  const emailVerificationCooldown = ref(0)
+
   // Verification states
   const aadhaarVerified = ref(false)
   const panVerified = ref(false)
@@ -277,6 +281,46 @@ export const useSignupStore = defineStore('signup', () => {
       setError('general', error.message || 'Failed to check email')
       return false
     }
+  }
+
+  const sendEmailMagicLink = async (email: string) => {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { success: false }
+    }
+
+    try {
+      // Clear any previous email errors
+      clearError('email')
+
+      const result = await signupService.sendEmailMagicLink(email)
+      
+      // If already sent or successful, mark as sent and clear any errors
+      if (result.success || result.alreadySent) {
+        emailMagicLinkSent.value = true
+        clearError('email') // Clear any error messages
+        if (!result.alreadySent) {
+          startEmailVerificationCooldown()
+        }
+      }
+      
+      return { success: true, alreadySent: result.alreadySent }
+    } catch (error: any) {
+      // Don't set error that blocks user - email verification is optional
+      // Clear any error messages so user can continue
+      clearError('email')
+      // For any errors, fail silently - user can still continue
+      return { success: false }
+    }
+  }
+
+  const startEmailVerificationCooldown = () => {
+    emailVerificationCooldown.value = 60 // 60 seconds cooldown
+    const interval = setInterval(() => {
+      emailVerificationCooldown.value--
+      if (emailVerificationCooldown.value <= 0) {
+        clearInterval(interval as any)
+      }
+    }, 1000)
   }
 
   const validateStep2 = async () => {
@@ -840,6 +884,8 @@ export const useSignupStore = defineStore('signup', () => {
     otpCooldown,
     aadhaarOtpSent,
     aadhaarOtpCooldown,
+    emailMagicLinkSent,
+    emailVerificationCooldown,
     aadhaarVerified,
     panVerified,
     gstVerified,
@@ -876,6 +922,7 @@ export const useSignupStore = defineStore('signup', () => {
     verifyMobileOtp,
     resendMobileOtp,
     checkEmailExists,
+    sendEmailMagicLink,
     validateStep2,
     createUser,
     sendAadhaarOtp,

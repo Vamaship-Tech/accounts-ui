@@ -8,6 +8,7 @@ import ResetPasswordView from '@/views/ResetPasswordView.vue'
 import MobileVerificationView from '@/views/signup/MobileVerificationView.vue'
 import UserDetailsView from '@/views/signup/UserDetailsView.vue'
 import SignupKYCView from '@/views/signup/SignupKYCView.vue'
+import EmailVerificationView from '@/views/EmailVerificationView.vue'
 import BannerDemo from '@/views/BannerDemo.vue'
 import MaintenanceView from '@/views/MaintenanceView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
@@ -69,6 +70,12 @@ const router = createRouter({
       name: 'signup-kyc',
       component: SignupKYCView,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: EmailVerificationView,
+      meta: { requiresGuest: true }
     },
     {
       path: '/forgot-password',
