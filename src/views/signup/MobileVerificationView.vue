@@ -18,7 +18,7 @@
 
           <div class="space-y-6">
             <!-- Main Form -->
-            <div class="bg-white rounded-lg p-8 shadow-lg max-w-md mx-auto min-w-md min-h-[400px]">
+            <div class="bg-white rounded-lg px-8 pb-8 pt-3 shadow-lg max-w-md mx-auto min-w-md min-h-[400px]">
               <!-- Tab Navigation -->
               <div v-if="!signupStore.otpSent" class="flex mb-6 border-b border-gray-200">
                 <button
@@ -278,7 +278,7 @@
           <!-- Right side - Form -->
           <div class="lg:pl-8 my-16">
             <!-- Same form as mobile but with desktop styling -->
-            <div class="bg-white rounded-lg p-8 shadow-lg max-w-lg mx-auto lg:ml-auto min-w-lg min-h-[400px]">
+            <div class="bg-white rounded-lg px-8 pb-8 pt-3 shadow-lg max-w-lg mx-auto lg:ml-auto min-w-lg min-h-[400px]">
               <!-- Tab Navigation -->
               <div v-if="!signupStore.otpSent" class="flex mb-6 border-b border-gray-200">
                 <button

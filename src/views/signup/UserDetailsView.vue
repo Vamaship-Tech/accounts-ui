@@ -223,13 +223,30 @@
               <input
                 v-model="signupStore.formData.email"
                 @input="handleEmailInput"
+                @blur="handleEmailBlur"
                 @keyup.enter="nextStep"
                 type="email"
                 placeholder="Enter your email address"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                :class="{ 'border-red-500': signupStore.errors.email }"
+                :class="{ 'border-red-500': signupStore.errors.email, 'border-green-500': signupStore.emailMagicLinkSent && !signupStore.errors.email }"
               />
-              <p v-if="signupStore.errors.email" class="mt-1 text-sm text-red-600">{{ signupStore.errors.email }}</p>
+              <p v-if="signupStore.errors.email && !signupStore.errors.email.toLowerCase().includes('already') && !signupStore.errors.email.toLowerCase().includes('sent')" class="mt-1 text-sm text-red-600">{{ signupStore.errors.email }}</p>
+              <p v-else-if="signupStore.emailMagicLinkSent || (signupStore.errors.email && (signupStore.errors.email.toLowerCase().includes('already') || signupStore.errors.email.toLowerCase().includes('sent')))" class="mt-1 text-sm text-blue-600">
+                <i class="fas fa-info-circle mr-1"></i>Verification email sent! Please check your inbox and click the magic link to verify your email. You can continue without verification.
+              </p>
+              <p v-else class="mt-1 text-xs text-gray-500">We'll send a verification link to this email (optional)</p>
+              <div v-if="signupStore.emailMagicLinkSent && signupStore.emailVerificationCooldown > 0" class="mt-2">
+                <button
+                  @click="resendMagicLink"
+                  :disabled="signupStore.emailVerificationCooldown > 0 || signupStore.isLoading"
+                  class="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                >
+                  Resend verification email
+                  <span v-if="signupStore.emailVerificationCooldown > 0">
+                    ({{ Math.ceil(signupStore.emailVerificationCooldown / 60) }}m {{ signupStore.emailVerificationCooldown % 60 }}s)
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div>
@@ -396,6 +413,22 @@ const handleEmailInput = async (event: Event) => {
   }
 }
 
+const handleEmailBlur = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const email = target.value
+  
+  // Send magic link email for verification when email input loses focus
+  // This is optional and won't block the user from continuing
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !signupStore.errors.email) {
+    if (!signupStore.emailMagicLinkSent) {
+      // Don't await or show errors - this is optional
+      signupStore.sendEmailMagicLink(email).catch(() => {
+        // Silently fail - user can still continue
+      })
+    }
+  }
+}
+
 // Also surface login CTA if backend returns an already-registered email error
 watch(() => signupStore.errors.email, (val) => {
   if (val && /already\s*(registered|exists)/i.test(val)) {
@@ -449,6 +482,12 @@ const nextStep = async () => {
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const resendMagicLink = async () => {
+  if (signupStore.formData.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupStore.formData.email)) {
+    await signupStore.sendEmailMagicLink(signupStore.formData.email)
+  }
 }
 
 // OTP input focus management (mirrors MobileVerificationView)

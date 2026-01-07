@@ -88,6 +88,30 @@ class SignupService {
     })
   }
 
+  // Email verification with magic link
+  async sendEmailMagicLink(email: string): Promise<{ success: boolean; message?: string; alreadySent?: boolean }> {
+    try {
+      return await this.request<{ success: boolean; message?: string }>('/signup/send-email-magic-link', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      })
+    } catch (error: any) {
+      // Handle 403 or other errors - check if it's because link was already sent
+      const errorMessage = error.message?.toLowerCase() || ''
+      if (errorMessage.includes('already') || errorMessage.includes('sent') || error.status === 403) {
+        return { success: true, alreadySent: true, message: 'Magic link has already been sent' }
+      }
+      throw error
+    }
+  }
+
+  async verifyEmailMagicLink(token: string): Promise<{ success: boolean; message?: string }> {
+    return this.request<{ success: boolean; message?: string }>('/signup/verify-email-magic-link', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    })
+  }
+
   async createUser(userData: RegisterData & {
     reference?: string | null
     utm_medium?: string | null
