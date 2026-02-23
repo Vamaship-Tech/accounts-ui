@@ -91,8 +91,19 @@
                   <h2 class="text-lg font-semibold text-gray-900">{{ isSocialFlow ? 'Verify Mobile Number' : 'Profile Setup' }}</h2>
                   <p class="text-xs text-gray-600">{{ isSocialFlow ? 'Add your mobile to continue' : 'Tell us a few details to continue' }}</p>
                 </div>
-                <div class="ml-3" v-if="!isSocialFlow">
-                  <span class="text-xs font-medium text-indigo-700 bg-white/70 px-2 py-1 rounded-md border border-indigo-200">Step 1 of 2</span>
+                <div class="ml-3 flex items-center gap-2">
+                  <div v-if="!isSocialFlow">
+                    <span class="text-xs font-medium text-indigo-700 bg-white/70 px-2 py-1 rounded-md border border-indigo-200">Step 1 of 2</span>
+                  </div>
+                  <button 
+                    v-if="isSocialFlow"
+                    @click="handleLogout"
+                    class="text-xs text-gray-600 hover:text-gray-800 underline"
+                    type="button"
+                    title="Logout"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </div>
@@ -197,7 +208,16 @@
               </div>
             </div>
 
-            
+            <!-- Logout option for social flow -->
+            <div class="text-center pt-2">
+              <button 
+                @click="handleLogout"
+                class="text-sm text-gray-600 hover:text-gray-800 underline transition-colors"
+                type="button"
+              >
+                Cancel and Logout
+              </button>
+            </div>
           </div>
 
           <div v-else class="space-y-3 lg:space-y-4">
@@ -449,6 +469,21 @@ const nextStep = async () => {
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    // Clear signup store state
+    signupStore.resetForm()
+    // Redirect to login
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Even if logout fails, clear local state and redirect
+    signupStore.resetForm()
+    router.push('/login')
+  }
 }
 
 // OTP input focus management (mirrors MobileVerificationView)
