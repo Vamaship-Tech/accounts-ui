@@ -82,6 +82,16 @@ const router = createRouter({
       component: ResetPasswordView,
       meta: { requiresGuest: true }
     },
+    // Legacy /redirection route - redirects to /login for backward compatibility
+    // Handles both /redirection and //redirection (double slash)
+    {
+      path: '/redirection',
+      redirect: (to) => ({ path: '/login', query: to.query })
+    },
+    {
+      path: '//redirection',
+      redirect: (to) => ({ path: '/login', query: to.query })
+    },
     // 404 catch-all (must be last)
     {
       path: '/:pathMatch(.*)*',
@@ -95,6 +105,12 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   try {
+    // Normalize double slashes in path (e.g., //redirection -> /redirection)
+    if (to.path.includes('//')) {
+      const normalizedPath = to.path.replace(/\/+/g, '/')
+      return next({ path: normalizedPath, query: to.query, hash: to.hash })
+    }
+    
     // Global maintenance guard: if enabled, redirect to maintenance (except when already there)
     const maintenanceEnabled = (import.meta.env.VITE_MAINTENANCE_MODE || '').toString().toLowerCase() === 'true'
     if (maintenanceEnabled && to.path !== '/maintenance') {
