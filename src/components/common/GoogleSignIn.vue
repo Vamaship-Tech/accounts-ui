@@ -49,6 +49,10 @@ const isScriptReady = ref(false)
 const isAuthInProgress = ref(false)
 const googleButtonContainer = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | null = null
+let isRendering = false
+let hasRendered = false
+let resizeTimeout: ReturnType<typeof setTimeout> | null = null
+let isInitialized = false
 
 const getDesiredWidth = (): number => {
   const container = googleButtonContainer.value
@@ -62,8 +66,15 @@ const isBusy = computed(() => props.isLoading || isAuthInProgress.value || !isSc
 const isDisabled = isBusy
 
 const renderGoogleButton = () => {
+  // Prevent multiple simultaneous renders
+  if (isRendering) return
+  if (!googleButtonContainer.value) return
+  
+  // Only render once - don't re-render on resize to prevent infinite loops
+  if (hasRendered) return
+  
   try {
-    if (!googleButtonContainer.value) return
+    isRendering = true
     // Clear previous render to adjust width
     while (googleButtonContainer.value.firstChild) {
       googleButtonContainer.value.removeChild(googleButtonContainer.value.firstChild)
@@ -77,21 +88,29 @@ const renderGoogleButton = () => {
       shape: 'rectangular',
       width: getDesiredWidth()
     })
+    hasRendered = true
   } catch (e) {
     emit('googleError', 'Failed to render Google button')
+  } finally {
+    isRendering = false
   }
 }
 
 const initGoogle = () => {
+  // Prevent multiple initializations
+  if (isInitialized) return
+  
   if (!googleClientId) {
     emit('googleError', 'Google client ID is not configured')
     return
   }
   // @ts-expect-error google comes from GIS script
   if (window.google?.accounts?.id) {
+    isInitialized = true
     // @ts-expect-error google comes from GIS script
     window.google.accounts.id.initialize({
       client_id: googleClientId,
+      use_fedcm_for_prompt: false, // Disable FedCM to prevent infinite retry loops
       callback: (response: any) => {
         isAuthInProgress.value = false
         const credential = response?.credential
@@ -106,13 +125,8 @@ const initGoogle = () => {
     // Wait for the container to be in DOM, then render the official button
     nextTick(() => {
       renderGoogleButton()
-      // Re-render on container resize to keep width in sync
-      if (googleButtonContainer.value && 'ResizeObserver' in window) {
-        resizeObserver = new ResizeObserver(() => {
-          renderGoogleButton()
-        })
-        resizeObserver.observe(googleButtonContainer.value)
-      }
+      // Don't use ResizeObserver - it causes infinite loops when renderButton fails
+      // The button width is set once and doesn't need to be updated on resize
     })
   } else {
     emit('googleError', 'Google Identity Services is not available on window')
@@ -156,18 +170,27 @@ const handleGoogleSignIn = () => {
     window.google.accounts.id.cancel()
     // @ts-expect-error google comes from GIS script
     window.google.accounts.id.disableAutoSelect()
-    // @ts-expect-error google comes from GIS script
-    window.google.accounts.id.prompt((notification: any) => {
-      // If dismissed or failed, reset loading
-      if (
-        notification?.isNotDisplayed() ||
-        notification?.isSkippedMoment() ||
-        // Handle explicit dismiss (close button/X) so user can retry
-        notification?.isDismissedMoment?.()
-      ) {
+    
+    // Add a small delay to avoid FedCM conflicts
+    setTimeout(() => {
+      try {
+        // @ts-expect-error google comes from GIS script
+        window.google.accounts.id.prompt((notification: any) => {
+          // If dismissed or failed, reset loading
+          if (
+            notification?.isNotDisplayed() ||
+            notification?.isSkippedMoment() ||
+            // Handle explicit dismiss (close button/X) so user can retry
+            notification?.isDismissedMoment?.()
+          ) {
+            isAuthInProgress.value = false
+          }
+        })
+      } catch (e) {
         isAuthInProgress.value = false
+        emit('googleError', 'Failed to initiate Google sign-in')
       }
-    })
+    }, 100)
   } catch (e) {
     isAuthInProgress.value = false
     emit('googleError', 'Failed to initiate Google sign-in')
@@ -178,6 +201,10 @@ onBeforeUnmount(() => {
   if (resizeObserver && googleButtonContainer.value) {
     resizeObserver.unobserve(googleButtonContainer.value)
   }
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout)
+  }
   resizeObserver = null
+  resizeTimeout = null
 })
 </script> 
