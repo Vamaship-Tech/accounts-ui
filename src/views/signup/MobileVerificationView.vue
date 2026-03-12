@@ -248,8 +248,8 @@
             </div>
 
             <h1 class="text-3xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              Tired of Overpaying for Shipping?
-              <span class="block text-lg text-gray-600 mt-2" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
+              {{ heroContent.h1 }}
+              <span class="block text-lg text-gray-600 mt-2" style="-webkit-text-fill-color: initial;">{{ heroContent.span }}</span>
             </h1>
           </div>
         </div>
@@ -265,13 +265,13 @@
               </div>
               
               <h1 class="text-5xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                Tired of Overpaying for Shipping?
-                <span class="block text-2xl text-gray-600 mt-3" style="-webkit-text-fill-color: initial;">Cut costs by 40% with Vamaship</span>
+                {{ heroContent.h1 }}
+                <span class="block text-2xl text-gray-600 mt-3" style="-webkit-text-fill-color: initial;">{{ heroContent.span }}</span>
               </h1>
             </div>
-            <div class="bg-transparent">
+            <div class="bg-transparent !mt-0">
               <!-- <video src="/images/worldwide.mp4" alt="Vamaship" class="h-100 w-auto mix-blend-multiply edge-blur" autoplay loop muted playsinline /> -->
-              <img src="/images/smartshipping1.png" alt="Vamaship" class="h-200 w-auto" />
+              <img :src="heroContent.image" alt="Vamaship" class="h-300 w-auto object-contain" />
             </div>
           </div>
 
@@ -1212,7 +1212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { ref, onMounted, nextTick, watch, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useSignupStore } from '../../stores/signup'
 import { useAuthStore } from '../../stores/auth'
@@ -1235,6 +1235,45 @@ const otpContainerRef = ref<HTMLElement | null>(null)
 
 // Tab state
 const activeTab = ref<'seller' | 'track'>('seller')
+
+// Hero content based on utm_param
+const heroContent = computed(() => {
+  const utmParam = route.query.utm_param?.toString()
+  
+  const contentMap: Record<string, { h1: string; span: string; image: string }> = {
+    flatrate_instcod: {
+      h1: 'No RTO Charges. Same-day COD at ₹0.',
+      span: 'Ship at flat rates, pay only for forward shipping, and get faster COD settlements.',
+      image: '/images/Web_Hero_Img_2.png'
+    },
+    reduce_rto: {
+      h1: 'Reduce RTO by 30% with WhatsApp.',
+      span: 'Confirm COD orders before dispatch and resolve delivery failures with WhatsApp NDR alerts.',
+      image: '/images/Web_Hero_Img_6.png'
+    },
+    sdd_ndd: {
+      h1: 'Same Day & Next Day Delivery.',
+      span: 'Deliver Same Day within metro cities & Next Day across major cities in India.',
+      image: '/images/Web_Hero_Img_5.png'
+    },
+    instant_cod: {
+      h1: 'COD Payout in Hours, Not Days.',
+      span: 'Receive your COD remittance within hours after delivery and keep your cashflow moving.',
+      image: '/images/Web_Hero_Img_4.png'
+    },
+    no_weight_disputes: {
+      h1: 'No More Weight Disputes.',
+      span: 'Get charged at flat weight and pay only for what you ship, with no surprise charges.',
+      image: '/images/Web_Hero_Img_3.png'
+    }
+  }
+  
+  return contentMap[utmParam || ''] || {
+    h1: 'Tired of Overpaying for Shipping?',
+    span: 'Cut costs by up to 40% with Vamaship',
+    image: '/images/Web_Hero_Img_1.png'
+  }
+})
 
 // Connection line ref
 const connectionLine = ref<HTMLDivElement | null>(null)
