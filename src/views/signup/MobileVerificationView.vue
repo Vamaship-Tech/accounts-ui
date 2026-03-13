@@ -10,7 +10,7 @@
             <div class="space-y-4 text-center">
               <!-- Vamaship Logo -->
               <div class="flex justify-start mb-4">
-                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-16 w-auto" />
+                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-12 w-auto" />
               </div>
               
             </div>
@@ -261,10 +261,10 @@
             <div class="space-y-4">
               <!-- Vamaship Logo -->
               <div class="flex justify-start mb-6">
-                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-24 w-auto" />
+                <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-20 w-auto" />
               </div>
               
-              <h1 class="text-5xl font-bold leading-tight pb-2 text-left" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <h1 class="text-5xl font-bold leading-tight pb-2 text-left !pt-5" style="background: linear-gradient(135deg, #293773 0%, #6A5ACD 50%, #6A5ACD 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
                 {{ heroContent.h1 }}
                 <span class="block text-2xl text-gray-600 mt-3" style="-webkit-text-fill-color: initial;">{{ heroContent.span }}</span>
               </h1>
@@ -1236,9 +1236,9 @@ const otpContainerRef = ref<HTMLElement | null>(null)
 // Tab state
 const activeTab = ref<'seller' | 'track'>('seller')
 
-// Hero content based on utm_param
+// Hero content based on utm_campaign
 const heroContent = computed(() => {
-  const utmParam = route.query.utm_param?.toString()
+  const utmParam = route.query.utm_campaign?.toString()
   
   const contentMap: Record<string, { h1: string; span: string; image: string }> = {
     flatrate_instcod: {
