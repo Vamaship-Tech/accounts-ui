@@ -43,12 +43,18 @@
                   ]"
                 >
                   <i class="fas fa-shopping-cart"></i>
-                  <span>Are you a Buyer?</span>
+                  <span>Track Your Order</span>
                 </button>
               </div>
               
-              <h2 v-if="activeTab === 'seller' && !signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
-              <h2 v-else-if="signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <template v-if="activeTab === 'seller' && !signupStore.otpSent">
+                <h2 class="text-xl font-semibold text-gray-900 mb-1 text-center">Create your Seller Account</h2>
+                <p class="text-sm text-gray-500 mb-6 text-center">For businesses shipping orders with Vamaship</p>
+              </template>
+              <template v-else-if="signupStore.otpSent">
+                <h2 class="text-xl font-semibold text-gray-900 mb-1 text-center">Create your Seller Account</h2>
+                <p class="text-sm text-gray-500 mb-6 text-center">For businesses shipping orders with Vamaship</p>
+              </template>
               
               <!-- Seller Account Tab Content -->
               <div v-if="activeTab === 'seller'">
@@ -56,6 +62,30 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                   <div class="relative">
+                    <div
+                      v-if="showTrackTooltip && !signupStore.otpSent"
+                      class="absolute -top-2 left-20left-20 -translate-y-full bg-gray-900 text-white text-xs rounded px-2 py-1 shadow z-10"
+                      role="tooltip"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span>
+                          Track your order?
+                          <a
+                            href="https://vamaship.co/"
+                            target="_blank"
+                            rel="noopener"
+                            class="underline text-blue-200 hover:text-white"
+                          >Track here →</a>
+                        </span>
+                        <button
+                          type="button"
+                          @click="dismissTrackTooltip"
+                          class="text-white/80 hover:text-white leading-none"
+                          aria-label="Close tracking tooltip"
+                        >x</button>
+                      </div>
+                      <span class="absolute left-4 top-full w-2 h-2 bg-gray-900 transform rotate-45"></span>
+                    </div>
                     <input 
                       v-model="signupStore.formData.phone"
                       @input="handlePhoneInput"
@@ -303,12 +333,18 @@
                   ]"
                 >
                   <i class="fas fa-shopping-cart"></i>
-                  <span>Are you a Buyer?</span>
+                  <span>Track Your Order</span>
                 </button>
               </div>
               
-              <h2 v-if="activeTab === 'seller' && !signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
-              <h2 v-else-if="signupStore.otpSent" class="text-xl font-semibold text-gray-900 mb-6 text-center">Start your seller account!</h2>
+              <template v-if="activeTab === 'seller' && !signupStore.otpSent">
+                <h2 class="text-xl font-semibold text-gray-900 mb-1 text-center">Create your Seller Account</h2>
+                <p class="text-sm text-gray-500 mb-6 text-center">For businesses shipping orders with Vamaship</p>
+              </template>
+              <template v-else-if="signupStore.otpSent">
+                <h2 class="text-xl font-semibold text-gray-900 mb-1 text-center">Create your Seller Account</h2>
+                <p class="text-sm text-gray-500 mb-6 text-center">For businesses shipping orders with Vamaship</p>
+              </template>
               
               <!-- Seller Account Tab Content -->
               <div v-if="activeTab === 'seller'">
@@ -316,6 +352,30 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                   <div class="relative">
+                    <div
+                      v-if="showTrackTooltip && !signupStore.otpSent"
+                      class="absolute -top-2 left-28 -translate-y-full bg-gray-900 text-white text-xs rounded px-2 py-1 shadow z-10"
+                      role="tooltip"
+                    >
+                      <div class="flex items-center gap-2">
+                        <span>
+                          Looking to track your order?
+                          <a
+                            href="https://vamaship.co/"
+                            target="_blank"
+                            rel="noopener"
+                            class="underline text-blue-200 hover:text-white"
+                          >Track here →</a>
+                        </span>
+                        <button
+                          type="button"
+                          @click="dismissTrackTooltip"
+                          class="text-white/80 hover:text-white leading-none"
+                          aria-label="Close tracking tooltip"
+                        >x</button>
+                      </div>
+                      <span class="absolute left-4 top-full w-2 h-2 bg-gray-900 transform rotate-45"></span>
+                    </div>
                     <input 
                       v-model="signupStore.formData.phone"
                       @input="handlePhoneInput"
@@ -1232,6 +1292,8 @@ const authStore = useAuthStore()
 const isMobileAlreadyRegistered = ref(false)
 const otpInputRefs = ref<HTMLInputElement[]>([])
 const otpContainerRef = ref<HTMLElement | null>(null)
+const showTrackTooltip = ref(false)
+const isTrackTooltipDismissed = ref(false)
 
 // Tab state
 const activeTab = ref<'seller' | 'track'>('seller')
@@ -1620,6 +1682,17 @@ const handlePhoneInput = (event: Event) => {
   signupStore.formData.phone = value
   isMobileAlreadyRegistered.value = false
   signupStore.clearError('phone')
+  if (value.length === 0) {
+    isTrackTooltipDismissed.value = false
+    showTrackTooltip.value = false
+    return
+  }
+  showTrackTooltip.value = !isTrackTooltipDismissed.value
+}
+
+const dismissTrackTooltip = () => {
+  isTrackTooltipDismissed.value = true
+  showTrackTooltip.value = false
 }
 
 const sendOtp = async () => {
