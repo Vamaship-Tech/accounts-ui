@@ -18,7 +18,7 @@
 
           <div class="flex flex-col items-center text-center">
             <!-- Brand -->
-            <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-10 mb-6" />
+            <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-12 w-auto mb-6" />
 
             <!-- Status pill -->
             <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-300/40 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">

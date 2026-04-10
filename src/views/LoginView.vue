@@ -6,7 +6,7 @@
       <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto">
         <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
           <div class="flex justify-center mb-4 sm:mb-6">
-            <img src="/images/vamaship-logo.png" alt="Vamaship Logo" style="width: 140px; height: 70px;" />
+            <img src="/images/vamaship-logo.png" alt="Vamaship Logo" style="width: 180px; height: auto;" />
           </div>
 
           <div class="text-center mb-4 sm:mb-6">

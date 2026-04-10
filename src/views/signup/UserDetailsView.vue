@@ -12,7 +12,7 @@
     
     <div class="w-full lg:w-3/5 relative z-10">
       <div class="mb-4 lg:hidden">
-          <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-16 mx-auto" />
+          <img src="/images/vamaship-logo.png" alt="Vamaship" class="h-12 mx-auto" />
         </div>
       <div class="flex shadow-2xl border border-gray-200 rounded-2xl overflow-hidden">
         
