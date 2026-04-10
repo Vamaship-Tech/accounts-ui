@@ -594,12 +594,17 @@ export const useSignupStore = defineStore('signup', () => {
       clearError('accountNumber')
       clearError('ifscCode')
 
-      await signupService.verifyBank({
+      const bankResponse = await signupService.verifyBank({
         accountNumber: formData.value.accountNumber,
         ifscCode: formData.value.ifscCode,
         beneficiaryName: formData.value.beneficiaryName
       })
-      
+
+      if (!bankResponse?.result) {
+        setError('accountNumber', 'Invalid bank details')
+        return { success: false }
+      }
+
       bankVerified.value = true
       
       // Save bank progress

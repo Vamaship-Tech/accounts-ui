@@ -164,8 +164,8 @@ class SignupService {
     accountNumber: string
     ifscCode: string
     beneficiaryName: string
-  }): Promise<{ success: boolean }> {
-    return this.request<{ success: boolean }>('/kyc/verify-bank', {
+  }): Promise<{ result: boolean }> {
+    return this.request<{ result: boolean }>('/kyc/verify-bank', {
       method: 'POST',
       body: JSON.stringify({
         'account_number': bankData.accountNumber,
